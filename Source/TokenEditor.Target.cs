@@ -10,6 +10,6 @@ public class TokenEditorTarget : TargetRules
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V4;
 
-		ExtraModuleNames.AddRange( new string[] { "Token" } );
+		ExtraModuleNames.AddRange( new string[] { "TokenEditor", "TokenBlueprint", "Token" } );
 	}
 }
