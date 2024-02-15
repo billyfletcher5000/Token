@@ -17,4 +17,7 @@ class TOKENEDITOR_API UBlueprintFactoryFunctionLibrary : public UBlueprintFuncti
 public:
 	UFUNCTION(BlueprintPure)
 	static UFactory* CreateBlueprintFactory(const TSubclassOf<UObject> BPClass);
+
+	UFUNCTION(BlueprintPure)
+	static UFactory* CreateDataAssetFactory(const TSubclassOf<UDataAsset> DataAssetClass);
 };

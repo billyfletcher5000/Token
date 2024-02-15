@@ -4,6 +4,7 @@
 #include "BlueprintFactoryFunctionLibrary.h"
 
 #include "CustomBlueprintFactory.h"
+#include "CustomDataAssetFactory.h"
 
 UFactory* UBlueprintFactoryFunctionLibrary::CreateBlueprintFactory(const TSubclassOf<UObject> BPClass)
 {
@@ -13,4 +14,13 @@ UFactory* UBlueprintFactoryFunctionLibrary::CreateBlueprintFactory(const TSubcla
 	CustomBPFactory->ParentClass = BPClass;
 
 	return CustomBPFactory;
+}
+
+UFactory* UBlueprintFactoryFunctionLibrary::CreateDataAssetFactory(const TSubclassOf<UDataAsset> DataAssetClass)
+{
+	UCustomDataAssetFactory* CustomDataAssetFactory = NewObject<UCustomDataAssetFactory>();
+
+	CustomDataAssetFactory->DataAssetClass = DataAssetClass;
+
+	return CustomDataAssetFactory;
 }
