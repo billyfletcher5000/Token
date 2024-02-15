@@ -25,7 +25,9 @@
 			"Type": "UncookedOnly",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"BlueprintGraph"
+				"BlueprintGraph",
+				"Engine",
+				"UnrealEd"
 			]
 		}
 	],
