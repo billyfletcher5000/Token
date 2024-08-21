@@ -1,0 +1,22 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+
+#include "AVDurationSource.generated.h"
+
+/** Please add a class description */
+UCLASS(Blueprintable, BlueprintType)
+class UAVDurationSourceDataAsset : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+};
+
+class TOKEN_API IAVDurationSource
+{
+public:	
+	virtual ~IAVDurationSource() = default;
+
+	virtual double GetDuration() = 0;
+};
