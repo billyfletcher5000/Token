@@ -5,7 +5,7 @@
 
 // Duration Sources
 #include "AVDurationSource.h"
-#include "AVDurationSourceMoodSection.h"
+#include "MoodSection/AVDurationSourceMoodSection.h"
 
 void UAudioVisualSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -24,7 +24,7 @@ void UAudioVisualSubsystem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-TObjectPtr<IAVDurationSource> UAudioVisualSubsystem::CreateDurationSource(UAVDurationSourceDataAsset* DataAsset)
+IAVDurationSource* UAudioVisualSubsystem::CreateDurationSource(UAVDurationSourceDataAsset* DataAsset)
 {
 	const FString& DataAssetClassName = DataAsset->GetClass()->GetName();
 	auto CreateFunc = DurationSourceFactoryMap.Find(DataAssetClassName);

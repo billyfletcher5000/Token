@@ -26,10 +26,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	// End UTickableWorldSubsystem
 
-	TObjectPtr<IAVDurationSource> CreateDurationSource(UAVDurationSourceDataAsset* DataAsset);
+	IAVDurationSource* CreateDurationSource(UAVDurationSourceDataAsset* DataAsset);
 
 private:
 	void RegisterDurationSources();
 
-	TMap<FString, TFunction<TObjectPtr<IAVDurationSource>(UAVDurationSourceDataAsset*)>> DurationSourceFactoryMap;
+	TMap<FString, TFunction<IAVDurationSource* (UAVDurationSourceDataAsset*)>> DurationSourceFactoryMap;
 };

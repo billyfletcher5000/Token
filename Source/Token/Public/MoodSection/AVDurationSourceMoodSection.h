@@ -9,6 +9,8 @@
 
 class UAVTriggerMoodSectionDataAsset;
 
+Expose_TNameOf(UAVDurationSourceMoodSectionDataAsset);
+
 /** Please add a class description */
 UCLASS(Blueprintable, BlueprintType)
 class UAVDurationSourceMoodSectionDataAsset : public UAVDurationSourceDataAsset
@@ -24,7 +26,7 @@ public:
 class AVDurationSourceMoodSection : public IAVDurationSource
 {
 public:
-	static TObjectPtr<AVDurationSourceMoodSection> Create(UAVDurationSourceDataAsset* InDataAsset);
+	static AVDurationSourceMoodSection* Create(UAVDurationSourceDataAsset* InDataAsset);
 	
 	AVDurationSourceMoodSection(UAVDurationSourceMoodSectionDataAsset* InDataAsset);
 	virtual ~AVDurationSourceMoodSection() override;

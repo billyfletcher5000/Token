@@ -66,10 +66,10 @@ public:
 	bool IsStarted() const { return bIsStarted; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TWeakObjectPtr<UAVTransitionInstance> GetTransitionInstance() const { return TransitionInstance; }
+	UAVTransitionInstance* GetTransitionInstance() const { return TransitionInstance.Get(); }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TWeakObjectPtr<AActor> GetTargetActorInstance() const { return TargetActorInstance; }
+	AActor* GetTargetActorInstance() const { return TargetActorInstance.Get(); }
 	
 public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnContractComplete, UAVContractInstance*, Contract);

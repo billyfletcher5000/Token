@@ -1,9 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AVDurationSourceMoodSection.h"
+#include "MoodSection/AVDurationSourceMoodSection.h"
 
-TObjectPtr<AVDurationSourceMoodSection> AVDurationSourceMoodSection::Create(UAVDurationSourceDataAsset* InDataAsset)
+
+AVDurationSourceMoodSection* AVDurationSourceMoodSection::Create(UAVDurationSourceDataAsset* InDataAsset)
 {
 	return new AVDurationSourceMoodSection(static_cast<UAVDurationSourceMoodSectionDataAsset*>(InDataAsset));
 }
