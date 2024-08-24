@@ -71,3 +71,18 @@ private:
 public:
 	static const FName Identifier;
 };
+
+class FCadenceGraphPropertiesTabFactory : public FWorkflowTabFactory
+{
+public:
+	FCadenceGraphPropertiesTabFactory(TSharedPtr<FCadenceGraphApplication> InApplication);
+
+	virtual TSharedRef<SWidget> CreateTabBody(const FWorkflowTabSpawnInfo& Info) const override;
+	virtual FText GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const override;
+
+private:
+	TWeakPtr<FCadenceGraphApplication> Application;
+
+public:
+	static const FName Identifier;
+};

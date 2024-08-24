@@ -45,6 +45,7 @@ FCadenceGraphApplicationMode::FCadenceGraphApplicationMode(TSharedPtr<FCadenceGr
 {
 	Application = InApplication;
 	Tabs.RegisterFactory(MakeShareable(new FCadenceGraphPrimaryTabFactory(InApplication)));
+	Tabs.RegisterFactory(MakeShareable(new FCadenceGraphPropertiesTabFactory(InApplication)));
 
 	TabLayout = FTabManager::NewLayout(LayoutName)
 	->AddArea
@@ -52,10 +53,23 @@ FCadenceGraphApplicationMode::FCadenceGraphApplicationMode(TSharedPtr<FCadenceGr
 		FTabManager::NewPrimaryArea()->SetOrientation(Orient_Vertical)
 		->Split
 		(
-			FTabManager::NewStack()
-			->AddTab
+			FTabManager::NewSplitter()
+			->SetOrientation(Orient_Horizontal)
+			->Split
 			(
+				FTabManager::NewStack()
+				->SetSizeCoefficient(0.75f)
+				->AddTab(
 				FCadenceGraphPrimaryTabFactory::Identifier, ETabState::OpenedTab
+				)
+			)
+			->Split
+			(
+				FTabManager::NewStack()
+				->SetSizeCoefficient(0.25f)
+				->AddTab(
+				FCadenceGraphPropertiesTabFactory::Identifier, ETabState::OpenedTab
+				)
 			)
 		)
 	);
@@ -95,6 +109,38 @@ TSharedRef<SWidget> FCadenceGraphPrimaryTabFactory::CreateTabBody(const FWorkflo
 	TSharedPtr<FCadenceGraphApplication> App = Application.Pin();
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
 
+	return SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				.FillHeight(1.0f)
+				.HAlign(HAlign_Fill)
+				[
+					SNew(STextBlock)
+						.Text(FText::FromString(App->GetWorkingAsset()->ArbitraryData))
+				];	
+}
+
+FText FCadenceGraphPrimaryTabFactory::GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const
+{
+	return FText::FromString(TEXT("A primary view for the graph and whatnot"));
+}
+
+const FName FCadenceGraphPropertiesTabFactory::Identifier = FName(TEXT("FCadenceGraphDetailsTab"));
+
+FCadenceGraphPropertiesTabFactory::FCadenceGraphPropertiesTabFactory(TSharedPtr<FCadenceGraphApplication> InApplication)
+: FWorkflowTabFactory(Identifier, InApplication)
+{
+	Application = InApplication;
+
+	TabLabel = FText::FromString(TEXT("Properties"));
+	ViewMenuDescription = FText::FromString(TEXT("Displays the Properties view of a Cadence Graph"));
+	ViewMenuTooltip = FText::FromString(TEXT("Show the Properties view."));
+}
+
+TSharedRef<SWidget> FCadenceGraphPropertiesTabFactory::CreateTabBody(const FWorkflowTabSpawnInfo& Info) const
+{
+	TSharedPtr<FCadenceGraphApplication> App = Application.Pin();
+	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
+
 	FDetailsViewArgs DetailsViewArgs;
 	{
 		DetailsViewArgs.bHideSelectionTip = true;
@@ -115,7 +161,7 @@ TSharedRef<SWidget> FCadenceGraphPrimaryTabFactory::CreateTabBody(const FWorkflo
 				];	
 }
 
-FText FCadenceGraphPrimaryTabFactory::GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const
+FText FCadenceGraphPropertiesTabFactory::GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const
 {
-	return FText::FromString(TEXT("A primary view for the graph and whatnot"));
+	return FText::FromString(TEXT("Cadence Graph Properties View"));
 }
