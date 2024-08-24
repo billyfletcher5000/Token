@@ -7,6 +7,10 @@
 #include "AVDurationSource.h"
 #include "MoodSection/AVDurationSourceMoodSection.h"
 
+// Triggers
+#include "AVTrigger.h"
+#include "MoodSection/AVTriggerMoodSection.h"
+
 void UAudioVisualSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -37,7 +41,30 @@ IAVDurationSource* UAudioVisualSubsystem::CreateDurationSource(UAVDurationSource
 	return nullptr;
 }
 
+UAVTriggerInstance* UAudioVisualSubsystem::CreateTriggerInstance(UAVTriggerDataAsset* DataAsset)
+{
+	const FString& DataAssetClassName = DataAsset->GetClass()->GetName();
+	auto CreateFunc = TriggerFactoryMap.Find(DataAssetClassName);
+	
+	if(CreateFunc != nullptr)
+	{
+		UAVTriggerInstance* Instance = (*CreateFunc)();
+		if(ensure(Instance))
+		{
+			Instance->Init(DataAsset);
+			return Instance;
+		}
+	}
+
+	return nullptr;
+}
+
 void UAudioVisualSubsystem::RegisterDurationSources()
 {
 	DurationSourceFactoryMap.Add(TNameOf<UAVDurationSourceMoodSectionDataAsset>::GetName(), &AVDurationSourceMoodSection::Create);
+}
+
+void UAudioVisualSubsystem::RegisterTriggerInstances()
+{
+	TriggerFactoryMap.Add(TNameOf<UAVTriggerMoodSectionDataAsset>::GetName(), &UAVTriggerMoodSectionInstance::Create);
 }

@@ -8,7 +8,7 @@ public class Token : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Token" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Token", "AudioMixer" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

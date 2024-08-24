@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Quartz/AudioMixerClockHandle.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "AudioVisualSubsystem.generated.h"
 
+class UAVTriggerDataAsset;
+class UAVTriggerInstance;
 class UAVDurationSourceDataAsset;
 class IAVDurationSource;
 /**
@@ -27,9 +30,21 @@ public:
 	// End UTickableWorldSubsystem
 
 	IAVDurationSource* CreateDurationSource(UAVDurationSourceDataAsset* DataAsset);
+	UAVTriggerInstance* CreateTriggerInstance(UAVTriggerDataAsset* DataAsset);
+
+	UQuartzClockHandle* GetQuartzClockHandle() { return QuartzClockHandle; }
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMoodTrackSectionDelegate, const FGuid&, MoodTrackSectionGUID);
+	FMoodTrackSectionDelegate OnMoodTrackSectionHit;
 
 private:
 	void RegisterDurationSources();
+	void RegisterTriggerInstances();
+
+
+private:
+	UQuartzClockHandle* QuartzClockHandle;
 
 	TMap<FString, TFunction<IAVDurationSource* (UAVDurationSourceDataAsset*)>> DurationSourceFactoryMap;
+	TMap<FString, TFunction<UAVTriggerInstance* ()>> TriggerFactoryMap;
 };
