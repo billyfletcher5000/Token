@@ -12,4 +12,8 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+
+public:
+	static const FName CategoryKey;
+	static const FText CategoryDisplayName;
 };
