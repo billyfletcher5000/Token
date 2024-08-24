@@ -4,11 +4,14 @@
 
 #include "CadenceGraphAssetAction.h"
 #include "IAssetTools.h"
+#include "Interfaces/IPluginManager.h"
+#include "Styling/SlateStyleRegistry.h"
 
 #define LOCTEXT_NAMESPACE "FCadenceEditorModule"
 
 const FName FCadenceEditorModule::CategoryKey = FName(TEXT("Cadence"));
 const FText FCadenceEditorModule::CategoryDisplayName = FText::FromString(TEXT("Cadence"));
+const FName FCadenceEditorModule::StyleSetName = FName(TEXT("CadenceStyle"));
 
 void FCadenceEditorModule::StartupModule()
 {
@@ -20,12 +23,30 @@ void FCadenceEditorModule::StartupModule()
 	// Add Graph
 	TSharedPtr<FCadenceGraphAssetAction> GraphAssetAction = MakeShareable(new FCadenceGraphAssetAction(AssetType));
 	AssetToolsModule.RegisterAssetTypeActions(GraphAssetAction.ToSharedRef());
+
+	// Create Style Set
+	StyleSet = MakeShareable(new FSlateStyleSet(StyleSetName));
+	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin("Cadence");
+	FString ContentDir = Plugin->GetContentDir();
+	StyleSet->SetContentRoot(ContentDir);
+
+	// Add Graph Icons
+	FSlateImageBrush* ThumbnailBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/CadenceGraph_Thumbnail_64x"), TEXT(".png")), FVector2D(64.0, 64.0));
+	FSlateImageBrush* IconBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/CadenceGraph_Icon_64x"), TEXT(".png")), FVector2D(64.0, 64.0));
+	StyleSet->Set(TEXT("ClassThumbnail.CadenceGraph"), ThumbnailBrush);
+	StyleSet->Set(TEXT("ClassIcon.CadenceGraph"), IconBrush);
+
+	// Register Style Set
+	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet);
 }
 
 void FCadenceEditorModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
+
+	// Unregister Style Set
+	FSlateStyleRegistry::UnRegisterSlateStyle(*StyleSet);
 }
 
 #undef LOCTEXT_NAMESPACE

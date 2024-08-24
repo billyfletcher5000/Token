@@ -16,4 +16,8 @@ public:
 public:
 	static const FName CategoryKey;
 	static const FText CategoryDisplayName;
+	static const FName StyleSetName;
+
+private:
+	TSharedPtr<FSlateStyleSet> StyleSet = nullptr;
 };

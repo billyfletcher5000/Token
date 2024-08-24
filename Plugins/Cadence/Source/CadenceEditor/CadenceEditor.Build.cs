@@ -40,7 +40,9 @@ public class CadenceEditor : ModuleRules
 				"SlateCore",
 				"Cadence",
 				"AssetTools",
-				"UnrealEd"
+				"UnrealEd",
+				"PropertyEditor",
+				"Projects"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
