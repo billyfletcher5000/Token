@@ -12,7 +12,16 @@ public class TokenBlueprint : ModuleRules
 	        "BlueprintGraph",
 	        "UnrealEd",
 	        "Slate", 
-	        "SlateCore"
+	        "SlateCore",
+	        "Cadence"
         });
+        
+        if (Target.bBuildEditor)
+        {
+	        PrivateDependencyModuleNames.AddRange(new string[] 
+	        { 
+		        "CadenceEditor"
+	        });
+        }
     }
 }
