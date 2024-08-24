@@ -13,4 +13,14 @@ UCLASS(BlueprintType)
 class CADENCE_API UCadenceGraph : public UObject
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere)
+	FString ArbitraryData = TEXT("Blongobongo!");
+
+	UPROPERTY(EditAnywhere)
+	int32 ArbitraryNumber = 5;
+
+	UPROPERTY(EditAnywhere)
+	bool ArbitraryBool = false;
 };

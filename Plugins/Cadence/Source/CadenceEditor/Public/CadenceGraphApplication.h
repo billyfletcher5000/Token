@@ -8,11 +8,15 @@
 #include "WorkflowOrientedApp/WorkflowTabFactory.h"
 #include "WorkflowOrientedApp/WorkflowTabManager.h"
 
+class UCadenceGraph;
+
 class FCadenceGraphApplication : public FWorkflowCentricApplication, public FEditorUndoClient, public FNotifyHook
 {
 public:
 	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 	void InitEditor(const EToolkitMode::Type InMode, const TSharedPtr<IToolkitHost> InToolkitHost, UObject* InObject);
+
+	UCadenceGraph* GetWorkingAsset() { return WorkingAsset; }
 
 public: // FAssetEditorToolkit
 	virtual FName GetToolkitFName() const override { return ToolkitFName; }
@@ -29,6 +33,9 @@ public:
 	static const FString WorldCentricTabPrefix;
 	static const FLinearColor WorldCentricTabColorScale;
 	static const FString DocumentationLink;
+
+private:
+	UCadenceGraph* WorkingAsset = nullptr;
 };
 
 class FCadenceGraphApplicationMode : public FApplicationMode

@@ -3,6 +3,8 @@
 
 #include "CadenceGraphApplication.h"
 
+#include "CadenceGraph.h"
+
 const FName FCadenceGraphApplication::ToolkitFName = FName(TEXT("CadenceGraphApplication"));
 const FText FCadenceGraphApplication::BaseToolkitName = FText::FromString(TEXT("CadenceGraphApplication"));
 const FString FCadenceGraphApplication::WorldCentricTabPrefix = TEXT("CadenceGraphApplication");
@@ -16,6 +18,8 @@ void FCadenceGraphApplication::RegisterTabSpawners(const TSharedRef<FTabManager>
 
 void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const TSharedPtr<IToolkitHost> InToolkitHost, UObject* InObject)
 {
+	WorkingAsset = Cast<UCadenceGraph>(InObject);
+	
 	TArray<UObject*> ObjectsToEdit;
 	ObjectsToEdit.Add(InObject);
 
@@ -88,7 +92,27 @@ FCadenceGraphPrimaryTabFactory::FCadenceGraphPrimaryTabFactory(TSharedPtr<FCaden
 
 TSharedRef<SWidget> FCadenceGraphPrimaryTabFactory::CreateTabBody(const FWorkflowTabSpawnInfo& Info) const
 {
-	return SNew(STextBlock).Text(FText::FromString(TEXT("This is a test text widget for the primary tab!")));
+	TSharedPtr<FCadenceGraphApplication> App = Application.Pin();
+	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
+
+	FDetailsViewArgs DetailsViewArgs;
+	{
+		DetailsViewArgs.bHideSelectionTip = true;
+		DetailsViewArgs.bSearchInitialKeyFocus = true;
+		DetailsViewArgs.bShowOptions = true;
+		DetailsViewArgs.NotifyHook = nullptr;
+	}
+
+	TSharedPtr<IDetailsView> DetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
+	DetailsView->SetObject(App->GetWorkingAsset());
+
+	return SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				.FillHeight(1.0f)
+				.HAlign(HAlign_Fill)
+				[
+					DetailsView.ToSharedRef()	
+				];	
 }
 
 FText FCadenceGraphPrimaryTabFactory::GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const
