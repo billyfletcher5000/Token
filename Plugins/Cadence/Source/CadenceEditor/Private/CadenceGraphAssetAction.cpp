@@ -1,6 +1,7 @@
 ﻿#include "CadenceGraphAssetAction.h"
 
 #include "CadenceGraph.h"
+#include "CadenceGraphApplication.h"
 
 const FText FCadenceGraphAssetAction::AssetName = FText::FromString(TEXT("Cadence Graph"));
 const FColor FCadenceGraphAssetAction::TypeColor = FColor::Purple;
@@ -28,7 +29,17 @@ UClass* FCadenceGraphAssetAction::GetSupportedClass() const
 void FCadenceGraphAssetAction::OpenAssetEditor(const TArray<UObject*>& InObjects,
 	TSharedPtr<IToolkitHost> EditWithinLevelEditor)
 {
-	FAssetTypeActions_Base::OpenAssetEditor(InObjects, EditWithinLevelEditor);
+	EToolkitMode::Type Mode = EditWithinLevelEditor.IsValid() ? EToolkitMode::WorldCentric : EToolkitMode::Standalone;
+
+	for (UObject* Object : InObjects)
+	{
+		UCadenceGraph* CadenceGraph = Cast<UCadenceGraph>(Object);
+		if(CadenceGraph != nullptr)
+		{
+			TSharedRef<FCadenceGraphApplication> EditorApplication(new FCadenceGraphApplication());
+			EditorApplication->InitEditor(Mode, EditWithinLevelEditor, CadenceGraph);
+		}
+	}
 }
 
 uint32 FCadenceGraphAssetAction::GetCategories()
