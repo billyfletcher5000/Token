@@ -9,6 +9,7 @@
 #include "WorkflowOrientedApp/WorkflowTabManager.h"
 
 class UCadenceGraph;
+class UCadenceGraphEditor;
 
 class FCadenceGraphApplication : public FWorkflowCentricApplication, public FEditorUndoClient, public FNotifyHook
 {
@@ -16,7 +17,8 @@ public:
 	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 	void InitEditor(const EToolkitMode::Type InMode, const TSharedPtr<IToolkitHost> InToolkitHost, UObject* InObject);
 
-	UCadenceGraph* GetWorkingAsset() { return WorkingAsset; }
+	UCadenceGraph* GetWorkingGraph() const { return WorkingGraph; }
+	UCadenceGraphEditor* GetWorkingGraphEditor() const { return WorkingGraphEditor; }
 
 public: // FAssetEditorToolkit
 	virtual FName GetToolkitFName() const override { return ToolkitFName; }
@@ -35,7 +37,8 @@ public:
 	static const FString DocumentationLink;
 
 private:
-	UCadenceGraph* WorkingAsset = nullptr;
+	UCadenceGraph* WorkingGraph = nullptr;
+	UCadenceGraphEditor* WorkingGraphEditor = nullptr;
 };
 
 class FCadenceGraphApplicationMode : public FApplicationMode

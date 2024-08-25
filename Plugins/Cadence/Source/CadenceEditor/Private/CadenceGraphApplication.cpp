@@ -4,6 +4,9 @@
 #include "CadenceGraphApplication.h"
 
 #include "CadenceGraph.h"
+#include "CadenceGraphEditor.h"
+#include "CadenceGraphSchema.h"
+#include "Kismet2/BlueprintEditorUtils.h"
 
 const FName FCadenceGraphApplication::ToolkitFName = FName(TEXT("CadenceGraphApplication"));
 const FText FCadenceGraphApplication::BaseToolkitName = FText::FromString(TEXT("CadenceGraphApplication"));
@@ -18,7 +21,12 @@ void FCadenceGraphApplication::RegisterTabSpawners(const TSharedRef<FTabManager>
 
 void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const TSharedPtr<IToolkitHost> InToolkitHost, UObject* InObject)
 {
-	WorkingAsset = Cast<UCadenceGraph>(InObject);
+	WorkingGraph = Cast<UCadenceGraph>(InObject);
+	ensure(WorkingGraph);
+	
+	UEdGraph* CreatedGraph = FBlueprintEditorUtils::CreateNewGraph(WorkingGraph, NAME_None, UCadenceGraphEditor::StaticClass(), UCadenceGraphSchema::StaticClass());	
+	WorkingGraphEditor = Cast<UCadenceGraphEditor>(CreatedGraph);
+	ensure(WorkingGraphEditor);
 	
 	TArray<UObject*> ObjectsToEdit;
 	ObjectsToEdit.Add(InObject);
@@ -114,8 +122,9 @@ TSharedRef<SWidget> FCadenceGraphPrimaryTabFactory::CreateTabBody(const FWorkflo
 				.FillHeight(1.0f)
 				.HAlign(HAlign_Fill)
 				[
-					SNew(STextBlock)
-						.Text(FText::FromString(App->GetWorkingAsset()->ArbitraryData))
+					SNew(SGraphEditor)
+						.IsEditable(true)
+						.GraphToEdit(App->GetWorkingGraphEditor())
 				];	
 }
 
@@ -150,7 +159,7 @@ TSharedRef<SWidget> FCadenceGraphPropertiesTabFactory::CreateTabBody(const FWork
 	}
 
 	TSharedPtr<IDetailsView> DetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
-	DetailsView->SetObject(App->GetWorkingAsset());
+	DetailsView->SetObject(App->GetWorkingGraph());
 
 	return SNew(SVerticalBox)
 				+ SVerticalBox::Slot()
