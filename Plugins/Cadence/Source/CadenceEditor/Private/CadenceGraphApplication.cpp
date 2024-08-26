@@ -6,7 +6,9 @@
 #include "CadenceGraph.h"
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphSchema.h"
+#include "Framework/Commands/GenericCommands.h"
 #include "Kismet2/BlueprintEditorUtils.h"
+
 
 const FName FCadenceGraphApplication::ToolkitFName = FName(TEXT("CadenceGraphApplication"));
 const FText FCadenceGraphApplication::BaseToolkitName = FText::FromString(TEXT("CadenceGraphApplication"));
@@ -37,6 +39,22 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 	SetCurrentMode(FCadenceGraphApplicationMode::ModeName);
 }
 
+TSharedPtr<FUICommandList> FCadenceGraphApplication::GetCommandList()
+{
+	if(!GraphEditorCommands.IsValid())
+	{
+		GraphEditorCommands = MakeShareable( new FUICommandList );
+		{
+			GraphEditorCommands->MapAction(FGenericCommands::Get().Delete,
+				FExecuteAction::CreateSP( this, &FCadenceGraphApplication::DeleteSelectedNodes ),
+				FCanExecuteAction::CreateSP( this, &FCadenceGraphApplication::CanDeleteSelectedNodes )
+				);
+		}
+	}
+
+	return GraphEditorCommands;
+}
+
 void FCadenceGraphApplication::OnToolkitHostingStarted(const TSharedRef<IToolkit>& Toolkit)
 {
 }
@@ -44,6 +62,46 @@ void FCadenceGraphApplication::OnToolkitHostingStarted(const TSharedRef<IToolkit
 void FCadenceGraphApplication::OnToolkitHostingFinished(const TSharedRef<IToolkit>& Toolkit)
 {
 }
+
+void FCadenceGraphApplication::DeleteSelectedNodes()
+{
+	TSharedPtr<SGraphEditor> SlateGraph = SlateGraphEditor.Pin();
+	const FGraphPanelSelectionSet& SelectedNodes = SlateGraph->GetSelectedNodes();
+	
+	for (FGraphPanelSelectionSet::TConstIterator NodeIt( SelectedNodes ); NodeIt; ++NodeIt)
+	{
+		if (UEdGraphNode* Node = Cast<UEdGraphNode>(*NodeIt))
+		{
+			if (Node->CanUserDeleteNode())
+			{
+				if(UEdGraph* Graph = Node->GetGraph(); Graph != nullptr)
+				{
+					Graph->Modify();
+				}
+
+				Node->DestroyNode();
+			}
+		}
+	}
+}
+
+bool FCadenceGraphApplication::CanDeleteSelectedNodes() const
+{
+	TSharedPtr<SGraphEditor> SlateGraph = SlateGraphEditor.Pin();
+	const FGraphPanelSelectionSet& SelectedNodes = SlateGraph->GetSelectedNodes();
+	
+	for (FGraphPanelSelectionSet::TConstIterator NodeIt( SelectedNodes ); NodeIt; ++NodeIt)
+	{
+		if (UEdGraphNode* Node = Cast<UEdGraphNode>(*NodeIt))
+		{
+			if (!Node->CanUserDeleteNode())
+				return false;
+		}
+	}
+	
+	return true;
+}
+
 
 const FName FCadenceGraphApplicationMode::ModeName = FName(TEXT("CadenceGraphApplicationMode"));
 const FName FCadenceGraphApplicationMode::LayoutName = FName(TEXT("CadenceGraphApplicationMode_Layout_v1"));
@@ -117,15 +175,24 @@ TSharedRef<SWidget> FCadenceGraphPrimaryTabFactory::CreateTabBody(const FWorkflo
 	TSharedPtr<FCadenceGraphApplication> App = Application.Pin();
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
 
-	return SNew(SVerticalBox)
+	TSharedRef<SGraphEditor> GraphEditor = 
+					SNew(SGraphEditor)
+						.IsEditable(true)
+						.AdditionalCommands(App->GetCommandList())
+						.GraphToEdit(App->GetWorkingGraphEditor());
+
+	App->SetSlateGraphEditor(GraphEditor);
+	
+	TSharedRef<SWidget> Widget =
+		SNew(SVerticalBox)
 				+ SVerticalBox::Slot()
 				.FillHeight(1.0f)
 				.HAlign(HAlign_Fill)
 				[
-					SNew(SGraphEditor)
-						.IsEditable(true)
-						.GraphToEdit(App->GetWorkingGraphEditor())
-				];	
+					GraphEditor
+				];
+
+	return Widget;
 }
 
 FText FCadenceGraphPrimaryTabFactory::GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const

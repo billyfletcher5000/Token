@@ -19,6 +19,10 @@ public:
 
 	UCadenceGraph* GetWorkingGraph() const { return WorkingGraph; }
 	UCadenceGraphEditor* GetWorkingGraphEditor() const { return WorkingGraphEditor; }
+	TSharedPtr<SGraphEditor> GetSlateGraphEditor() const { return SlateGraphEditor.Pin(); }
+	TSharedPtr<FUICommandList> GetCommandList();
+
+	void SetSlateGraphEditor(const TSharedPtr<SGraphEditor>& InSlateGraphEditor) { SlateGraphEditor = InSlateGraphEditor; }
 
 public: // FAssetEditorToolkit
 	virtual FName GetToolkitFName() const override { return ToolkitFName; }
@@ -29,6 +33,10 @@ public: // FAssetEditorToolkit
 	virtual void OnToolkitHostingStarted(const TSharedRef<IToolkit>& Toolkit) override;
 	virtual void OnToolkitHostingFinished(const TSharedRef<IToolkit>& Toolkit) override;
 
+private:
+	void DeleteSelectedNodes();
+	bool CanDeleteSelectedNodes() const;
+
 public:
 	static const FName ToolkitFName;
 	static const FText BaseToolkitName;
@@ -37,8 +45,12 @@ public:
 	static const FString DocumentationLink;
 
 private:
+	/** Command list for the graph editor */
+	TSharedPtr<FUICommandList> GraphEditorCommands;
+	
 	UCadenceGraph* WorkingGraph = nullptr;
 	UCadenceGraphEditor* WorkingGraphEditor = nullptr;
+	TWeakPtr<SGraphEditor> SlateGraphEditor = nullptr;
 };
 
 class FCadenceGraphApplicationMode : public FApplicationMode
@@ -46,6 +58,7 @@ class FCadenceGraphApplicationMode : public FApplicationMode
 public:
 	FCadenceGraphApplicationMode(TSharedPtr<FCadenceGraphApplication> InApplication);
 
+	
 	virtual void RegisterTabFactories(TSharedPtr<FTabManager> InTabManager) override;
 	virtual void PreDeactivateMode() override;
 	virtual void PostActivateMode() override;
@@ -53,6 +66,10 @@ public:
 private:
 	TWeakPtr<FCadenceGraphApplication> Application;
 	FWorkflowAllowedTabSet Tabs;
+
+	
+	/** Command list for the graph editor */
+	TSharedPtr<FUICommandList> GraphEditorCommands;
 
 public:
 	static const FName ModeName;

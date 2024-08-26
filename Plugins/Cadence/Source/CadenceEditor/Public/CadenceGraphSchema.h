@@ -13,4 +13,7 @@ UCLASS()
 class CADENCEEDITOR_API UCadenceGraphSchema : public UEdGraphSchema
 {
 	GENERATED_BODY()
+
+public:
+	virtual void GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const override;
 };

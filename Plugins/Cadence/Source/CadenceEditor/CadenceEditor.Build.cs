@@ -42,7 +42,8 @@ public class CadenceEditor : ModuleRules
 				"AssetTools",
 				"UnrealEd",
 				"PropertyEditor",
-				"Projects"
+				"Projects",
+				"ToolMenus"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
