@@ -17,3 +17,24 @@ void UCadenceGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& Conte
 
 	ContextMenuBuilder.AddAction(NewNodeAction);
 }
+
+const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdGraphPin* A, const UEdGraphPin* B) const
+{
+	if(!A || !B)
+		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Null pins!"));
+
+	if(A->Direction == B->Direction)
+		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Inputs can only connect to outputs!"));
+	
+	return FPinConnectionResponse(CONNECT_RESPONSE_MAKE, TEXT("Connection allowed!"));
+}
+
+FLinearColor UCadenceGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType) const
+{
+	return FLinearColor::Blue;
+}
+
+FLinearColor UCadenceGraphSchema::GetSecondaryPinTypeColor(const FEdGraphPinType& PinType) const
+{
+	return FLinearColor::Red;
+}

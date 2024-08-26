@@ -173,7 +173,6 @@ FCadenceGraphPrimaryTabFactory::FCadenceGraphPrimaryTabFactory(TSharedPtr<FCaden
 TSharedRef<SWidget> FCadenceGraphPrimaryTabFactory::CreateTabBody(const FWorkflowTabSpawnInfo& Info) const
 {
 	TSharedPtr<FCadenceGraphApplication> App = Application.Pin();
-	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
 
 	TSharedRef<SGraphEditor> GraphEditor = 
 					SNew(SGraphEditor)

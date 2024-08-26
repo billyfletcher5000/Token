@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CadenceGraphNode.h"
 #include "EdGraph/EdGraphNode.h"
 #include "CadenceGraphEditorNode.generated.h"
 
@@ -20,5 +21,9 @@ public:
 	virtual bool CanUserDeleteNode() const override { return true; }
 	virtual void GetNodeContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const override;
 
+public:
+	TSharedPtr<UCadenceGraphNode> GetRuntimeGraphNode() const { return RuntimeGraphNode.Pin(); }
+	
 private:
+	TWeakPtr<UCadenceGraphNode> RuntimeGraphNode;
 };

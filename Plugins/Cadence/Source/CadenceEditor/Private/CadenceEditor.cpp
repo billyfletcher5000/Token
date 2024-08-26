@@ -3,6 +3,7 @@
 #include "CadenceEditor.h"
 
 #include "CadenceGraphAssetAction.h"
+#include "CadenceGraphEditorPin.h"
 #include "IAssetTools.h"
 #include "Interfaces/IPluginManager.h"
 #include "Styling/SlateStyleRegistry.h"
@@ -38,6 +39,9 @@ void FCadenceEditorModule::StartupModule()
 
 	// Register Style Set
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet);
+
+	PanelPinFactory = MakeShareable(new FCadenceGraphEditorPanelPinFactory());
+	FEdGraphUtilities::RegisterVisualPinFactory(PanelPinFactory);
 }
 
 void FCadenceEditorModule::ShutdownModule()
@@ -47,6 +51,9 @@ void FCadenceEditorModule::ShutdownModule()
 
 	// Unregister Style Set
 	FSlateStyleRegistry::UnRegisterSlateStyle(*StyleSet);
+
+	FEdGraphUtilities::UnregisterVisualPinFactory(PanelPinFactory);
+	PanelPinFactory = nullptr;
 }
 
 #undef LOCTEXT_NAMESPACE

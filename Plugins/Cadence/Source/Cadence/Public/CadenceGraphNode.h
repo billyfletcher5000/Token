@@ -16,12 +16,18 @@ class CADENCE_API UCadenceGraphNodePin : public UObject
 	
 public:
 	const TArray<TObjectPtr<UCadenceGraphNodePin>>& GetConnectedPins() const { return ConnectedPins; }
-	void ConnectPin(UCadenceGraphNodePin* InPin);
+	void SetConnectedPins(TArray<TObjectPtr<UCadenceGraphNodePin>> InPins);
+	
+	void ConnectPin(UCadenceGraphNodePin* InPin);	
 	void DisconnectPin(UCadenceGraphNodePin* InPin);
 
+public:
+	UPROPERTY()
+	FLinearColor PinColor;
+	
 private:
 	UPROPERTY()
-	TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedPins;
+	TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedPins;	
 };
 
 
@@ -34,14 +40,8 @@ class CADENCE_API UCadenceGraphNode : public UObject
 	GENERATED_BODY()
 	
 public:
-	const TArray<TObjectPtr<UCadenceGraphNodePin>>& GetInputPins() const { return InputPins; }
-	const TArray<TObjectPtr<UCadenceGraphNodePin>>& GetOutputPins() const { return OutputPins; }
-	
-	void AddInputPin(UCadenceGraphNodePin* InPin);
-	void RemoveInputPin(UCadenceGraphNodePin* InPin);
-	
-	void AddOutputPin(UCadenceGraphNodePin* InPin);
-	void RemoveOutputPin(UCadenceGraphNodePin* InPin);
+	TArray<TObjectPtr<UCadenceGraphNodePin>>& GetInputPins() { return InputPins; }
+	TArray<TObjectPtr<UCadenceGraphNodePin>>& GetOutputPins() { return OutputPins; }
 	
 protected:
 	UPROPERTY()

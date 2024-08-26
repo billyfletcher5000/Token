@@ -9,19 +9,20 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 {
 	UCadenceGraphEditorNode* Node = NewObject<UCadenceGraphEditorNode>(ParentGraph);
 
+	ParentGraph->Modify();
+	
+	Node->SetFlags(RF_Transactional);
+	Node->CreateNewGuid();
+	
 	Node->NodePosX = Location.X;
 	Node->NodePosY = Location.Y;
 
-	Node->CreatePin(
+	Node->AllocateDefaultPins();
+
+	UEdGraphPin* InputPin = Node->CreatePin(
 		EGPD_Input,
 		TEXT("Inputs"),
 		TEXT("Input A")
-	);
-
-	Node->CreatePin(
-		EGPD_Input,
-		TEXT("Inputs"),
-		TEXT("Input B")
 	);
 
 	Node->CreatePin(
@@ -36,8 +37,13 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 		TEXT("Output B")
 	);
 
+	if (FromPin)
+	{
+		ParentGraph->GetSchema()->TryCreateConnection(FromPin, InputPin);
+	}
+	
 	ParentGraph->AddNode(Node, true, true);
-	ParentGraph->Modify();
+	
 	
 	return Node;
 }
