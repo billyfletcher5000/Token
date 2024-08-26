@@ -24,6 +24,7 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 		TEXT("Inputs"),
 		TEXT("Input A")
 	);
+	InputPin->PinType.PinValueType
 
 	Node->CreatePin(
 		EGPD_Output,

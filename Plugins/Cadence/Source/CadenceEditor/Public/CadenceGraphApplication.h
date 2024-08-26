@@ -34,8 +34,18 @@ public: // FAssetEditorToolkit
 	virtual void OnToolkitHostingFinished(const TSharedRef<IToolkit>& Toolkit) override;
 
 private:
-	void DeleteSelectedNodes();
+	// Begin UICommands
+	void DeleteSelectedNodes();	
 	bool CanDeleteSelectedNodes() const;
+
+	void CutSelectedNodes();
+	void CopySelectedNodes();
+	void DuplicateSelectedNodes();
+	bool HasValidSelection() const;
+	
+	void PasteClipboardNodes();
+	bool HasValidNodesInClipboard() const;
+	// End UICommands
 
 public:
 	static const FName ToolkitFName;

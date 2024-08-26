@@ -1,0 +1,184 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "UObject/Object.h"
+#include "CadenceVariable.generated.h"
+
+/**
+ * 
+ */
+UCLASS(Abstract)
+class CADENCE_API UCadenceVariable : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinSubCategory() const PURE_VIRTUAL(UCadenceVariable::GetPinSubCategory, return NAME_None;);
+	virtual FLinearColor GetPinColor() const PURE_VIRTUAL(UCadenceVariable::GetPinSubCategory, return FLinearColor::White;);
+
+	virtual bool IsArray() const { return false; }
+	virtual bool IsEnum() const  { return false; }
+};
+
+
+UCLASS()
+class UCadenceVariableInt : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinSubCategory() const override { return TEXT("int32"); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.4f, 0.4f, 1.0f); }
+
+	int32 GetValue() const { return Value; }
+	void SetValue(const int32& InValue) { Value = InValue; }
+
+private:
+	UPROPERTY()
+	int32 Value;
+};
+
+
+UCLASS()
+class UCadenceVariableFloat : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinSubCategory() const override { return TEXT("float"); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.0f, 1.0f, 0.0f); }
+	
+	float GetValue() const { return Value; }
+	void SetValue(const float& InValue) { Value = InValue; }
+
+private:
+	UPROPERTY()
+	float Value;
+};
+
+
+UCLASS()
+class UCadenceVariableDouble : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinSubCategory() const override { return TEXT("double"); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.4f, 0.4f, 1.0f); }
+	
+	double GetValue() const { return Value; }
+	void SetValue(const double& InValue) { Value = InValue; }
+
+private:
+	UPROPERTY()
+	double Value;
+};
+
+UCLASS()
+class UCadenceVariableBool : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinSubCategory() const override { return TEXT("bool"); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(1.0f, 0.0f, 0.0f); }
+	
+	bool GetValue() const { return Value; }
+	void SetValue(const bool& InValue) { Value = InValue; }
+
+private:
+	UPROPERTY()
+	bool Value;
+};
+
+UCLASS()
+class UCadenceVariableVector : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinSubCategory() const override { return TEXT("Vector"); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(1.0f, 1.0f, 0.0f); }
+	
+	FVector GetValue() const { return Value; }
+	void SetValue(const FVector& InValue) { Value = InValue; }
+
+private:
+	UPROPERTY()
+	FVector Value;
+};
+
+UCLASS()
+class UCadenceVariableVector2D : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinSubCategory() const override { return TEXT("Vector2D"); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.0f, 0.0f, 1.0f); }
+	
+	FVector2D GetValue() const { return Value; }
+	void SetValue(const FVector2D& InValue) { Value = InValue; }
+
+private:
+	UPROPERTY()
+	FVector2D Value;
+};
+
+UCLASS()
+class UCadenceVariableUObject : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinSubCategory() const override { return TEXT("UObject"); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 1.0f); }
+	
+	TObjectPtr<UObject> GetValue() const { return Value; }
+	void SetValue(const TObjectPtr<UObject>& InValue) { Value = InValue; }
+
+private:
+	UPROPERTY()
+	TObjectPtr<UObject> Value;
+};
+
+
+UCLASS()
+class UCadenceVariableUObjectArray : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinSubCategory() const override { return TEXT("UObject"); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 1.0f); }
+
+	virtual bool IsArray() const override { return true; }	
+	
+	TArray<TObjectPtr<UObject>> GetValue() const { return Value; }
+	void SetValue(const TArray<TObjectPtr<UObject>>& InValue) { Value = InValue; }
+
+private:
+	UPROPERTY()
+	TArray<TObjectPtr<UObject>> Value;
+};
+
+UCLASS()
+class UCadenceVariableQuartzCommandQuantization : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinSubCategory() const override { return TEXT("QuartzCommandQuantization"); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 1.0f); }
+
+	virtual bool IsEnum() const override { return true; }
+	
+	EQuartzCommandQuantization GetValue() const { return Value; }
+	void SetValue(const EQuartzCommandQuantization& InValue) { Value = InValue; }
+
+private:
+	UPROPERTY()
+	EQuartzCommandQuantization Value;
+};

@@ -3,23 +3,49 @@
 
 #include "CadenceGraphNode.h"
 
-void UCadenceGraphNodePin::SetConnectedPins(TArray<TObjectPtr<UCadenceGraphNodePin>> InPins)
+#include "CadenceGraphNodePin.h"
+
+
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetInputPin(const FName& InPinName)
 {
-	ConnectedPins = InPins;
+	return GetPin(InputPins, InPinName);
 }
 
-void UCadenceGraphNodePin::ConnectPin(UCadenceGraphNodePin* InPin)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetOutputPin(const FName& InPinName)
 {
-	ensure(InPin);	
-	ensure(!ConnectedPins.Contains(InPin));
-
-	ConnectedPins.Add(InPin);
+	return GetPin(OutputPins, InPinName);
 }
 
-void UCadenceGraphNodePin::DisconnectPin(UCadenceGraphNodePin* InPin)
+void UCadenceGraphNode::AddInputPin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass)
+{
+	InputPins.Add(CreatePin(InPinName, InVariableClass));
+}
+
+void UCadenceGraphNode::AddOutputPin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass)
+{
+	OutputPins.Add(CreatePin(InPinName, InVariableClass));
+}
+
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreatePin(const FName& InPinName,const TObjectPtr<UClass>& InVariableClass)
 {	
-	ensure(InPin);	
-	ensure(ConnectedPins.Contains(InPin));
+	UCadenceGraphNodePin* Pin = NewObject<UCadenceGraphNodePin>();
+	
+	Pin->SetPinName(InPinName);
+	Pin->SetVariableClass(InVariableClass);
+	Pin->GenerateGUID();
 
-	ConnectedPins.Remove(InPin);
+	return Pin;
+}
+
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetPin(TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName)
+{
+	auto Result = InPinArray.FindByPredicate([&InPinName](const TObjectPtr<UCadenceGraphNodePin>& Pin)
+	{
+		return Pin->GetPinName() == InPinName;
+	});
+
+	if(Result != nullptr)
+		return *Result;
+
+	return nullptr;
 }

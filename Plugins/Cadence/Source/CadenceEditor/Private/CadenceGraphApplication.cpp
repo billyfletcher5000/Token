@@ -25,9 +25,13 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 {
 	WorkingGraph = Cast<UCadenceGraph>(InObject);
 	ensure(WorkingGraph);
+
+	if(!WorkingGraphEditor)
+	{
+		UEdGraph* CreatedGraph = FBlueprintEditorUtils::CreateNewGraph(WorkingGraph, NAME_None, UCadenceGraphEditor::StaticClass(), UCadenceGraphSchema::StaticClass());	
+		WorkingGraphEditor = Cast<UCadenceGraphEditor>(CreatedGraph);
+	}
 	
-	UEdGraph* CreatedGraph = FBlueprintEditorUtils::CreateNewGraph(WorkingGraph, NAME_None, UCadenceGraphEditor::StaticClass(), UCadenceGraphSchema::StaticClass());	
-	WorkingGraphEditor = Cast<UCadenceGraphEditor>(CreatedGraph);
 	ensure(WorkingGraphEditor);
 	
 	TArray<UObject*> ObjectsToEdit;
@@ -48,6 +52,26 @@ TSharedPtr<FUICommandList> FCadenceGraphApplication::GetCommandList()
 			GraphEditorCommands->MapAction(FGenericCommands::Get().Delete,
 				FExecuteAction::CreateSP( this, &FCadenceGraphApplication::DeleteSelectedNodes ),
 				FCanExecuteAction::CreateSP( this, &FCadenceGraphApplication::CanDeleteSelectedNodes )
+				);
+
+			GraphEditorCommands->MapAction(FGenericCommands::Get().Cut,
+				FExecuteAction::CreateSP( this, &FCadenceGraphApplication::CutSelectedNodes ),
+				FCanExecuteAction::CreateSP( this, &FCadenceGraphApplication::HasValidSelection )
+				);
+
+			GraphEditorCommands->MapAction(FGenericCommands::Get().Copy,
+				FExecuteAction::CreateSP( this, &FCadenceGraphApplication::CopySelectedNodes ),
+				FCanExecuteAction::CreateSP( this, &FCadenceGraphApplication::HasValidSelection )
+				);
+
+			GraphEditorCommands->MapAction(FGenericCommands::Get().Duplicate,
+				FExecuteAction::CreateSP( this, &FCadenceGraphApplication::DuplicateSelectedNodes ),
+				FCanExecuteAction::CreateSP( this, &FCadenceGraphApplication::HasValidSelection )
+				);
+
+			GraphEditorCommands->MapAction(FGenericCommands::Get().Paste,
+				FExecuteAction::CreateSP( this, &FCadenceGraphApplication::PasteClipboardNodes ),
+				FCanExecuteAction::CreateSP( this, &FCadenceGraphApplication::HasValidNodesInClipboard )
 				);
 		}
 	}
@@ -89,6 +113,9 @@ bool FCadenceGraphApplication::CanDeleteSelectedNodes() const
 {
 	TSharedPtr<SGraphEditor> SlateGraph = SlateGraphEditor.Pin();
 	const FGraphPanelSelectionSet& SelectedNodes = SlateGraph->GetSelectedNodes();
+
+	if (SelectedNodes.Num() == 0)
+		return false;
 	
 	for (FGraphPanelSelectionSet::TConstIterator NodeIt( SelectedNodes ); NodeIt; ++NodeIt)
 	{
@@ -97,9 +124,42 @@ bool FCadenceGraphApplication::CanDeleteSelectedNodes() const
 			if (!Node->CanUserDeleteNode())
 				return false;
 		}
+		
 	}
 	
 	return true;
+}
+
+void FCadenceGraphApplication::CutSelectedNodes()
+{
+}
+
+void FCadenceGraphApplication::CopySelectedNodes()
+{
+}
+
+void FCadenceGraphApplication::DuplicateSelectedNodes()
+{
+}
+
+bool FCadenceGraphApplication::HasValidSelection() const
+{
+	TSharedPtr<SGraphEditor> SlateGraph = SlateGraphEditor.Pin();
+	const FGraphPanelSelectionSet& SelectedNodes = SlateGraph->GetSelectedNodes();
+
+	if (SelectedNodes.Num() == 0)
+		return false;
+
+	return true;
+}
+
+void FCadenceGraphApplication::PasteClipboardNodes()
+{
+}
+
+bool FCadenceGraphApplication::HasValidNodesInClipboard() const
+{
+	return false;
 }
 
 
