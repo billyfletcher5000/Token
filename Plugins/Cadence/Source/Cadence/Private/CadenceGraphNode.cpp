@@ -25,7 +25,7 @@ void UCadenceGraphNode::AddInputPin(const FName& InPinName, const TObjectPtr<UCl
 
 void UCadenceGraphNode::AddOutputPin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass)
 {
-	ensureMsgf(GetInputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin"));
+	ensureMsgf(GetOutputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin"));
 	OutputPins.Add(CreatePin(InPinName, InVariableClass));
 }
 

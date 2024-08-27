@@ -24,14 +24,14 @@ void UCadenceGraphEditorNode::Construct(TObjectPtr<UCadenceGraphNode> InRuntimeG
 			RuntimeInputPin->GetPinName()
 		);
 
-		InputPin->PinType.PinSubCategory = VariableDefault->GetPinSubCategory();		
+		InputPin->PinType.PinSubCategory = VariableDefault->GetPinSubCategory();
 	}
 
 	for(UCadenceGraphNodePin* RuntimeOutputPin : RuntimeGraphNode->GetOutputPins())
 	{
 		UCadenceVariable* VariableDefault = RuntimeOutputPin->GetVariableClass()->GetDefaultObject<UCadenceVariable>();
 		UEdGraphPin* InputPin = CreatePin(
-			EGPD_Input,
+			EGPD_Output,
 			TEXT("Outputs"),
 			RuntimeOutputPin->GetPinName()
 		);

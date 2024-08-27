@@ -11,7 +11,7 @@ class UCadenceVariable;
 /**
  * 
  */
-UCLASS(Abstract)
+UCLASS()
 class CADENCE_API UCadenceGraphNodePin : public UObject
 {
 	GENERATED_BODY()

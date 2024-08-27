@@ -6,6 +6,11 @@
 #include "UObject/Object.h"
 #include "CadenceVariable.generated.h"
 
+namespace FCadenceVariable
+{
+	
+}
+
 /**
  * 
  */
@@ -24,7 +29,7 @@ public:
 
 
 UCLASS()
-class UCadenceVariableInt : public UCadenceVariable
+class CADENCE_API UCadenceVariableInt : public UCadenceVariable
 {
 	GENERATED_BODY()
 
@@ -42,7 +47,7 @@ private:
 
 
 UCLASS()
-class UCadenceVariableFloat : public UCadenceVariable
+class CADENCE_API UCadenceVariableFloat : public UCadenceVariable
 {
 	GENERATED_BODY()
 
@@ -60,7 +65,7 @@ private:
 
 
 UCLASS()
-class UCadenceVariableDouble : public UCadenceVariable
+class CADENCE_API UCadenceVariableDouble : public UCadenceVariable
 {
 	GENERATED_BODY()
 
@@ -77,7 +82,7 @@ private:
 };
 
 UCLASS()
-class UCadenceVariableBool : public UCadenceVariable
+class CADENCE_API UCadenceVariableBool : public UCadenceVariable
 {
 	GENERATED_BODY()
 
@@ -94,7 +99,7 @@ private:
 };
 
 UCLASS()
-class UCadenceVariableVector : public UCadenceVariable
+class CADENCE_API UCadenceVariableVector : public UCadenceVariable
 {
 	GENERATED_BODY()
 
@@ -111,7 +116,7 @@ private:
 };
 
 UCLASS()
-class UCadenceVariableVector2D : public UCadenceVariable
+class CADENCE_API UCadenceVariableVector2D : public UCadenceVariable
 {
 	GENERATED_BODY()
 
@@ -128,7 +133,7 @@ private:
 };
 
 UCLASS()
-class UCadenceVariableUObject : public UCadenceVariable
+class CADENCE_API UCadenceVariableUObject : public UCadenceVariable
 {
 	GENERATED_BODY()
 
@@ -146,7 +151,7 @@ private:
 
 
 UCLASS()
-class UCadenceVariableUObjectArray : public UCadenceVariable
+class CADENCE_API UCadenceVariableUObjectArray : public UCadenceVariable
 {
 	GENERATED_BODY()
 
@@ -165,7 +170,7 @@ private:
 };
 
 UCLASS()
-class UCadenceVariableQuartzCommandQuantization : public UCadenceVariable
+class CADENCE_API UCadenceVariableQuartzCommandQuantization : public UCadenceVariable
 {
 	GENERATED_BODY()
 

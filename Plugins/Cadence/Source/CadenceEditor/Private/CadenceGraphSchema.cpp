@@ -5,6 +5,12 @@
 
 #include "CadenceGraphNode.h"
 #include "CadenceGraphSchemaActions.h"
+#include "CadenceVariable.h"
+
+UCadenceGraphSchema::UCadenceGraphSchema()
+{
+	GenerateColorMap();
+}
 
 void UCadenceGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const
 {
@@ -86,10 +92,30 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 
 FLinearColor UCadenceGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType) const
 {
+	if(SubCategoryToColor.Contains(PinType.PinSubCategory))
+		return SubCategoryToColor[PinType.PinSubCategory];
+	
 	return FLinearColor::Blue;
 }
 
-FLinearColor UCadenceGraphSchema::GetSecondaryPinTypeColor(const FEdGraphPinType& PinType) const
+void UCadenceGraphSchema::GenerateColorMap()
 {
-	return FLinearColor::Red;
+	TArray<TObjectPtr<UClass>> ValidCadenceVariableTypes;
+
+	for (TObjectIterator<UClass> It; It; ++It)
+	{
+		UClass* Class = *It;
+
+		if (Class->IsChildOf(UCadenceVariable::StaticClass()) &&
+			!Class->HasAnyClassFlags(CLASS_Abstract | CLASS_Deprecated | CLASS_Hidden))
+		{
+			ValidCadenceVariableTypes.Add(Class);
+		}
+	}
+
+	for(TObjectPtr<UClass> CadenceVariableType : ValidCadenceVariableTypes)
+	{
+		UCadenceVariable* VariableDefault = CadenceVariableType->GetDefaultObject<UCadenceVariable>();
+		SubCategoryToColor.Add(VariableDefault->GetPinSubCategory(), VariableDefault->GetPinColor());
+	}
 }

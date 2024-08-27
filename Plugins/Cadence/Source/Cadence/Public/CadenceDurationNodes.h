@@ -8,7 +8,8 @@
 
 namespace FCadenceDurationConstants
 {
-	static const FText NodeCategory = FText::FromString(TEXT("Duration"));
+	static const FText NodeCategory = FText::FromString(TEXT("Duration"));	
+	static constexpr FLinearColor NodeTitleColor = FLinearColor(1.0f, 0.25f, 0.0f);
 }
 
 /**
@@ -25,6 +26,7 @@ public:
 
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Quantized Duration")); }
 	virtual FText GetNodeCategory() const override { return FCadenceDurationConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceDurationConstants::NodeTitleColor; }
 
 public:
 	UPROPERTY(EditAnywhere)

@@ -9,6 +9,7 @@
 namespace FCadenceDebugConstants
 {
 	static const FText NodeCategory = FText::FromString(TEXT("Debug"));
+	static constexpr FLinearColor NodeTitleColor = FLinearColor(1.0f, 0.5f, 0.5f);
 }
 
 /**
@@ -25,4 +26,5 @@ public:
 	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Debug Float")); }
 	virtual FText GetNodeCategory() const override { return FCadenceDebugConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceDebugConstants::NodeTitleColor; }
 };

@@ -21,7 +21,7 @@ public:
 	}
 
 protected:
-	virtual FSlateColor GetPinColor() const override { return FSlateColor(FLinearColor::Yellow); }
+	//virtual FSlateColor GetPinColor() const override { return FSlateColor(FLinearColor::Yellow); }
 };
 
 class FCadenceGraphEditorPanelPinFactory :	public FGraphPanelPinFactory

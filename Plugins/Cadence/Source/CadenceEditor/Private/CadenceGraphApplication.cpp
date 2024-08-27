@@ -28,6 +28,11 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 	WorkingAsset = Cast<UCadenceAsset>(InObject);
 	ensure(WorkingAsset);
 
+	if (WorkingAsset->GetGraph() == nullptr)
+	{
+		WorkingAsset->SetGraph(NewObject<UCadenceGraph>());
+	}
+
 	if(!WorkingGraphEditor)
 	{
 		UEdGraph* CreatedGraph = FBlueprintEditorUtils::CreateNewGraph(WorkingAsset, NAME_None, UCadenceGraphEditor::StaticClass(), UCadenceGraphSchema::StaticClass());	

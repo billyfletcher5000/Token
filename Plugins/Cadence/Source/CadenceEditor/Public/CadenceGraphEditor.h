@@ -6,6 +6,8 @@
 #include "EdGraph/EdGraph.h"
 #include "CadenceGraphEditor.generated.h"
 
+class UCadenceGraph;
+
 /**
  * 
  */
