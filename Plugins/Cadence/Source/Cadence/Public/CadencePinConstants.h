@@ -2,6 +2,9 @@
 
 namespace FCadencePinConstants
 {
+	static const FName Pin_Default_Exec = TEXT("Exec");
+	static const FName Pin_Default_Then = TEXT("Then");
+	
 	static const FName Pin_Duration = TEXT("Duration");
 	static const FName Pin_Trigger = TEXT("Trigger");
 	static const FName Pin_Actor = TEXT("Actor");

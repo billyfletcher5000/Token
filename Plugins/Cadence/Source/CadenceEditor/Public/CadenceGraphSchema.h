@@ -24,6 +24,10 @@ public:
 
 	virtual FLinearColor GetPinTypeColor(const FEdGraphPinType& PinType) const override;
 
+public:
+	static const FName PC_Variable;
+	static const FName PC_Exec;
+
 private:
 	void GenerateColorMap();
 	

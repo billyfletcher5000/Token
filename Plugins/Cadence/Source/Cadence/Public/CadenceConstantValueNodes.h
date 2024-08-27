@@ -25,6 +25,8 @@ public:
 	virtual void CreateOutputPins() override;
 	virtual bool Execute() override;
 
+	virtual bool IsPure() const override { return true; }
+
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Float Constant")); }
 	virtual FText GetNodeCategory() const override { return FCadenceConstantValueConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceConstantValueConstants::NodeTitleColor; }

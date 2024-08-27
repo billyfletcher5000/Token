@@ -9,7 +9,8 @@
 
 void UCadenceDebugFloatNode::CreateInputPins()
 {
-	AddInputPin(FCadencePinConstants::Pin_Float, UCadenceVariableFloat::StaticClass());
+	Super::CreateInputPins();
+	AddInputVariablePin(FCadencePinConstants::Pin_Float, UCadenceVariableFloat::StaticClass());	
 }
 
 bool UCadenceDebugFloatNode::Execute()

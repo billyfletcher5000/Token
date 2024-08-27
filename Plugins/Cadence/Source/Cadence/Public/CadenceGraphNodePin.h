@@ -30,6 +30,9 @@ public:
 	void SetGUID(const FGuid& InGUID) { GUID = InGUID; }
 	FGuid GetGUID() const { return GUID; }
 
+	bool IsExec() const { return bIsExec; }
+	void SetIsExec(const bool& InIsExec) { bIsExec = InIsExec; }
+	
 	TSubclassOf<UCadenceVariable> GetVariableClass() const { return VariableClass; }
 	void SetVariableClass(TSubclassOf<UCadenceVariable> InVariableClass) { VariableClass = InVariableClass; }
 	
@@ -42,6 +45,9 @@ private:
 	
 	UPROPERTY()
 	FGuid GUID;
+
+	UPROPERTY()
+	bool bIsExec = false;
 	
 	UPROPERTY()
 	TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedPins;

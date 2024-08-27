@@ -4,6 +4,7 @@
 #include "CadenceGraphEditorNode.h"
 
 #include "CadenceGraphNodePin.h"
+#include "CadenceGraphSchema.h"
 #include "CadenceVariable.h"
 #include "Framework/Commands/GenericCommands.h"
 
@@ -17,26 +18,32 @@ void UCadenceGraphEditorNode::Construct(TObjectPtr<UCadenceGraphNode> InRuntimeG
 
 	for(UCadenceGraphNodePin* RuntimeInputPin : RuntimeGraphNode->GetInputPins())
 	{
-		UCadenceVariable* VariableDefault = RuntimeInputPin->GetVariableClass()->GetDefaultObject<UCadenceVariable>();
 		UEdGraphPin* InputPin = CreatePin(
 			EGPD_Input,
-			TEXT("Inputs"),
+			RuntimeInputPin->IsExec() ? UCadenceGraphSchema::PC_Exec : UCadenceGraphSchema::PC_Variable,
 			RuntimeInputPin->GetPinName()
 		);
 
-		InputPin->PinType.PinSubCategory = VariableDefault->GetPinSubCategory();
+		if(!RuntimeInputPin->IsExec())
+		{
+			UCadenceVariable* VariableDefault = RuntimeInputPin->GetVariableClass()->GetDefaultObject<UCadenceVariable>();
+			InputPin->PinType.PinSubCategory = VariableDefault->GetPinSubCategory();
+		}
 	}
 
 	for(UCadenceGraphNodePin* RuntimeOutputPin : RuntimeGraphNode->GetOutputPins())
 	{
-		UCadenceVariable* VariableDefault = RuntimeOutputPin->GetVariableClass()->GetDefaultObject<UCadenceVariable>();
 		UEdGraphPin* InputPin = CreatePin(
 			EGPD_Output,
-			TEXT("Outputs"),
+			RuntimeOutputPin->IsExec() ? UCadenceGraphSchema::PC_Exec : UCadenceGraphSchema::PC_Variable,
 			RuntimeOutputPin->GetPinName()
 		);
 
-		InputPin->PinType.PinSubCategory = VariableDefault->GetPinSubCategory();
+		if(!RuntimeOutputPin->IsExec())
+		{
+			UCadenceVariable* VariableDefault = RuntimeOutputPin->GetVariableClass()->GetDefaultObject<UCadenceVariable>();
+			InputPin->PinType.PinSubCategory = VariableDefault->GetPinSubCategory();
+		}
 	}
 }
 

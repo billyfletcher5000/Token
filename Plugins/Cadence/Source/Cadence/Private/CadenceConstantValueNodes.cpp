@@ -8,8 +8,9 @@
 #include "CadenceVariable.h"
 
 void UCadenceConstantValueFloatNode::CreateOutputPins()
-{	
-	AddOutputPin(FCadencePinConstants::Pin_Float, UCadenceVariableFloat::StaticClass());
+{
+	Super::CreateOutputPins();
+	AddOutputVariablePin(FCadencePinConstants::Pin_Float, UCadenceVariableFloat::StaticClass());
 }
 
 bool UCadenceConstantValueFloatNode::Execute()

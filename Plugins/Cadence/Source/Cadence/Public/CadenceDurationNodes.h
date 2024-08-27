@@ -24,6 +24,8 @@ public:
 	virtual void CreateOutputPins() override;
 	virtual bool Execute() override;
 
+	virtual bool IsPure() const override { return true; }
+
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Quantized Duration")); }
 	virtual FText GetNodeCategory() const override { return FCadenceDurationConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceDurationConstants::NodeTitleColor; }

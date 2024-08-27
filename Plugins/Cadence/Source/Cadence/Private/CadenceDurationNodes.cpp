@@ -9,7 +9,8 @@
 
 void UCadenceQuantizedDurationNode::CreateOutputPins()
 {
-	AddOutputPin(FCadencePinConstants::Pin_Duration, UCadenceVariableFloat::StaticClass());
+	Super::CreateOutputPins();
+	AddOutputVariablePin(FCadencePinConstants::Pin_Duration, UCadenceVariableFloat::StaticClass());
 }
 
 bool UCadenceQuantizedDurationNode::Execute()

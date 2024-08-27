@@ -7,6 +7,9 @@
 #include "CadenceGraphSchemaActions.h"
 #include "CadenceVariable.h"
 
+const FName UCadenceGraphSchema::PC_Exec = TEXT("exec");
+const FName UCadenceGraphSchema::PC_Variable = TEXT("variable");
+
 UCadenceGraphSchema::UCadenceGraphSchema()
 {
 	GenerateColorMap();
@@ -92,6 +95,9 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 
 FLinearColor UCadenceGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType) const
 {
+	if (PinType.PinCategory == PC_Exec)
+		return FLinearColor::Gray;
+	
 	if(SubCategoryToColor.Contains(PinType.PinSubCategory))
 		return SubCategoryToColor[PinType.PinSubCategory];
 	
