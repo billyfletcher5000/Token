@@ -16,7 +16,9 @@ class CADENCEEDITOR_API UCadenceGraphSchema : public UEdGraphSchema
 
 public:
 	virtual void GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const override;
+	
 	virtual const FPinConnectionResponse CanCreateConnection(const UEdGraphPin* A, const UEdGraphPin* B) const override;
+	virtual bool TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) const override;
 
 	virtual FLinearColor GetPinTypeColor(const FEdGraphPinType& PinType) const override;
 	virtual FLinearColor GetSecondaryPinTypeColor(const FEdGraphPinType& PinType) const override;

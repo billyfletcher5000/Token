@@ -27,10 +27,11 @@ public:
 	FName GetPinName() const { return PinName; }
 	
 	void GenerateGUID();
+	void SetGUID(const FGuid& InGUID) { GUID = InGUID; }
 	FGuid GetGUID() const { return GUID; }
 
-	TObjectPtr<UClass> GetVariableClass() const { return VariableClass; }
-	void SetVariableClass(const TObjectPtr<UClass>& InVariableClass) { VariableClass = InVariableClass; }
+	TSubclassOf<UCadenceVariable> GetVariableClass() const { return VariableClass; }
+	void SetVariableClass(TSubclassOf<UCadenceVariable> InVariableClass) { VariableClass = InVariableClass; }
 	
 	TSharedPtr<UCadenceVariable> GetVariable() const { return Variable.Pin(); }
 	void SetVariable(const TSharedPtr<UCadenceVariable>& InVariable) { Variable = InVariable; }
@@ -46,7 +47,7 @@ private:
 	TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedPins;
 
 	UPROPERTY()
-	TObjectPtr<UClass> VariableClass;
+	TSubclassOf<UCadenceVariable> VariableClass;
 
 private:
 	TWeakPtr<UCadenceVariable> Variable;

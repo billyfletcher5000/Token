@@ -17,6 +17,14 @@ class CADENCE_API UCadenceGraphNode : public UObject
 	GENERATED_BODY()
 	
 public:
+	virtual FText GetNodeTitle() const { return GetNodeMenuName(); }
+	virtual FText GetNodeMenuName() const { return FText::FromString(StaticClass()->GetName()); }
+	virtual FText GetNodeCategory() const { return FText::FromName(NAME_Default); }
+	virtual FText GetCreateNodeTooltip() const { return FText::FromString(TEXT("Create new node"));}
+	virtual FLinearColor GetNodeTitleColor() const { return FLinearColor::Blue; }
+	
+	virtual bool IsPure() const { return false; }
+	
 	virtual void CreateInputPins() {}
 	virtual void CreateOutputPins() {}
 
@@ -28,6 +36,10 @@ public:
 	TObjectPtr<UCadenceGraphNodePin> GetInputPin(const FName& InPinName);
 	TObjectPtr<UCadenceGraphNodePin> GetOutputPin(const FName& InPinName);
 
+	FVector2D GetPosition() const { return Position; }
+	void SetPosition(const FVector2D& InPosition) { Position.X = InPosition.X; Position.Y = InPosition.Y; }
+	void SetPosition(const double& X, const double& Y) { Position.X = X; Position.Y = Y; }
+	
 protected:
 	virtual void AddInputPin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
 	virtual void AddOutputPin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
@@ -42,4 +54,7 @@ protected:
 
 	UPROPERTY()
 	TArray<TObjectPtr<UCadenceGraphNodePin>> OutputPins;
+
+	UPROPERTY()
+	FVector2D Position;
 };

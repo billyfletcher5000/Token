@@ -3,40 +3,23 @@
 
 #include "CadenceGraphSchemaActions.h"
 
+#include "CadenceGraph.h"
+#include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorNode.h"
 
 UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode)
 {
-	UCadenceGraphEditorNode* Node = NewObject<UCadenceGraphEditorNode>(ParentGraph);
 
-	ParentGraph->Modify();
+	UCadenceGraphEditor* ParentEditorGraph = Cast<UCadenceGraphEditor>(ParentGraph);
+	ParentEditorGraph->Modify();
+
+	UCadenceGraph* RuntimeGraph = ParentEditorGraph->GetRuntimeGraph();
+	UCadenceGraphNode* RuntimeNode = RuntimeGraph->CreateNode(RuntimeNodeType, Location);
 	
-	Node->SetFlags(RF_Transactional);
-	Node->CreateNewGuid();
-	
-	Node->NodePosX = Location.X;
-	Node->NodePosY = Location.Y;
-
-	Node->AllocateDefaultPins();
-
-	UEdGraphPin* InputPin = Node->CreatePin(
-		EGPD_Input,
-		TEXT("Inputs"),
-		TEXT("Input A")
-	);
-	InputPin->PinType.PinValueType
-
-	Node->CreatePin(
-		EGPD_Output,
-		TEXT("Outputs"),
-		TEXT("Output A")
-	);
-
-	Node->CreatePin(
-		EGPD_Output,
-		TEXT("Outputs"),
-		TEXT("Output B")
-	);
+	FGraphNodeCreator<UCadenceGraphEditorNode> NodeCreator(*ParentGraph);
+	UCadenceGraphEditorNode* Node = NodeCreator.CreateNode(bSelectNewNode);
+	Node->Construct(RuntimeNode);
+	NodeCreator.Finalize();
 
 	if (FromPin)
 	{

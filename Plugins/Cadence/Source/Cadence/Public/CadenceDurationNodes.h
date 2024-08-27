@@ -6,6 +6,11 @@
 #include "CadenceGraphNode.h"
 #include "CadenceDurationNodes.generated.h"
 
+namespace FCadenceDurationConstants
+{
+	static const FText NodeCategory = FText::FromString(TEXT("Duration"));
+}
+
 /**
  * 
  */
@@ -17,6 +22,9 @@ class CADENCE_API UCadenceQuantizedDurationNode : public UCadenceGraphNode
 public:
 	virtual void CreateOutputPins() override;
 	virtual bool Execute() override;
+
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Quantized Duration")); }
+	virtual FText GetNodeCategory() const override { return FCadenceDurationConstants::NodeCategory; }
 
 public:
 	UPROPERTY(EditAnywhere)

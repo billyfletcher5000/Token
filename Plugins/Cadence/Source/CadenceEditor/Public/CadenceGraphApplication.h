@@ -3,11 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CadenceAsset.h"
 #include "WorkflowOrientedApp/ApplicationMode.h"
 #include "WorkflowOrientedApp/WorkflowCentricApplication.h"
 #include "WorkflowOrientedApp/WorkflowTabFactory.h"
 #include "WorkflowOrientedApp/WorkflowTabManager.h"
 
+class UCadenceAsset;
 class UCadenceGraph;
 class UCadenceGraphEditor;
 
@@ -17,7 +19,7 @@ public:
 	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 	void InitEditor(const EToolkitMode::Type InMode, const TSharedPtr<IToolkitHost> InToolkitHost, UObject* InObject);
 
-	UCadenceGraph* GetWorkingGraph() const { return WorkingGraph; }
+	UCadenceGraph* GetWorkingGraph() const { return WorkingAsset->GetGraph(); }
 	UCadenceGraphEditor* GetWorkingGraphEditor() const { return WorkingGraphEditor; }
 	TSharedPtr<SGraphEditor> GetSlateGraphEditor() const { return SlateGraphEditor.Pin(); }
 	TSharedPtr<FUICommandList> GetCommandList();
@@ -34,8 +36,11 @@ public: // FAssetEditorToolkit
 	virtual void OnToolkitHostingFinished(const TSharedRef<IToolkit>& Toolkit) override;
 
 private:
+	void UpdateRuntimeGraph();
+	void UpdateEditorGraph();
+	
 	// Begin UICommands
-	void DeleteSelectedNodes();	
+	void DeleteSelectedNodes() const;	
 	bool CanDeleteSelectedNodes() const;
 
 	void CutSelectedNodes();
@@ -58,7 +63,7 @@ private:
 	/** Command list for the graph editor */
 	TSharedPtr<FUICommandList> GraphEditorCommands;
 	
-	UCadenceGraph* WorkingGraph = nullptr;
+	UCadenceAsset* WorkingAsset = nullptr;
 	UCadenceGraphEditor* WorkingGraphEditor = nullptr;
 	TWeakPtr<SGraphEditor> SlateGraphEditor = nullptr;
 };

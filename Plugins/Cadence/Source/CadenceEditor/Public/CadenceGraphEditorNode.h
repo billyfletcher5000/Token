@@ -16,14 +16,21 @@ class CADENCEEDITOR_API UCadenceGraphEditorNode : public UEdGraphNode
 	GENERATED_BODY()
 
 public:
-	virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override { return FText::FromString(TEXT("Cadence Base Node")); }
-	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor(FColor::Blue); }
+	void Construct(TObjectPtr<UCadenceGraphNode> InRuntimeGraphNode);
+
+	
+	TObjectPtr<UCadenceGraphNode> GetRuntimeGraphNode() const { return RuntimeGraphNode; }
+	
+public:
+	// Begin UEdGraphNode
+	virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override { return RuntimeGraphNode ? RuntimeGraphNode->GetNodeTitle() : FText::FromString(TEXT("Cadence Base Node")); }
+	virtual FLinearColor GetNodeTitleColor() const override { return RuntimeGraphNode ? RuntimeGraphNode->GetNodeTitleColor() : FLinearColor(FColor::Blue); }
 	virtual bool CanUserDeleteNode() const override { return true; }
 	virtual void GetNodeContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const override;
-
-public:
-	TSharedPtr<UCadenceGraphNode> GetRuntimeGraphNode() const { return RuntimeGraphNode.Pin(); }
+	// End UEdGraphNode
+	
 	
 private:
-	TWeakPtr<UCadenceGraphNode> RuntimeGraphNode;
+	UPROPERTY()
+	TObjectPtr<UCadenceGraphNode> RuntimeGraphNode;
 };

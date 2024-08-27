@@ -3,8 +3,10 @@
 
 #include "CadenceGraphApplication.h"
 
+#include "CadenceAsset.h"
 #include "CadenceGraph.h"
 #include "CadenceGraphEditor.h"
+#include "CadenceGraphEditorNode.h"
 #include "CadenceGraphSchema.h"
 #include "Framework/Commands/GenericCommands.h"
 #include "Kismet2/BlueprintEditorUtils.h"
@@ -23,16 +25,17 @@ void FCadenceGraphApplication::RegisterTabSpawners(const TSharedRef<FTabManager>
 
 void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const TSharedPtr<IToolkitHost> InToolkitHost, UObject* InObject)
 {
-	WorkingGraph = Cast<UCadenceGraph>(InObject);
-	ensure(WorkingGraph);
+	WorkingAsset = Cast<UCadenceAsset>(InObject);
+	ensure(WorkingAsset);
 
 	if(!WorkingGraphEditor)
 	{
-		UEdGraph* CreatedGraph = FBlueprintEditorUtils::CreateNewGraph(WorkingGraph, NAME_None, UCadenceGraphEditor::StaticClass(), UCadenceGraphSchema::StaticClass());	
+		UEdGraph* CreatedGraph = FBlueprintEditorUtils::CreateNewGraph(WorkingAsset, NAME_None, UCadenceGraphEditor::StaticClass(), UCadenceGraphSchema::StaticClass());	
 		WorkingGraphEditor = Cast<UCadenceGraphEditor>(CreatedGraph);
-	}
+	} 
 	
 	ensure(WorkingGraphEditor);
+	WorkingGraphEditor->SetRuntimeGraph(WorkingAsset->GetGraph());
 	
 	TArray<UObject*> ObjectsToEdit;
 	ObjectsToEdit.Add(InObject);
@@ -87,7 +90,35 @@ void FCadenceGraphApplication::OnToolkitHostingFinished(const TSharedRef<IToolki
 {
 }
 
-void FCadenceGraphApplication::DeleteSelectedNodes()
+void FCadenceGraphApplication::UpdateRuntimeGraph()
+{/*
+	ensure(WorkingAsset);
+
+	UCadenceGraph* Graph = WorkingAsset->GetGraph();
+	if(Graph == nullptr)
+	{
+		Graph = NewObject<UCadenceGraph>(WorkingAsset);
+		WorkingAsset->SetGraph(Graph);
+	}
+	else
+	{
+		Graph->ClearNodes();
+	}
+
+	for(TObjectPtr<UEdGraphNode> EditorNode : WorkingGraphEditor->Nodes)
+	{
+		for(TObjectPtr<UEdGraphPin> EditorPin : EditorNode->Pins)
+		{
+			EditorPin->PinId
+		}
+	}*/
+}
+
+void FCadenceGraphApplication::UpdateEditorGraph()
+{
+}
+
+void FCadenceGraphApplication::DeleteSelectedNodes() const
 {
 	TSharedPtr<SGraphEditor> SlateGraph = SlateGraphEditor.Pin();
 	const FGraphPanelSelectionSet& SelectedNodes = SlateGraph->GetSelectedNodes();

@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "CadenceGraph.generated.h"
 
+class UCadenceGraphNode;
 /**
  * 
  */
@@ -15,12 +16,16 @@ class CADENCE_API UCadenceGraph : public UObject
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere)
-	FString ArbitraryData = TEXT("Blongobongo!");
+	TObjectPtr<UCadenceGraphNode> CreateNode(TSubclassOf<UCadenceGraphNode> InClass, const FVector2D& Location);
+	
+	void AddNode(TObjectPtr<UCadenceGraphNode> InNode);
+	void RemoveNode(TObjectPtr<UCadenceGraphNode> InNode);
+	void ClearNodes();
 
-	UPROPERTY(EditAnywhere)
-	int32 ArbitraryNumber = 5;
+	TArray<TObjectPtr<UCadenceGraphNode>> GetNodes() const { return Nodes; }
+	TArray<TObjectPtr<UCadenceGraphNode>> GetRootNodes() const;
 
-	UPROPERTY(EditAnywhere)
-	bool ArbitraryBool = false;
+protected:
+	UPROPERTY()
+	TArray<TObjectPtr<UCadenceGraphNode>> Nodes;
 };

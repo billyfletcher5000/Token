@@ -6,6 +6,12 @@
 #include "CadenceGraphNode.h"
 #include "CadenceConstantValueNodes.generated.h"
 
+
+namespace FCadenceConstantValueConstants
+{
+	static const FText NodeCategory = FText::FromString(TEXT("Constants"));
+}
+
 /**
  * 
  */
@@ -18,6 +24,9 @@ public:
 	virtual void CreateOutputPins() override;
 	virtual bool Execute() override;
 
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Float Constant")); }
+	virtual FText GetNodeCategory() const override { return FCadenceConstantValueConstants::NodeCategory; }
+	
 private:
 	UPROPERTY(EditAnywhere)
 	float Value;

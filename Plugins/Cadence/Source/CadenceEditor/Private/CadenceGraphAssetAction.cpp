@@ -1,5 +1,6 @@
 ﻿#include "CadenceGraphAssetAction.h"
 
+#include "CadenceAsset.h"
 #include "CadenceGraph.h"
 #include "CadenceGraphApplication.h"
 
@@ -23,21 +24,20 @@ FColor FCadenceGraphAssetAction::GetTypeColor() const
 
 UClass* FCadenceGraphAssetAction::GetSupportedClass() const
 {
-	return UCadenceGraph::StaticClass();
+	return UCadenceAsset::StaticClass();
 }
 
-void FCadenceGraphAssetAction::OpenAssetEditor(const TArray<UObject*>& InObjects,
-	TSharedPtr<IToolkitHost> EditWithinLevelEditor)
+void FCadenceGraphAssetAction::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
 {
 	EToolkitMode::Type Mode = EditWithinLevelEditor.IsValid() ? EToolkitMode::WorldCentric : EToolkitMode::Standalone;
 
 	for (UObject* Object : InObjects)
 	{
-		UCadenceGraph* CadenceGraph = Cast<UCadenceGraph>(Object);
-		if(CadenceGraph != nullptr)
+		UCadenceAsset* CadenceAsset = Cast<UCadenceAsset>(Object);
+		if(CadenceAsset != nullptr)
 		{
 			TSharedRef<FCadenceGraphApplication> EditorApplication(new FCadenceGraphApplication());
-			EditorApplication->InitEditor(Mode, EditWithinLevelEditor, CadenceGraph);
+			EditorApplication->InitEditor(Mode, EditWithinLevelEditor, CadenceAsset);
 		}
 	}
 }

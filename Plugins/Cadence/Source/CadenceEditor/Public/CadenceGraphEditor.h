@@ -13,4 +13,12 @@ UCLASS()
 class CADENCEEDITOR_API UCadenceGraphEditor : public UEdGraph
 {
 	GENERATED_BODY()
+
+public:
+	TObjectPtr<UCadenceGraph> GetRuntimeGraph() const { return RuntimeGraph; }
+	void SetRuntimeGraph(TObjectPtr<UCadenceGraph> InGraph) { RuntimeGraph = InGraph; }
+
+private:
+	UPROPERTY()
+	TObjectPtr<UCadenceGraph> RuntimeGraph;
 };

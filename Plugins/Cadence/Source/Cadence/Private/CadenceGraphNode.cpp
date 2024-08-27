@@ -18,11 +18,14 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetOutputPin(const FName& In
 
 void UCadenceGraphNode::AddInputPin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass)
 {
+	
+	ensureMsgf(GetInputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin"));
 	InputPins.Add(CreatePin(InPinName, InVariableClass));
 }
 
 void UCadenceGraphNode::AddOutputPin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass)
 {
+	ensureMsgf(GetInputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin"));
 	OutputPins.Add(CreatePin(InPinName, InVariableClass));
 }
 

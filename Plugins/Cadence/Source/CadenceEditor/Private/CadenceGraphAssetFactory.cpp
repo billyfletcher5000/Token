@@ -3,17 +3,17 @@
 
 #include "CadenceGraphAssetFactory.h"
 
-#include "CadenceGraph.h"
+#include "CadenceAsset.h"
 
 UCadenceGraphAssetFactory::UCadenceGraphAssetFactory(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
-	SupportedClass = UCadenceGraph::StaticClass();
+	SupportedClass = UCadenceAsset::StaticClass();
 }
 
 UObject* UCadenceGraphAssetFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
 {
-	return NewObject<UCadenceGraph>(InParent, InName, Flags);	
+	return NewObject<UCadenceAsset>(InParent, InName, Flags);	
 }
 
 bool UCadenceGraphAssetFactory::CanCreateNew() const
