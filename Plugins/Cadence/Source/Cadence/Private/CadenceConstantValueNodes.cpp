@@ -7,6 +7,11 @@
 #include "CadencePinConstants.h"
 #include "CadenceVariable.h"
 
+FText UCadenceConstantValueFloatNode::GetNodeTitle() const
+{
+	return FText::FromString(FString::SanitizeFloat(Value));
+}
+
 void UCadenceConstantValueFloatNode::CreateOutputPins()
 {
 	Super::CreateOutputPins();
@@ -23,6 +28,65 @@ bool UCadenceConstantValueFloatNode::Execute()
 	if(!Variable.IsValid())
 	{
 		Variable = MakeShareable(NewObject<UCadenceVariableFloat>(Pin, Pin->GetVariableClass()));
+		Pin->SetVariable(Variable);
+	}
+
+	Variable->SetValue(Value);
+	
+	return true;
+}
+
+FText UCadenceConstantValueIntNode::GetNodeTitle() const
+{
+	return FText::FromString(FString::FromInt(Value));
+}
+
+void UCadenceConstantValueIntNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+	AddOutputVariablePin(FCadencePinConstants::Pin_Int, UCadenceVariableInt::StaticClass());
+}
+
+bool UCadenceConstantValueIntNode::Execute()
+{
+	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Int);
+	ensure(Pin);
+
+	TSharedPtr<UCadenceVariableInt> Variable = StaticCastSharedPtr<UCadenceVariableInt>(Pin->GetVariable());
+	
+	if(!Variable.IsValid())
+	{
+		Variable = MakeShareable(NewObject<UCadenceVariableInt>(Pin, Pin->GetVariableClass()));
+		Pin->SetVariable(Variable);
+	}
+
+	Variable->SetValue(Value);
+	
+	return true;
+}
+
+
+FText UCadenceConstantValueBoolNode::GetNodeTitle() const
+{
+	return Value ? FText::FromString(TEXT("True")) : FText::FromString(TEXT("False"));
+}
+
+void UCadenceConstantValueBoolNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+	AddOutputVariablePin(FCadencePinConstants::Pin_Bool, UCadenceVariableBool::StaticClass());
+}
+
+bool UCadenceConstantValueBoolNode::Execute()
+{
+	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Bool);
+	ensure(Pin);
+
+	TSharedPtr<UCadenceVariableBool> Variable = StaticCastSharedPtr<UCadenceVariableBool>(Pin->GetVariable());
+	
+	if(!Variable.IsValid())
+	{
+		Variable = MakeShareable(NewObject<UCadenceVariableBool>(Pin, Pin->GetVariableClass()));
 		Pin->SetVariable(Variable);
 	}
 

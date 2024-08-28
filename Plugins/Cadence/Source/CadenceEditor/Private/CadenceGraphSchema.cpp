@@ -51,11 +51,39 @@ void UCadenceGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& Conte
 
 const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdGraphPin* A, const UEdGraphPin* B) const
 {
-	if(!A || !B)
+	if (!A || !B)
 		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Null pins!"));
 
-	if(A->Direction == B->Direction)
+	if (A->Direction == B->Direction)
 		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Inputs can only connect to outputs!"));
+
+	if (A->PinType.PinCategory != B->PinType.PinCategory)
+		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Pins must be of same type or convertible!"));
+
+	if (A->PinType.PinCategory == PC_Variable)
+	{
+		const UCadenceGraphEditorNode* CadenceEditorNodeA = Cast<UCadenceGraphEditorNode>(A->GetOwningNode());
+		const UCadenceGraphEditorNode* CadenceEditorNodeB = Cast<UCadenceGraphEditorNode>(B->GetOwningNode());
+
+		const UCadenceGraphNode* RuntimeNodeA = CadenceEditorNodeA->GetRuntimeGraphNode();
+		const UCadenceGraphNode* RuntimeNodeB = CadenceEditorNodeB->GetRuntimeGraphNode();
+
+		UCadenceGraphNodePin* RuntimePinA = A->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeA->GetInputPin(A->PinName) : RuntimeNodeA->GetOutputPin(A->PinName);
+		UCadenceGraphNodePin* RuntimePinB = B->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeB->GetInputPin(B->PinName) : RuntimeNodeB->GetOutputPin(B->PinName);
+
+		if(RuntimePinA->VariableClass != RuntimePinB->VariableClass)
+		{
+			return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Pins must be of same type or convertible!"));
+		}
+		else if(A->Direction == EGPD_Input)				
+		{
+			return FPinConnectionResponse(CONNECT_RESPONSE_BREAK_OTHERS_A, TEXT("Connection allowed!"));
+		}
+		else
+		{			
+			return FPinConnectionResponse(CONNECT_RESPONSE_BREAK_OTHERS_B, TEXT("Connection allowed!"));
+		}
+	}
 	
 	return FPinConnectionResponse(CONNECT_RESPONSE_MAKE, TEXT("Connection allowed!"));
 }

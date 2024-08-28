@@ -27,6 +27,7 @@ public:
 
 	virtual bool IsPure() const override { return true; }
 
+	virtual FText GetNodeTitle() const override;
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Float Constant")); }
 	virtual FText GetNodeCategory() const override { return FCadenceConstantValueConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceConstantValueConstants::NodeTitleColor; }
@@ -34,4 +35,46 @@ public:
 private:
 	UPROPERTY(EditAnywhere)
 	float Value;
+};
+
+UCLASS()
+class CADENCE_API UCadenceConstantValueIntNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateOutputPins() override;
+	virtual bool Execute() override;
+
+	virtual bool IsPure() const override { return true; }
+
+	virtual FText GetNodeTitle() const override;
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Int Constant")); }
+	virtual FText GetNodeCategory() const override { return FCadenceConstantValueConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceConstantValueConstants::NodeTitleColor; }
+	
+private:
+	UPROPERTY(EditAnywhere)
+	int32 Value;
+};
+
+UCLASS()
+class CADENCE_API UCadenceConstantValueBoolNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateOutputPins() override;
+	virtual bool Execute() override;
+
+	virtual bool IsPure() const override { return true; }
+
+	virtual FText GetNodeTitle() const override;
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Bool Constant")); }
+	virtual FText GetNodeCategory() const override { return FCadenceConstantValueConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceConstantValueConstants::NodeTitleColor; }
+	
+private:
+	UPROPERTY(EditAnywhere)
+	bool Value;
 };
