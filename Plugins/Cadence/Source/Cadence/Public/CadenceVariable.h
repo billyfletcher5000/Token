@@ -6,6 +6,8 @@
 #include "UObject/Object.h"
 #include "CadenceVariable.generated.h"
 
+class UCadenceTrigger;
+
 namespace FCadenceVariable
 {
 	
@@ -186,4 +188,21 @@ public:
 private:
 	UPROPERTY()
 	EQuartzCommandQuantization Value;
+};
+
+UCLASS()
+class CADENCE_API UCadenceVariableTrigger : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinSubCategory() const override { return TEXT("Trigger"); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.75f, 0.f, 0.f); }
+	
+	TObjectPtr<UCadenceTrigger> GetValue() const { return Value; }
+	void SetValue(const TObjectPtr<UCadenceTrigger>& InValue) { Value = InValue; }
+
+private:
+	UPROPERTY()
+	TObjectPtr<UCadenceTrigger> Value;
 };

@@ -3,6 +3,7 @@
 #include "CadenceEditor.h"
 
 #include "CadenceGraphAssetAction.h"
+#include "CadenceGraphEditorNode.h"
 #include "CadenceGraphEditorPin.h"
 #include "IAssetTools.h"
 #include "Interfaces/IPluginManager.h"
@@ -39,9 +40,6 @@ void FCadenceEditorModule::StartupModule()
 
 	// Register Style Set
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet);
-
-	PanelPinFactory = MakeShareable(new FCadenceGraphEditorPanelPinFactory());
-	FEdGraphUtilities::RegisterVisualPinFactory(PanelPinFactory);
 }
 
 void FCadenceEditorModule::ShutdownModule()

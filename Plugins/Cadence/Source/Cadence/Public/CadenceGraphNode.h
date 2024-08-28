@@ -56,6 +56,8 @@ protected:
 	virtual void AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateExecPin(const FName& InPinName);	
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
+	virtual void RemoveInputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
+	virtual void RemoveOutputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
 
 private:
 	static TObjectPtr<UCadenceGraphNodePin> GetPinFromArray(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName);

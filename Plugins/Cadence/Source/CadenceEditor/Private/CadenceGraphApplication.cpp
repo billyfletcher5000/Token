@@ -39,7 +39,7 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 	if(!WorkingGraphEditor)
 	{
 		UEdGraph* CreatedGraph = FBlueprintEditorUtils::CreateNewGraph(WorkingAsset, NAME_None, UCadenceGraphEditor::StaticClass(), UCadenceGraphSchema::StaticClass());	
-		WorkingGraphEditor = Cast<UCadenceGraphEditor>(CreatedGraph);
+		WorkingGraphEditor = Cast<UCadenceGraphEditor>(CreatedGraph);		
 	} 
 	
 	ensure(WorkingGraphEditor);
@@ -322,7 +322,8 @@ TSharedRef<SWidget> FCadenceGraphPrimaryTabFactory::CreateTabBody(const FWorkflo
 						.AdditionalCommands(App->GetCommandList())
 						.GraphEvents(GraphEditorEvents)
 						.GraphToEdit(App->GetWorkingGraphEditor());
-	
+
+	GraphEditor->SetNodeFactory(MakeShareable(new FCadenceGraphEditorNodeFactory()));
 	App->SetSlateGraphEditor(GraphEditor);
 	
 	TSharedRef<SWidget> Widget =

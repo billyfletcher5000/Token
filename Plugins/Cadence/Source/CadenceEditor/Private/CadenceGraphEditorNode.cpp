@@ -3,10 +3,12 @@
 
 #include "CadenceGraphEditorNode.h"
 
+#include "CadenceGraphAddPinInterface.h"
 #include "CadenceGraphNodePin.h"
 #include "CadenceGraphSchema.h"
 #include "CadenceGraphUtility.h"
 #include "CadenceVariable.h"
+#include "GraphEditorSettings.h"
 #include "Framework/Commands/GenericCommands.h"
 
 void UCadenceGraphEditorNode::Construct(TObjectPtr<UCadenceGraphNode> InRuntimeGraphNode)
@@ -81,4 +83,109 @@ void UCadenceGraphEditorNode::GetNodeContextMenuActions(UToolMenu* Menu, UGraphN
 	Section.AddMenuEntry(FGenericCommands::Get().Copy);
 	Section.AddMenuEntry(FGenericCommands::Get().Duplicate);
 	Section.AddMenuEntry(FGenericCommands::Get().Paste);
+
+	if (!Context->bIsDebugging)
+	{
+		if(ICadenceGraphAddPinInterface* AddPinInterface = Cast<ICadenceGraphAddPinInterface>(RuntimeGraphNode))
+		{
+			static FName NodeName = FName("AddPinInterfaceNode");
+			FText SectionLabel = FText::FromString(TEXT("Configurable Pins"));
+			if (Context->Pin != nullptr)
+			{
+				UCadenceGraphNodePin* CadencePin = RuntimeGraphNode->GetInputPin(Context->Pin->PinName);
+				if(AddPinInterface->CanRemovePin(CadencePin))
+				{
+					FToolMenuSection& NewSection = Menu->AddSection(NodeName, SectionLabel);
+					NewSection.AddMenuEntry(
+						TEXT("RemovePin"),
+						FText::FromString(TEXT("Remove pin")),
+						FText::FromString(TEXT("Remove this input pin")),
+						FSlateIcon(),
+						FUIAction(
+							FExecuteAction::CreateRaw(AddPinInterface, &ICadenceGraphAddPinInterface::RemoveUserInputPin, CadencePin)
+						)
+					);
+				}
+			}
+			else if(AddPinInterface->CanAddPin())
+			{
+				FToolMenuSection& NewSection = Menu->AddSection(NodeName, SectionLabel);
+				NewSection.AddMenuEntry(
+					"AddPin",
+					FText::FromString(TEXT("Add pin")),
+					FText::FromString(TEXT("Add another input pin")),
+					FSlateIcon(),
+					FUIAction(
+						FExecuteAction::CreateRaw(AddPinInterface, &ICadenceGraphAddPinInterface::AddUserInputPin)
+					)
+				);
+			}
+		}
+	}
+}
+
+void SGraphNodeUserAddablePins::Construct(const FArguments& InArgs, UCadenceGraphEditorNode* InNode)
+{
+	GraphNode = InNode;
+
+	SetCursor( EMouseCursor::CardinalCross );
+
+	UpdateGraphNode();
+}
+
+void SGraphNodeUserAddablePins::CreateOutputSideAddButton(TSharedPtr<SVerticalBox> OutputBox)
+{
+	TSharedRef<SWidget> AddPinButton = AddPinButtonContent(
+		NSLOCTEXT("SequencerNode", "UserAddableNodeAddPinButton", "Add pin"),
+		NSLOCTEXT("SequencerNode", "UserAddableNodeAddPinButton_ToolTip", "Add new pin"));
+
+	FMargin AddPinPadding = GetDefault<UGraphEditorSettings>()->GetOutputPinPadding();
+	AddPinPadding.Top += 6.0f;
+
+	OutputBox->AddSlot()
+	.AutoHeight()
+	.VAlign(VAlign_Center)
+	.HAlign(HAlign_Right)
+	.Padding(AddPinPadding)
+	[
+		AddPinButton
+	];
+}
+
+FReply SGraphNodeUserAddablePins::OnAddPin()
+{
+	UCadenceGraphEditorNode* CadenceEditorNode = Cast<UCadenceGraphEditorNode>(GraphNode);
+	ICadenceGraphAddPinInterface* AddPinNode = Cast<ICadenceGraphAddPinInterface>(CadenceEditorNode->GetRuntimeGraphNode());
+	ensure(AddPinNode);
+	if (AddPinNode && AddPinNode->CanAddPin())
+	{
+		FScopedTransaction Transaction(NSLOCTEXT("UserAddableNode", "AddPinTransaction", "Add Pin"));
+
+		AddPinNode->AddUserInputPin();
+		UpdateGraphNode();
+		GraphNode->GetGraph()->NotifyNodeChanged(GraphNode);
+	}
+	
+	return FReply::Handled();
+}
+
+EVisibility SGraphNodeUserAddablePins::IsAddPinButtonVisible() const
+{
+	UCadenceGraphEditorNode* CadenceEditorNode = Cast<UCadenceGraphEditorNode>(GraphNode);
+	ICadenceGraphAddPinInterface* AddPinNode = Cast<ICadenceGraphAddPinInterface>(CadenceEditorNode->GetRuntimeGraphNode());
+	ensure(AddPinNode);
+	return ((AddPinNode && AddPinNode->CanAddPin()) ? EVisibility::Visible : EVisibility::Collapsed);
+}
+
+TSharedPtr<SGraphNode> FCadenceGraphEditorNodeFactory::CreateNodeWidget(UEdGraphNode* InNode)
+{
+	if(UCadenceGraphEditorNode* CadenceEditNode = Cast<UCadenceGraphEditorNode>(InNode))
+	{
+		if(CadenceEditNode->GetRuntimeGraphNode()->GetClass()->ImplementsInterface(UCadenceGraphAddPinInterface::StaticClass()))
+		{
+			return SNew(SGraphNodeUserAddablePins, CadenceEditNode);
+		}
+	}
+	
+	return FGraphNodeFactory::CreateNodeWidget(InNode);
 }

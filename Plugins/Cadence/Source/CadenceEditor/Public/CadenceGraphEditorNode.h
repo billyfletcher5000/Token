@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "CadenceGraphNode.h"
 #include "EdGraph/EdGraphNode.h"
+#include "NodeFactory.h"
+#include "SGraphNode.h"
 #include "CadenceGraphEditorNode.generated.h"
 
 /**
@@ -36,4 +38,27 @@ public:
 private:
 	UPROPERTY()
 	TObjectPtr<UCadenceGraphNode> RuntimeGraphNode;
+};
+
+class SGraphNodeUserAddablePins : public SGraphNode
+{
+public:
+	SLATE_BEGIN_ARGS(SGraphNodeUserAddablePins){}
+	SLATE_END_ARGS()
+
+	void Construct( const FArguments& InArgs, UCadenceGraphEditorNode* InNode );
+
+protected:
+	// SGraphNode interface
+	virtual void CreateOutputSideAddButton(TSharedPtr<SVerticalBox> OutputBox) override;
+	virtual FReply OnAddPin() override;
+	virtual EVisibility IsAddPinButtonVisible() const override;
+	// End of SGraphNode interface
+};
+
+class FCadenceGraphEditorNodeFactory : public FGraphNodeFactory
+{
+public:
+	// FGrapNodeFactory interface	
+	virtual TSharedPtr<SGraphNode> CreateNodeWidget(UEdGraphNode* InNode) override;
 };

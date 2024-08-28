@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+class FCadenceGraphEditorNodeFactory;
 class FCadenceGraphEditorPanelPinFactory;
 
 class FCadenceEditorModule : public IModuleInterface
@@ -23,4 +24,5 @@ public:
 private:
 	TSharedPtr<FSlateStyleSet> StyleSet = nullptr;
 	TSharedPtr<FCadenceGraphEditorPanelPinFactory> PanelPinFactory = nullptr;
+	TSharedPtr<FCadenceGraphEditorNodeFactory> NodeFactory = nullptr;
 };

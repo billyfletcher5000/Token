@@ -92,6 +92,18 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariablePin(const FNam
 	return Pin;
 }
 
+void UCadenceGraphNode::RemoveInputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin)
+{
+	if(InputPins.Contains(InPin))
+		InputPins.Remove(InPin);
+}
+
+void UCadenceGraphNode::RemoveOutputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin)
+{
+	if(OutputPins.Contains(InPin))
+		OutputPins.Remove(InPin);
+}
+
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetPinFromArray(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName)
 {
 	auto Result = InPinArray.FindByPredicate([&InPinName](const TObjectPtr<UCadenceGraphNodePin>& Pin)
