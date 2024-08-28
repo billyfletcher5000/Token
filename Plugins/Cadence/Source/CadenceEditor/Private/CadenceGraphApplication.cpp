@@ -33,6 +33,8 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 		WorkingAsset->CreateGraph();
 	}
 
+	PreSaveDelegateHandle = WorkingAsset->OnPreSaveDelegate.AddRaw(this, &FCadenceGraphApplication::OnWorkingAssetPreSave);
+
 	if(!WorkingGraphEditor)
 	{
 		UEdGraph* CreatedGraph = FBlueprintEditorUtils::CreateNewGraph(WorkingAsset, NAME_None, UCadenceGraphEditor::StaticClass(), UCadenceGraphSchema::StaticClass());	
@@ -51,6 +53,12 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 	SetCurrentMode(FCadenceGraphApplicationMode::ModeName);
 
 	ReconstructEditorGraph();
+}
+
+void FCadenceGraphApplication::OnClose()
+{
+	FWorkflowCentricApplication::OnClose();
+	WorkingAsset->OnPreSaveDelegate.Remove(PreSaveDelegateHandle);
 }
 
 TSharedPtr<FUICommandList> FCadenceGraphApplication::GetCommandList()
@@ -144,6 +152,15 @@ void FCadenceGraphApplication::ReconstructEditorGraph()
 	{
 		UCadenceGraphEditorNode* CadenceEdNode = Cast<UCadenceGraphEditorNode>(EdGraphNode);
 		CadenceEdNode->ReconstructConnections();
+	}
+}
+
+void FCadenceGraphApplication::OnWorkingAssetPreSave()
+{
+	for(UEdGraphNode* EdGraphNode : WorkingGraphEditor->Nodes)
+	{
+		UCadenceGraphEditorNode* CadenceEditorNode = Cast<UCadenceGraphEditorNode>(EdGraphNode);
+		CadenceEditorNode->UpdateRuntimePosition();
 	}
 }
 

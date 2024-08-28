@@ -4,9 +4,16 @@
 #include "CadenceAsset.h"
 
 #include "CadenceGraph.h"
+#include "UObject/ObjectSaveContext.h"
 
 void UCadenceAsset::CreateGraph()
 {	
 	Modify();
 	Graph = NewObject<UCadenceGraph>(this);
+}
+
+void UCadenceAsset::PreSave(FObjectPreSaveContext SaveContext)
+{
+	UObject::PreSave(SaveContext);
+	OnPreSaveDelegate.Broadcast();
 }

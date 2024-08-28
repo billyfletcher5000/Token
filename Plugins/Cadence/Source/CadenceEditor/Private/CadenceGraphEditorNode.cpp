@@ -68,6 +68,11 @@ void UCadenceGraphEditorNode::ReconstructConnections()
 	}
 }
 
+void UCadenceGraphEditorNode::UpdateRuntimePosition()
+{
+	RuntimeGraphNode->SetPosition(NodePosX, NodePosY);
+}
+
 void UCadenceGraphEditorNode::GetNodeContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const
 {
 	FToolMenuSection& Section = Menu->AddSection("EdGraphSchemaGeneral", FText::FromString(TEXT("General")));

@@ -18,6 +18,7 @@ class FCadenceGraphApplication : public FWorkflowCentricApplication, public FEdi
 public:
 	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 	void InitEditor(const EToolkitMode::Type InMode, const TSharedPtr<IToolkitHost> InToolkitHost, UObject* InObject);
+    virtual void OnClose() override;
 
 	UCadenceGraph* GetWorkingGraph() const { return WorkingAsset->GetGraph(); }
 	UCadenceGraphEditor* GetWorkingGraphEditor() const { return WorkingGraphEditor; }
@@ -38,6 +39,8 @@ public: // FAssetEditorToolkit
 private:
 	void UpdateRuntimeGraph();
 	void ReconstructEditorGraph();
+
+	void OnWorkingAssetPreSave();
 	
 	// Begin UICommands
 	void DeleteSelectedNodes() const;	
@@ -66,6 +69,7 @@ private:
 	UCadenceAsset* WorkingAsset = nullptr;
 	UCadenceGraphEditor* WorkingGraphEditor = nullptr;
 	TWeakPtr<SGraphEditor> SlateGraphEditor = nullptr;
+	FDelegateHandle PreSaveDelegateHandle;
 };
 
 class FCadenceGraphApplicationMode : public FApplicationMode

@@ -19,6 +19,8 @@ public:
 	void Construct(TObjectPtr<UCadenceGraphNode> InRuntimeGraphNode);
 	void ReconstructConnections();
 
+	void UpdateRuntimePosition();
+
 	
 	TObjectPtr<UCadenceGraphNode> GetRuntimeGraphNode() const { return RuntimeGraphNode; }
 	
