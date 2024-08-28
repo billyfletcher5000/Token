@@ -24,6 +24,8 @@ public:
 
 	virtual FLinearColor GetPinTypeColor(const FEdGraphPinType& PinType) const override;
 
+	virtual FText GetPinDisplayName(const UEdGraphPin* Pin) const override;
+
 public:
 	static const FName PC_Variable;
 	static const FName PC_Exec;

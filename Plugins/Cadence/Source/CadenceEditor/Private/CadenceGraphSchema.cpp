@@ -8,6 +8,7 @@
 #include "CadenceGraphNode.h"
 #include "CadenceGraphNodePin.h"
 #include "CadenceGraphSchemaActions.h"
+#include "CadencePinConstants.h"
 #include "CadenceVariable.h"
 
 const FName UCadenceGraphSchema::PC_Exec = TEXT("exec");
@@ -161,6 +162,17 @@ FLinearColor UCadenceGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType
 		return SubCategoryToColor[PinType.PinSubCategory];
 	
 	return FLinearColor::Blue;
+}
+
+FText UCadenceGraphSchema::GetPinDisplayName(const UEdGraphPin* Pin) const
+{
+	if(Pin->PinName == FCadencePinConstants::Pin_Default_Exec ||
+	   Pin->PinName == FCadencePinConstants::Pin_Default_Then)
+	{
+		return FText::FromString(TEXT_EMPTY);
+	}
+		
+	return Super::GetPinDisplayName(Pin);
 }
 
 void UCadenceGraphSchema::GenerateColorMap()
