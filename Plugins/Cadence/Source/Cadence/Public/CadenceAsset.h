@@ -16,7 +16,7 @@ class CADENCE_API UCadenceAsset : public UObject
 	GENERATED_BODY()
 
 public:
-	void SetGraph(UCadenceGraph* NewGraph) { Graph = NewGraph; }
+	void CreateGraph();
 	UCadenceGraph* GetGraph() const { return Graph; } 
 	
 private:

@@ -25,7 +25,7 @@ public:
 	TArray<TObjectPtr<UCadenceGraphNode>> GetNodes() const { return Nodes; }
 	TArray<TObjectPtr<UCadenceGraphNode>> GetRootNodes() const;
 
-protected:
+public:
 	UPROPERTY()
 	TArray<TObjectPtr<UCadenceGraphNode>> Nodes;
 };

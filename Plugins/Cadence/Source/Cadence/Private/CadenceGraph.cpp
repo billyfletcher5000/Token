@@ -10,6 +10,9 @@ TObjectPtr<UCadenceGraphNode> UCadenceGraph::CreateNode(TSubclassOf<UCadenceGrap
 {
 	TObjectPtr<UCadenceGraphNode> Node = NewObject<UCadenceGraphNode>(this, InClass);
 
+	Node->SetFlags(RF_Transactional);	
+	
+	Node->SetParentGraph(this);
 	Node->SetPosition(Location);
 	
 	Node->CreateInputPins();

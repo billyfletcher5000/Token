@@ -5,6 +5,7 @@
 
 #include "CadenceGraphNodePin.h"
 #include "CadenceGraphSchema.h"
+#include "CadenceGraphUtility.h"
 #include "CadenceVariable.h"
 #include "Framework/Commands/GenericCommands.h"
 
@@ -43,6 +44,26 @@ void UCadenceGraphEditorNode::Construct(TObjectPtr<UCadenceGraphNode> InRuntimeG
 		{
 			UCadenceVariable* VariableDefault = RuntimeOutputPin->GetVariableClass()->GetDefaultObject<UCadenceVariable>();
 			InputPin->PinType.PinSubCategory = VariableDefault->GetPinSubCategory();
+		}
+	}
+}
+
+void UCadenceGraphEditorNode::ReconstructConnections()
+{
+	for(UEdGraphPin* EdPin : Pins)
+	{
+		UCadenceGraphNodePin* RuntimePin = EdPin->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeGraphNode->GetInputPin(EdPin->PinName) : RuntimeGraphNode->GetOutputPin(EdPin->PinName);
+		const TArray<TObjectPtr<UCadenceGraphNodePin>>& ConnectedRuntimePins = RuntimePin->GetConnectedPins();
+
+		for(UCadenceGraphNodePin* ConnectedRuntimePin : ConnectedRuntimePins)
+		{
+			UCadenceGraphNode* ConnectedRuntimePinParent = ConnectedRuntimePin->GetParentNode();
+			UCadenceGraphEditorNode* ConnectedEditorNode = UCadenceGraphUtility::GetGraphEditorNodeForRuntimeNode(GetGraph(), ConnectedRuntimePinParent);
+			if(ensure(ConnectedEditorNode))
+			{
+				UEdGraphPin* OtherPin = ConnectedEditorNode->FindPin(ConnectedRuntimePin->GetPinName(), EdPin->Direction == EEdGraphPinDirection::EGPD_Input ? EGPD_Output : EGPD_Input);
+				EdPin->MakeLinkTo(OtherPin);
+			}
 		}
 	}
 }

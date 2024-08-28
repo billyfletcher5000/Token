@@ -3,7 +3,10 @@
 
 #include "CadenceGraphSchema.h"
 
+#include "CadenceGraph.h"
+#include "CadenceGraphEditorNode.h"
 #include "CadenceGraphNode.h"
+#include "CadenceGraphNodePin.h"
 #include "CadenceGraphSchemaActions.h"
 #include "CadenceVariable.h"
 
@@ -61,34 +64,62 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 {
 	FPinConnectionResponse Response = CanCreateConnection(A, B);
 
+	UCadenceGraphEditorNode* EditorNodeA = Cast<UCadenceGraphEditorNode>(A->GetOwningNode());
+	UCadenceGraphEditorNode* EditorNodeB = Cast<UCadenceGraphEditorNode>(B->GetOwningNode());
+
+	ensure(EditorNodeA);
+	ensure(EditorNodeB);
+
+	UCadenceGraphNode* RuntimeNodeA = EditorNodeA->GetRuntimeGraphNode();
+	UCadenceGraphNode* RuntimeNodeB = EditorNodeB->GetRuntimeGraphNode();
+
+	ensure(RuntimeNodeA);
+	ensure(RuntimeNodeB);
+	
+	UCadenceGraphNodePin* RuntimePinA = A->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeA->GetInputPin(A->PinName) : RuntimeNodeA->GetOutputPin(A->PinName);
+	UCadenceGraphNodePin* RuntimePinB = B->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeB->GetInputPin(B->PinName) : RuntimeNodeB->GetOutputPin(B->PinName);
+
+	ensure(RuntimePinA);
+	ensure(RuntimePinB);
+
+	RuntimeNodeA->GetParentGraph()->Modify();
+
 	switch (Response.Response)
 	{
 	case CONNECT_RESPONSE_MAKE:
 		{
-			
+			RuntimePinA->ConnectPin(RuntimePinB);
+			RuntimePinB->ConnectPin(RuntimePinB);
 		}
 		break;
 
 	case CONNECT_RESPONSE_BREAK_OTHERS_A:
 		{
-			
+			RuntimePinA->ClearConnections();
+			RuntimePinA->ConnectPin(RuntimePinB);
+			RuntimePinB->ConnectPin(RuntimePinB);
 		}
 		break;
 
 	case CONNECT_RESPONSE_BREAK_OTHERS_B:
 		{
-			
+			RuntimePinB->ClearConnections();
+			RuntimePinA->ConnectPin(RuntimePinB);
+			RuntimePinB->ConnectPin(RuntimePinB);
 		}
 		break;
 
 	case CONNECT_RESPONSE_BREAK_OTHERS_AB:
 		{
-			
+			RuntimePinA->ClearConnections();
+			RuntimePinB->ClearConnections();
+			RuntimePinA->ConnectPin(RuntimePinB);
+			RuntimePinB->ConnectPin(RuntimePinB);
 		}
 		break;
 	default:
 		break;
-	}
+	}	
 	
 	return Super::TryCreateConnection(A, B);
 }

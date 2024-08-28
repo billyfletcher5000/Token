@@ -12,12 +12,13 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 
 	UCadenceGraphEditor* ParentEditorGraph = Cast<UCadenceGraphEditor>(ParentGraph);
 	ensure(ParentEditorGraph);
-	ParentEditorGraph->Modify();
 
 	UCadenceGraph* RuntimeGraph = ParentEditorGraph->GetRuntimeGraph();
 	ensure(RuntimeGraph);
-	
+
+	RuntimeGraph->Modify();
 	UCadenceGraphNode* RuntimeNode = RuntimeGraph->CreateNode(RuntimeNodeType, Location);
+	RuntimeGraph->AddNode(RuntimeNode);
 	
 	FGraphNodeCreator<UCadenceGraphEditorNode> NodeCreator(*ParentGraph);
 	UCadenceGraphEditorNode* Node = NodeCreator.CreateNode(bSelectNewNode);
@@ -28,9 +29,9 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 	{
 		//ParentGraph->GetSchema()->TryCreateConnection(FromPin, InputPin);
 	}
-	
-	ParentGraph->AddNode(Node, true, true);
-	
+
+	ParentGraph->Modify();
+	ParentGraph->AddNode(Node, true, true);	
 	
 	return Node;
 }

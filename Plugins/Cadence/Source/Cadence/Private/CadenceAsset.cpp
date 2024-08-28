@@ -2,3 +2,11 @@
 
 
 #include "CadenceAsset.h"
+
+#include "CadenceGraph.h"
+
+void UCadenceAsset::CreateGraph()
+{	
+	Modify();
+	Graph = NewObject<UCadenceGraph>(this);
+}

@@ -6,6 +6,7 @@
 
 #include "CadenceGraphNode.generated.h"
 
+class UCadenceGraph;
 class UCadenceGraphNodePin;
 
 /**
@@ -41,6 +42,9 @@ public:
 	TObjectPtr<UCadenceGraphNodePin> GetInputPin(const FName& InPinName) const;
 	TObjectPtr<UCadenceGraphNodePin> GetOutputPin(const FName& InPinName) const;
 
+	void SetParentGraph(TObjectPtr<UCadenceGraph> InParentGraph) { ParentGraph = InParentGraph; }
+	UCadenceGraph* GetParentGraph() const { return ParentGraph; }
+
 	FVector2D GetPosition() const { return Position; }
 	void SetPosition(const FVector2D& InPosition) { Position.X = InPosition.X; Position.Y = InPosition.Y; }
 	void SetPosition(const double& X, const double& Y) { Position.X = X; Position.Y = Y; }
@@ -54,9 +58,12 @@ protected:
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
 
 private:
-	static TObjectPtr<UCadenceGraphNodePin> GetPin(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName);
+	static TObjectPtr<UCadenceGraphNodePin> GetPinFromArray(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName);
 	
-protected:
+public:
+	UPROPERTY()
+	TObjectPtr<UCadenceGraph> ParentGraph;
+	
 	UPROPERTY()
 	TArray<TObjectPtr<UCadenceGraphNodePin>> InputPins;
 

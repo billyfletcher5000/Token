@@ -35,12 +35,12 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetThenPin() const
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetInputPin(const FName& InPinName) const
 {
-	return GetPin(InputPins, InPinName);
+	return GetPinFromArray(InputPins, InPinName);
 }
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetOutputPin(const FName& InPinName) const
 {
-	return GetPin(OutputPins, InPinName);
+	return GetPinFromArray(OutputPins, InPinName);
 }
 
 void UCadenceGraphNode::AddInputExecPin(const FName& InPinName)
@@ -69,8 +69,9 @@ void UCadenceGraphNode::AddOutputVariablePin(const FName& InPinName, const TObje
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateExecPin(const FName& InPinName)
 {	
-	UCadenceGraphNodePin* Pin = NewObject<UCadenceGraphNodePin>();
-	
+	UCadenceGraphNodePin* Pin = NewObject<UCadenceGraphNodePin>(this);
+
+	Pin->SetParentNode(this);
 	Pin->SetPinName(InPinName);
 	Pin->SetIsExec(true);
 	Pin->GenerateGUID();
@@ -80,8 +81,9 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateExecPin(const FName& I
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariablePin(const FName& InPinName,const TObjectPtr<UClass>& InVariableClass)
 {	
-	UCadenceGraphNodePin* Pin = NewObject<UCadenceGraphNodePin>();
-	
+	UCadenceGraphNodePin* Pin = NewObject<UCadenceGraphNodePin>(this);
+
+	Pin->SetParentNode(this);
 	Pin->SetPinName(InPinName);
 	Pin->SetIsExec(false);
 	Pin->SetVariableClass(InVariableClass);
@@ -90,7 +92,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariablePin(const FNam
 	return Pin;
 }
 
-TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetPin(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetPinFromArray(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName)
 {
 	auto Result = InPinArray.FindByPredicate([&InPinName](const TObjectPtr<UCadenceGraphNodePin>& Pin)
 	{

@@ -30,7 +30,7 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 
 	if (WorkingAsset->GetGraph() == nullptr)
 	{
-		WorkingAsset->SetGraph(NewObject<UCadenceGraph>());
+		WorkingAsset->CreateGraph();
 	}
 
 	if(!WorkingGraphEditor)
@@ -49,6 +49,8 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 
 	AddApplicationMode(FCadenceGraphApplicationMode::ModeName, MakeShareable(new FCadenceGraphApplicationMode(SharedThis(this))));
 	SetCurrentMode(FCadenceGraphApplicationMode::ModeName);
+
+	ReconstructEditorGraph();
 }
 
 TSharedPtr<FUICommandList> FCadenceGraphApplication::GetCommandList()
@@ -119,8 +121,30 @@ void FCadenceGraphApplication::UpdateRuntimeGraph()
 	}*/
 }
 
-void FCadenceGraphApplication::UpdateEditorGraph()
+void FCadenceGraphApplication::ReconstructEditorGraph()
 {
+	UCadenceGraph* RuntimeGraph = WorkingAsset->GetGraph();
+	ensure(RuntimeGraph);
+
+	const TArray<TObjectPtr<UCadenceGraphNode>>& RuntimeNodes = RuntimeGraph->GetNodes();
+
+	// Create nodes first
+	for(UCadenceGraphNode* RuntimeNode : RuntimeNodes)
+	{
+		FGraphNodeCreator<UCadenceGraphEditorNode> NodeCreator(*WorkingGraphEditor);
+        UCadenceGraphEditorNode* Node = NodeCreator.CreateNode(false);
+        Node->Construct(RuntimeNode);
+        NodeCreator.Finalize();
+        
+        WorkingGraphEditor->AddNode(Node, true, true);
+	}
+
+	// Connect nodes after
+	for(UEdGraphNode* EdGraphNode : WorkingGraphEditor->Nodes)
+	{
+		UCadenceGraphEditorNode* CadenceEdNode = Cast<UCadenceGraphEditorNode>(EdGraphNode);
+		CadenceEdNode->ReconstructConnections();
+	}
 }
 
 void FCadenceGraphApplication::DeleteSelectedNodes() const

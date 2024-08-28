@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "CadenceGraphNodePin.generated.h"
 
+class UCadenceGraphNode;
 class UCadenceVariable;
 
 /**
@@ -18,11 +19,15 @@ class CADENCE_API UCadenceGraphNodePin : public UObject
 	
 public:
 	const TArray<TObjectPtr<UCadenceGraphNodePin>>& GetConnectedPins() const { return ConnectedPins; }
-	void SetConnectedPins(TArray<TObjectPtr<UCadenceGraphNodePin>> InPins);
+	void SetConnectedPins(TArray<TObjectPtr<UCadenceGraphNodePin>> InPins) { ConnectedPins = InPins; }
 	
 	void ConnectPin(UCadenceGraphNodePin* InPin);	
 	void DisconnectPin(UCadenceGraphNodePin* InPin);
+	void ClearConnections();
 
+	void SetParentNode(UCadenceGraphNode* InParent) { ParentNode = InParent; }
+	UCadenceGraphNode* GetParentNode() const { return ParentNode; }
+	
 	void SetPinName(const FName& InPinName) { PinName = InPinName; }
 	FName GetPinName() const { return PinName; }
 	
@@ -39,7 +44,10 @@ public:
 	TSharedPtr<UCadenceVariable> GetVariable() const { return Variable.Pin(); }
 	void SetVariable(const TSharedPtr<UCadenceVariable>& InVariable) { Variable = InVariable; }
 	
-private:
+public:
+	UPROPERTY()
+	TObjectPtr<UCadenceGraphNode> ParentNode;
+
 	UPROPERTY()
 	FName PinName;
 	

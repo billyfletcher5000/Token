@@ -37,7 +37,7 @@ public: // FAssetEditorToolkit
 
 private:
 	void UpdateRuntimeGraph();
-	void UpdateEditorGraph();
+	void ReconstructEditorGraph();
 	
 	// Begin UICommands
 	void DeleteSelectedNodes() const;	
