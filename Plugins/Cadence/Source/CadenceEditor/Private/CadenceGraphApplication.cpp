@@ -10,6 +10,7 @@
 #include "CadenceGraphSchema.h"
 #include "Framework/Commands/GenericCommands.h"
 #include "Kismet2/BlueprintEditorUtils.h"
+#include "IDetailsView.h"
 
 
 const FName FCadenceGraphApplication::ToolkitFName = FName(TEXT("CadenceGraphApplication"));
@@ -97,6 +98,12 @@ TSharedPtr<FUICommandList> FCadenceGraphApplication::GetCommandList()
 	return GraphEditorCommands;
 }
 
+void FCadenceGraphApplication::SetSelectedDetailsView(const TSharedPtr<IDetailsView>& InDetailsView)
+{
+	SelectedDetailsView = InDetailsView;
+	InDetailsView->OnFinishedChangingProperties().AddSP(this, &FCadenceGraphApplication::OnDetailsPropertyChangesFinished);
+}
+
 void FCadenceGraphApplication::OnToolkitHostingStarted(const TSharedRef<IToolkit>& Toolkit)
 {
 }
@@ -105,28 +112,24 @@ void FCadenceGraphApplication::OnToolkitHostingFinished(const TSharedRef<IToolki
 {
 }
 
-void FCadenceGraphApplication::UpdateRuntimeGraph()
-{/*
-	ensure(WorkingAsset);
-
-	UCadenceGraph* Graph = WorkingAsset->GetGraph();
-	if(Graph == nullptr)
+void FCadenceGraphApplication::OnGraphSelectionChanged(const FGraphPanelSelectionSet& InSelectionSet)
+{
+	TArray<UObject*> RuntimeNodes;
+	for(UObject* Object : InSelectionSet)
 	{
-		Graph = NewObject<UCadenceGraph>(WorkingAsset);
-		WorkingAsset->SetGraph(Graph);
-	}
-	else
-	{
-		Graph->ClearNodes();
-	}
-
-	for(TObjectPtr<UEdGraphNode> EditorNode : WorkingGraphEditor->Nodes)
-	{
-		for(TObjectPtr<UEdGraphPin> EditorPin : EditorNode->Pins)
+		if(UCadenceGraphEditorNode* GraphEditorNode = Cast<UCadenceGraphEditorNode>(Object))
 		{
-			EditorPin->PinId
+			RuntimeNodes.Add(GraphEditorNode->GetRuntimeGraphNode());
 		}
-	}*/
+	}
+	
+	SelectedDetailsView.Pin()->SetObjects(RuntimeNodes);
+}
+
+void FCadenceGraphApplication::OnDetailsPropertyChangesFinished(const FPropertyChangedEvent& InPropertyChangedEvent)
+{	
+	TSharedPtr<SGraphEditor> GraphEditor = SlateGraphEditor.Pin();
+	GraphEditor->NotifyGraphChanged();
 }
 
 void FCadenceGraphApplication::ReconstructEditorGraph()
@@ -239,7 +242,6 @@ bool FCadenceGraphApplication::HasValidNodesInClipboard() const
 	return false;
 }
 
-
 const FName FCadenceGraphApplicationMode::ModeName = FName(TEXT("CadenceGraphApplicationMode"));
 const FName FCadenceGraphApplicationMode::LayoutName = FName(TEXT("CadenceGraphApplicationMode_Layout_v1"));
 
@@ -311,12 +313,16 @@ TSharedRef<SWidget> FCadenceGraphPrimaryTabFactory::CreateTabBody(const FWorkflo
 {
 	TSharedPtr<FCadenceGraphApplication> App = Application.Pin();
 
+	SGraphEditor::FGraphEditorEvents GraphEditorEvents;
+	GraphEditorEvents.OnSelectionChanged = SGraphEditor::FOnSelectionChanged::CreateSP(App.Get(), &FCadenceGraphApplication::OnGraphSelectionChanged);
+	
 	TSharedRef<SGraphEditor> GraphEditor = 
 					SNew(SGraphEditor)
 						.IsEditable(true)
 						.AdditionalCommands(App->GetCommandList())
+						.GraphEvents(GraphEditorEvents)
 						.GraphToEdit(App->GetWorkingGraphEditor());
-
+	
 	App->SetSlateGraphEditor(GraphEditor);
 	
 	TSharedRef<SWidget> Widget =
@@ -362,7 +368,8 @@ TSharedRef<SWidget> FCadenceGraphPropertiesTabFactory::CreateTabBody(const FWork
 	}
 
 	TSharedPtr<IDetailsView> DetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
-	DetailsView->SetObject(App->GetWorkingGraph());
+	DetailsView->SetObject(nullptr);
+	App->SetSelectedDetailsView(DetailsView);
 
 	return SNew(SVerticalBox)
 				+ SVerticalBox::Slot()

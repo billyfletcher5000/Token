@@ -12,6 +12,7 @@
 class UCadenceAsset;
 class UCadenceGraph;
 class UCadenceGraphEditor;
+class IDetailsView;
 
 class FCadenceGraphApplication : public FWorkflowCentricApplication, public FEditorUndoClient, public FNotifyHook
 {
@@ -26,6 +27,7 @@ public:
 	TSharedPtr<FUICommandList> GetCommandList();
 
 	void SetSlateGraphEditor(const TSharedPtr<SGraphEditor>& InSlateGraphEditor) { SlateGraphEditor = InSlateGraphEditor; }
+	void SetSelectedDetailsView(const TSharedPtr<IDetailsView>& InDetailsView);
 
 public: // FAssetEditorToolkit
 	virtual FName GetToolkitFName() const override { return ToolkitFName; }
@@ -36,10 +38,12 @@ public: // FAssetEditorToolkit
 	virtual void OnToolkitHostingStarted(const TSharedRef<IToolkit>& Toolkit) override;
 	virtual void OnToolkitHostingFinished(const TSharedRef<IToolkit>& Toolkit) override;
 
+public:
+	void OnGraphSelectionChanged(const FGraphPanelSelectionSet& InSelectionSet);
+	void OnDetailsPropertyChangesFinished(const FPropertyChangedEvent& InPropertyChangedEvent);
+	
 private:
-	void UpdateRuntimeGraph();
 	void ReconstructEditorGraph();
-
 	void OnWorkingAssetPreSave();
 	
 	// Begin UICommands
@@ -70,6 +74,7 @@ private:
 	UCadenceGraphEditor* WorkingGraphEditor = nullptr;
 	TWeakPtr<SGraphEditor> SlateGraphEditor = nullptr;
 	FDelegateHandle PreSaveDelegateHandle;
+	TWeakPtr<IDetailsView> SelectedDetailsView;
 };
 
 class FCadenceGraphApplicationMode : public FApplicationMode
