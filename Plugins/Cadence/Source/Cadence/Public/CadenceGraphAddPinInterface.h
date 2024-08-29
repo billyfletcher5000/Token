@@ -59,7 +59,9 @@ public:
 	/**
 	* Add an additional input pin to this node
 	*/
-	virtual void AddUserInputPin() = 0;
+	virtual TObjectPtr<UCadenceGraphNodePin> AddUserInputPin() = 0;
+
+	void AddUserInputPinWithoutReturn() { AddUserInputPin(); }
 
 	/**
 	* Determines if a pin can be added to this node. Typically used within   
@@ -75,7 +77,7 @@ public:
 	*
 	* @param Pin		The pin to remove
 	*/
-	virtual void RemoveUserInputPin(UCadenceGraphNodePin* Pin) { } 
+	virtual bool RemoveUserInputPin(UCadenceGraphNodePin* Pin) { return false; } 
 
 	/**
 	* Returns true if the given pin can be removed from this node.

@@ -26,8 +26,8 @@ public:
 	virtual void CreateOutputPins() override;
 	virtual bool Execute() override;
 
-	virtual void AddUserInputPin() override;
-	virtual void RemoveUserInputPin(UCadenceGraphNodePin* Pin) override;
+	virtual TObjectPtr<UCadenceGraphNodePin> AddUserInputPin() override;
+	virtual bool RemoveUserInputPin(UCadenceGraphNodePin* Pin) override;
 	virtual bool CanRemovePin(const UCadenceGraphNodePin* Pin) const;
 	
 	virtual bool IsPure() const override { return true; }

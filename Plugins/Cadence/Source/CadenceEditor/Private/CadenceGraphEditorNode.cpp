@@ -20,33 +20,13 @@ void UCadenceGraphEditorNode::Construct(TObjectPtr<UCadenceGraphNode> InRuntimeG
 	NodePosY = Position.Y;
 
 	for(UCadenceGraphNodePin* RuntimeInputPin : RuntimeGraphNode->GetInputPins())
-	{
-		UEdGraphPin* InputPin = CreatePin(
-			EGPD_Input,
-			RuntimeInputPin->IsExec() ? UCadenceGraphSchema::PC_Exec : UCadenceGraphSchema::PC_Variable,
-			RuntimeInputPin->GetPinName()
-		);
-
-		if(!RuntimeInputPin->IsExec())
-		{
-			UCadenceVariable* VariableDefault = RuntimeInputPin->GetVariableClass()->GetDefaultObject<UCadenceVariable>();
-			InputPin->PinType.PinSubCategory = VariableDefault->GetPinSubCategory();
-		}
+	{		
+		CreatePinInternal(EGPD_Input, RuntimeInputPin);
 	}
 
 	for(UCadenceGraphNodePin* RuntimeOutputPin : RuntimeGraphNode->GetOutputPins())
-	{
-		UEdGraphPin* InputPin = CreatePin(
-			EGPD_Output,
-			RuntimeOutputPin->IsExec() ? UCadenceGraphSchema::PC_Exec : UCadenceGraphSchema::PC_Variable,
-			RuntimeOutputPin->GetPinName()
-		);
-
-		if(!RuntimeOutputPin->IsExec())
-		{
-			UCadenceVariable* VariableDefault = RuntimeOutputPin->GetVariableClass()->GetDefaultObject<UCadenceVariable>();
-			InputPin->PinType.PinSubCategory = VariableDefault->GetPinSubCategory();
-		}
+	{		
+		CreatePinInternal(EGPD_Output, RuntimeOutputPin);
 	}
 }
 
@@ -102,7 +82,7 @@ void UCadenceGraphEditorNode::GetNodeContextMenuActions(UToolMenu* Menu, UGraphN
 						FText::FromString(TEXT("Remove this input pin")),
 						FSlateIcon(),
 						FUIAction(
-							FExecuteAction::CreateRaw(AddPinInterface, &ICadenceGraphAddPinInterface::RemoveUserInputPin, CadencePin)
+							FExecuteAction::CreateUObject(const_cast<UCadenceGraphEditorNode*>(this), &UCadenceGraphEditorNode::RemoveUserInputPin, CadencePin)
 						)
 					);
 				}
@@ -116,11 +96,55 @@ void UCadenceGraphEditorNode::GetNodeContextMenuActions(UToolMenu* Menu, UGraphN
 					FText::FromString(TEXT("Add another input pin")),
 					FSlateIcon(),
 					FUIAction(
-						FExecuteAction::CreateRaw(AddPinInterface, &ICadenceGraphAddPinInterface::AddUserInputPin)
+						FExecuteAction::CreateUObject(const_cast<UCadenceGraphEditorNode*>(this), &UCadenceGraphEditorNode::AddUserInputPin)
 					)
 				);
 			}
 		}
+	}
+}
+
+void UCadenceGraphEditorNode::RemoveUserInputPin(UCadenceGraphNodePin* Pin)
+{	
+	if(ICadenceGraphAddPinInterface* AddPinInterface = Cast<ICadenceGraphAddPinInterface>(RuntimeGraphNode))
+	{
+		if(AddPinInterface->RemoveUserInputPin(Pin))
+		{
+			for(UEdGraphPin* EdPin : Pins)
+			{
+				if(Pin->PinName == EdPin->PinName)
+				{
+					RemovePin(EdPin);
+					ReconstructNode();
+					GetGraph()->NotifyNodeChanged(this);
+					break;
+				}
+			}
+		}
+	}
+}
+
+void UCadenceGraphEditorNode::AddUserInputPin()
+{	
+	if(ICadenceGraphAddPinInterface* AddPinInterface = Cast<ICadenceGraphAddPinInterface>(RuntimeGraphNode))
+	{
+		UCadenceGraphNodePin* Pin = AddPinInterface->AddUserInputPin();
+		CreatePinInternal(EGPD_Input, Pin);
+	}
+}
+
+void UCadenceGraphEditorNode::CreatePinInternal(const EEdGraphPinDirection& InDirection, UCadenceGraphNodePin* InPin)
+{
+	UEdGraphPin* InputPin = CreatePin(
+			InDirection,
+			InPin->IsExec() ? UCadenceGraphSchema::PC_Exec : UCadenceGraphSchema::PC_Variable,
+			InPin->GetPinName()
+		);
+
+	if(!InPin->IsExec())
+	{
+		UCadenceVariable* VariableDefault = InPin->GetVariableClass()->GetDefaultObject<UCadenceVariable>();
+		InputPin->PinType.PinSubCategory = VariableDefault->GetPinSubCategory();
 	}
 }
 
@@ -161,8 +185,7 @@ FReply SGraphNodeUserAddablePins::OnAddPin()
 	{
 		FScopedTransaction Transaction(NSLOCTEXT("UserAddableNode", "AddPinTransaction", "Add Pin"));
 
-		AddPinNode->AddUserInputPin();
-		UpdateGraphNode();
+		CadenceEditorNode->AddUserInputPin();
 		GraphNode->GetGraph()->NotifyNodeChanged(GraphNode);
 	}
 	

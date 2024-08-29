@@ -25,16 +25,16 @@ bool UCadenceTriggerSequenceNode::Execute()
 	return Super::Execute();
 }
 
-void UCadenceTriggerSequenceNode::AddUserInputPin()
+TObjectPtr<UCadenceGraphNodePin> UCadenceTriggerSequenceNode::AddUserInputPin()
 {
 	FString PinName = FCadencePinConstants::Pin_Trigger.ToString() + " " + GetNameForAdditionalPin(PinIndex).ToString();
 	PinIndex++;	
-	AddInputVariablePin(FName(PinName), UCadenceVariableTrigger::StaticClass());
+	return AddInputVariablePin(FName(PinName), UCadenceVariableTrigger::StaticClass());
 }
 
-void UCadenceTriggerSequenceNode::RemoveUserInputPin(UCadenceGraphNodePin* Pin)
+bool UCadenceTriggerSequenceNode::RemoveUserInputPin(UCadenceGraphNodePin* Pin)
 {
-	RemoveInputPin(Pin);
+	return RemoveInputPin(Pin);
 }
 
 bool UCadenceTriggerSequenceNode::CanRemovePin(const UCadenceGraphNodePin* Pin) const

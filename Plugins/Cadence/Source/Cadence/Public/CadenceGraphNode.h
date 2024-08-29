@@ -50,14 +50,14 @@ public:
 	void SetPosition(const double& X, const double& Y) { Position.X = X; Position.Y = Y; }
 	
 protected:
-	virtual void AddInputExecPin(const FName& InPinName);
-	virtual void AddOutputExecPin(const FName& InPinName);
-	virtual void AddInputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
-	virtual void AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddInputExecPin(const FName& InPinName);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputExecPin(const FName& InPinName);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateExecPin(const FName& InPinName);	
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
-	virtual void RemoveInputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
-	virtual void RemoveOutputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
+	virtual bool RemoveInputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
+	virtual bool RemoveOutputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
 
 private:
 	static TObjectPtr<UCadenceGraphNodePin> GetPinFromArray(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName);

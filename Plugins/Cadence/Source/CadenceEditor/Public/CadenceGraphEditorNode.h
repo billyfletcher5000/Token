@@ -22,7 +22,9 @@ public:
 	void ReconstructConnections();
 
 	void UpdateRuntimePosition();
-
+	
+	void RemoveUserInputPin(UCadenceGraphNodePin* Pin);
+	void AddUserInputPin();
 	
 	TObjectPtr<UCadenceGraphNode> GetRuntimeGraphNode() const { return RuntimeGraphNode; }
 	
@@ -33,7 +35,9 @@ public:
 	virtual bool CanUserDeleteNode() const override { return true; }
 	virtual void GetNodeContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const override;
 	// End UEdGraphNode
-	
+
+private:
+	void CreatePinInternal(const EEdGraphPinDirection& InDirection, UCadenceGraphNodePin* InPin);
 	
 private:
 	UPROPERTY()

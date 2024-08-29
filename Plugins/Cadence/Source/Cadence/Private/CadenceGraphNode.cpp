@@ -43,28 +43,36 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetOutputPin(const FName& In
 	return GetPinFromArray(OutputPins, InPinName);
 }
 
-void UCadenceGraphNode::AddInputExecPin(const FName& InPinName)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputExecPin(const FName& InPinName)
 {
 	ensureMsgf(GetInputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin"));
-	InputPins.Add(CreateExecPin(InPinName));
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateExecPin(InPinName);
+	InputPins.Add(Pin);
+	return Pin;
 }
 
-void UCadenceGraphNode::AddOutputExecPin(const FName& InPinName)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputExecPin(const FName& InPinName)
 {
 	ensureMsgf(GetOutputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin"));
-	OutputPins.Add(CreateExecPin(InPinName));
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateExecPin(InPinName);
+	OutputPins.Add(Pin);
+	return Pin;
 }
 
-void UCadenceGraphNode::AddInputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass)
 {	
 	ensureMsgf(GetInputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin"));
-	InputPins.Add(CreateVariablePin(InPinName, InVariableClass));
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariablePin(InPinName, InVariableClass);
+	InputPins.Add(Pin);
+	return Pin;
 }
 
-void UCadenceGraphNode::AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass)
 {
 	ensureMsgf(GetOutputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin"));
-	OutputPins.Add(CreateVariablePin(InPinName, InVariableClass));
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariablePin(InPinName, InVariableClass);
+	OutputPins.Add(Pin);
+	return Pin;
 }
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateExecPin(const FName& InPinName)
@@ -92,16 +100,26 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariablePin(const FNam
 	return Pin;
 }
 
-void UCadenceGraphNode::RemoveInputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin)
+bool UCadenceGraphNode::RemoveInputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin)
 {
 	if(InputPins.Contains(InPin))
+	{
 		InputPins.Remove(InPin);
+		return true;
+	}
+
+	return false;
 }
 
-void UCadenceGraphNode::RemoveOutputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin)
+bool UCadenceGraphNode::RemoveOutputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin)
 {
 	if(OutputPins.Contains(InPin))
+	{
 		OutputPins.Remove(InPin);
+		return true;
+	}
+
+	return false;
 }
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetPinFromArray(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName)
