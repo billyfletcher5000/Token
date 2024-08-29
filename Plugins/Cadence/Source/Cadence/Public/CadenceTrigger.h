@@ -10,12 +10,12 @@
  * 
  */
 UCLASS(Abstract)
-class CADENCE_API UCadenceTrigger : public UObject
+class CADENCE_API UCadenceTriggerRunner : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTriggered, UCadenceTrigger* /* Trigger */, InTrigger);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTriggered, UCadenceTriggerRunner* /* Trigger */, InTrigger);
 	FOnTriggered OnTriggeredDelegate;
 
 protected:
@@ -26,10 +26,19 @@ UCLASS(Abstract)
 class CADENCE_API UCadenceTriggerData : public UObject
 {
 	GENERATED_BODY()
+
+public:
+	virtual UCadenceTriggerRunner* CreateRunner() PURE_VIRTUAL(UCadenceTriggerData::CreateRunner, return nullptr;);
 };
 
 UCLASS()
-class UQuantizedTimeTrigger : public UCadenceTrigger
+class CADENCE_API UQuantizedTimeTriggerData : public UCadenceTriggerData
+{
+	GENERATED_BODY()
+};
+
+UCLASS()
+class UQuantizedTimeTriggerRunner : public UCadenceTriggerRunner
 {
 	GENERATED_BODY()
 

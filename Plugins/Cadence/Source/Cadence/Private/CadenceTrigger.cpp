@@ -3,7 +3,7 @@
 
 #include "CadenceTrigger.h"
 
-void UCadenceTrigger::Trigger()
+void UCadenceTriggerRunner::Trigger()
 {
 	OnTriggeredDelegate.Broadcast(this);
 }

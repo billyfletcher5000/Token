@@ -28,6 +28,11 @@ void UAudioVisualSubsystem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+TStatId UAudioVisualSubsystem::GetStatId() const
+{
+	RETURN_QUICK_DECLARE_CYCLE_STAT(UAudioVisualSubsystem, STATGROUP_Tickables);
+}
+
 IAVDurationSource* UAudioVisualSubsystem::CreateDurationSource(UAVDurationSourceDataAsset* DataAsset)
 {
 	const FString& DataAssetClassName = DataAsset->GetClass()->GetName();

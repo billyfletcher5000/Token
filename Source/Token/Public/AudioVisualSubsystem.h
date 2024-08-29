@@ -27,6 +27,7 @@ public:
 
 	// Begin UTickableWorldSubsystem
 	virtual void Tick(float DeltaTime) override;
+	virtual TStatId GetStatId() const override;
 	// End UTickableWorldSubsystem
 
 	IAVDurationSource* CreateDurationSource(UAVDurationSourceDataAsset* DataAsset);
