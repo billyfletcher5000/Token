@@ -130,6 +130,8 @@ void UCadenceGraphEditorNode::AddUserInputPin()
 	{
 		UCadenceGraphNodePin* Pin = AddPinInterface->AddUserInputPin();
 		CreatePinInternal(EGPD_Input, Pin);
+		ReconstructNode();
+		GetGraph()->NotifyNodeChanged(this);
 	}
 }
 
