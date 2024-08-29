@@ -28,6 +28,7 @@ void UCadenceGraph::AddNode(TObjectPtr<UCadenceGraphNode> InNode)
 
 void UCadenceGraph::RemoveNode(TObjectPtr<UCadenceGraphNode> InNode)
 {
+	Modify();
 	Nodes.Remove(InNode);
 }
 

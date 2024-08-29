@@ -6,7 +6,7 @@
 #include "UObject/Object.h"
 #include "CadenceVariable.generated.h"
 
-class UCadenceTrigger;
+class UCadenceTriggerData;
 
 namespace FCadenceVariable
 {
@@ -197,12 +197,12 @@ class CADENCE_API UCadenceVariableTrigger : public UCadenceVariable
 
 public:
 	virtual FName GetPinSubCategory() const override { return TEXT("Trigger"); }
-	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.75f, 0.f, 0.f); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.75f, 0.0f, 0.0f); }
 	
-	TObjectPtr<UCadenceTrigger> GetValue() const { return Value; }
-	void SetValue(const TObjectPtr<UCadenceTrigger>& InValue) { Value = InValue; }
+	TObjectPtr<UCadenceTriggerData> GetValue() const { return Value; }
+	void SetValue(const TObjectPtr<UCadenceTriggerData>& InValue) { Value = InValue; }
 
 private:
 	UPROPERTY()
-	TObjectPtr<UCadenceTrigger> Value;
+	TObjectPtr<UCadenceTriggerData> Value;
 };

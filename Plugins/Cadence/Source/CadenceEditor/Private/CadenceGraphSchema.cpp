@@ -96,6 +96,7 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 	UCadenceGraphEditorNode* EditorNodeA = Cast<UCadenceGraphEditorNode>(A->GetOwningNode());
 	UCadenceGraphEditorNode* EditorNodeB = Cast<UCadenceGraphEditorNode>(B->GetOwningNode());
 
+		
 	ensure(EditorNodeA);
 	ensure(EditorNodeB);
 
@@ -115,42 +116,90 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 
 	switch (Response.Response)
 	{
-	case CONNECT_RESPONSE_MAKE:
-		{
+		case CONNECT_RESPONSE_MAKE:		
 			RuntimePinA->ConnectPin(RuntimePinB);
-			RuntimePinB->ConnectPin(RuntimePinB);
-		}
-		break;
+			RuntimePinB->ConnectPin(RuntimePinA);		
+			break;
 
-	case CONNECT_RESPONSE_BREAK_OTHERS_A:
-		{
+		case CONNECT_RESPONSE_BREAK_OTHERS_A:		
 			RuntimePinA->ClearConnections();
 			RuntimePinA->ConnectPin(RuntimePinB);
-			RuntimePinB->ConnectPin(RuntimePinB);
-		}
-		break;
+			RuntimePinB->ConnectPin(RuntimePinA);		
+			break;
 
-	case CONNECT_RESPONSE_BREAK_OTHERS_B:
-		{
+		case CONNECT_RESPONSE_BREAK_OTHERS_B:		
 			RuntimePinB->ClearConnections();
 			RuntimePinA->ConnectPin(RuntimePinB);
-			RuntimePinB->ConnectPin(RuntimePinB);
-		}
-		break;
+			RuntimePinB->ConnectPin(RuntimePinA);		
+			break;
 
-	case CONNECT_RESPONSE_BREAK_OTHERS_AB:
-		{
+		case CONNECT_RESPONSE_BREAK_OTHERS_AB:		
 			RuntimePinA->ClearConnections();
 			RuntimePinB->ClearConnections();
 			RuntimePinA->ConnectPin(RuntimePinB);
-			RuntimePinB->ConnectPin(RuntimePinB);
-		}
-		break;
-	default:
-		break;
+			RuntimePinB->ConnectPin(RuntimePinA);		
+			break;
+			
+		default:
+			break;
 	}	
 	
 	return Super::TryCreateConnection(A, B);
+}
+
+void UCadenceGraphSchema::BreakNodeLinks(UEdGraphNode& TargetNode) const
+{
+	if(UCadenceGraphEditorNode* CadenceGraphEditorNode = Cast<UCadenceGraphEditorNode>(&TargetNode); CadenceGraphEditorNode != nullptr)
+	{
+		CadenceGraphEditorNode->GetRuntimeGraphNode()->ClearConnections();
+	}
+	
+	Super::BreakNodeLinks(TargetNode);
+}
+
+void UCadenceGraphSchema::BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNodeNotifcation) const
+{
+	if(UCadenceGraphEditorNode* CadenceGraphEditorNode = Cast<UCadenceGraphEditorNode>(TargetPin.GetOwningNode()); CadenceGraphEditorNode != nullptr)
+	{
+		UCadenceGraphNodePin* RuntimePin = nullptr;
+		if(TargetPin.Direction == EGPD_Input)
+			RuntimePin = CadenceGraphEditorNode->GetRuntimeGraphNode()->GetInputPin(TargetPin.PinName);
+		else
+			RuntimePin = CadenceGraphEditorNode->GetRuntimeGraphNode()->GetOutputPin(TargetPin.PinName);
+
+		ensure(RuntimePin);
+		RuntimePin->ClearConnections();
+	}
+	
+	Super::BreakPinLinks(TargetPin, bSendsNodeNotifcation);
+}
+
+void UCadenceGraphSchema::BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin* TargetPin) const
+{
+	UCadenceGraphEditorNode* SourceEditorNode = Cast<UCadenceGraphEditorNode>(SourcePin->GetOwningNode());
+	UCadenceGraphEditorNode* TargetEditorNode = Cast<UCadenceGraphEditorNode>(TargetPin->GetOwningNode());
+	if(SourceEditorNode != nullptr && TargetEditorNode != nullptr)
+	{
+		UCadenceGraphNodePin* RuntimeSourcePin = nullptr;
+		if(SourcePin->Direction == EGPD_Input)
+			RuntimeSourcePin = SourceEditorNode->GetRuntimeGraphNode()->GetInputPin(SourcePin->PinName);
+		else
+			RuntimeSourcePin = SourceEditorNode->GetRuntimeGraphNode()->GetOutputPin(SourcePin->PinName);
+
+		UCadenceGraphNodePin* RuntimeTargetPin = nullptr;
+		if(TargetPin->Direction == EGPD_Input)
+			RuntimeTargetPin = TargetEditorNode->GetRuntimeGraphNode()->GetInputPin(TargetPin->PinName);
+		else
+			RuntimeTargetPin = TargetEditorNode->GetRuntimeGraphNode()->GetOutputPin(TargetPin->PinName);
+
+		ensure(RuntimeSourcePin);
+		ensure(RuntimeTargetPin);
+
+		RuntimeSourcePin->DisconnectPin(RuntimeTargetPin);
+		RuntimeTargetPin->DisconnectPin(RuntimeSourcePin);
+	}
+	
+	Super::BreakSinglePinLink(SourcePin, TargetPin);
 }
 
 FLinearColor UCadenceGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType) const

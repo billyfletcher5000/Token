@@ -27,9 +27,12 @@ public:
 	virtual bool IsPure() const { return false; }
 	virtual bool HasInputExecPin() const { return true; }
 	virtual bool HasOutputExecPin() const { return true; }
+
+	virtual void DestroyNode();
 	
 	virtual void CreateInputPins();
 	virtual void CreateOutputPins();
+	virtual void ClearConnections();
 
 	TObjectPtr<UCadenceGraphNodePin> GetExecPin() const;
 	TObjectPtr<UCadenceGraphNodePin> GetThenPin() const;

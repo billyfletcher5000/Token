@@ -174,7 +174,7 @@ void FCadenceGraphApplication::DeleteSelectedNodes() const
 	
 	for (FGraphPanelSelectionSet::TConstIterator NodeIt( SelectedNodes ); NodeIt; ++NodeIt)
 	{
-		if (UEdGraphNode* Node = Cast<UEdGraphNode>(*NodeIt))
+		if (UCadenceGraphEditorNode* Node = Cast<UCadenceGraphEditorNode>(*NodeIt))
 		{
 			if (Node->CanUserDeleteNode())
 			{
@@ -182,6 +182,9 @@ void FCadenceGraphApplication::DeleteSelectedNodes() const
 				{
 					Graph->Modify();
 				}
+
+				UCadenceGraphNode* RuntimeNode = Node->GetRuntimeGraphNode();
+				RuntimeNode->DestroyNode();
 
 				Node->DestroyNode();
 			}

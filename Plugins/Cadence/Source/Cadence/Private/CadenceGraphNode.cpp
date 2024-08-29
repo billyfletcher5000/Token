@@ -3,9 +3,24 @@
 
 #include "CadenceGraphNode.h"
 
+#include "CadenceGraph.h"
 #include "CadenceGraphNodePin.h"
 #include "CadencePinConstants.h"
 
+
+void UCadenceGraphNode::DestroyNode()
+{
+	for(UCadenceGraphNodePin* Pin : InputPins)
+		Pin->ClearConnections();
+
+	for(UCadenceGraphNodePin* Pin : OutputPins)
+		Pin->ClearConnections();
+
+	InputPins.Empty();
+	OutputPins.Empty();
+	
+	ParentGraph->RemoveNode(this);
+}
 
 void UCadenceGraphNode::CreateInputPins()
 {
@@ -21,6 +36,15 @@ void UCadenceGraphNode::CreateOutputPins()
 	{
 		AddOutputExecPin(FCadencePinConstants::Pin_Default_Then);
 	}
+}
+
+void UCadenceGraphNode::ClearConnections()
+{
+	for(UCadenceGraphNodePin* Pin : InputPins)
+		Pin->ClearConnections();
+
+	for(UCadenceGraphNodePin* Pin : OutputPins)
+    		Pin->ClearConnections();
 }
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetExecPin() const
@@ -104,6 +128,7 @@ bool UCadenceGraphNode::RemoveInputPin(const TObjectPtr<UCadenceGraphNodePin>& I
 {
 	if(InputPins.Contains(InPin))
 	{
+		InPin->ClearConnections();
 		InputPins.Remove(InPin);
 		return true;
 	}

@@ -41,3 +41,14 @@ bool UCadenceTriggerSequenceNode::CanRemovePin(const UCadenceGraphNodePin* Pin) 
 {
 	return !Pin->IsExec() && InputPins.Contains(Pin) && InputPins.Num() > 2;
 }
+
+void UCadenceQuantizedTimeTriggerNode::CreateOutputPins()
+{	
+	Super::CreateOutputPins();
+	AddOutputVariablePin(FCadencePinConstants::Pin_Trigger, UCadenceVariableTrigger::StaticClass());
+}
+
+bool UCadenceQuantizedTimeTriggerNode::Execute()
+{
+	return Super::Execute();
+}

@@ -7,6 +7,7 @@ void UCadenceGraphNodePin::ConnectPin(UCadenceGraphNodePin* InPin)
 {
 	if(ensure(InPin) && !ConnectedPins.Contains(InPin))
 	{
+		Modify();
 		ConnectedPins.Add(InPin);
 	}
 }
@@ -15,12 +16,18 @@ void UCadenceGraphNodePin::DisconnectPin(UCadenceGraphNodePin* InPin)
 {
 	if(ensure(InPin) && ConnectedPins.Contains(InPin))
 	{
+		Modify();
 		ConnectedPins.Remove(InPin);
 	}
 }
 
 void UCadenceGraphNodePin::ClearConnections()
 {
+	Modify();
+	
+	for(UCadenceGraphNodePin* OtherPin : ConnectedPins)
+		OtherPin->DisconnectPin(this);
+	
 	ConnectedPins.Empty();
 }
 

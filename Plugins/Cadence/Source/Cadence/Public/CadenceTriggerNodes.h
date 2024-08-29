@@ -40,3 +40,26 @@ private:
 	UPROPERTY()
 	int32 PinIndex = 0;
 };
+
+UCLASS()
+class CADENCE_API UCadenceQuantizedTimeTriggerNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateOutputPins() override;
+	virtual bool Execute() override;
+
+	virtual bool IsPure() const override { return true; }
+
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Quantized Time Trigger")); }
+	virtual FText GetNodeCategory() const override { return FCadenceTriggerConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceTriggerConstants::NodeTitleColor; }
+
+public:
+	UPROPERTY(EditAnywhere)
+	EQuartzCommandQuantization TimePeriod;
+
+	UPROPERTY(EditAnywhere)
+	int32 Count = 1;
+};

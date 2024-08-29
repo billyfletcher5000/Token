@@ -2,3 +2,8 @@
 
 
 #include "CadenceTrigger.h"
+
+void UCadenceTrigger::Trigger()
+{
+	OnTriggeredDelegate.Broadcast(this);
+}
