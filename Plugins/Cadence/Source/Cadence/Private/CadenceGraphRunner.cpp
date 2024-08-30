@@ -133,8 +133,9 @@ bool UCadenceGraphRunnerPathway::ExecuteNode(UCadenceGraphNode* InNode, UCadence
 
 void UCadenceGraphRunnerPathway::ProcessVariableInputPin(UCadenceContext* InContext, UCadenceGraphNodePin* InPin)
 {
+	UCadenceGraphNode* ParentNode = InPin->GetParentNode();
 	// If it's a pure node asking for a variable's value, it should already have been processed at that point
-	if(InPin->IsExec() || InPin->GetParentNode()->IsPure())
+	if(InPin->IsExec() || ParentNode->IsPure())
 		return;
 	
 	TArray<UCadenceGraphNode*> NodeStack;
@@ -145,7 +146,7 @@ void UCadenceGraphRunnerPathway::ProcessVariableInputPin(UCadenceContext* InCont
 	{
 		UCadenceGraphNode* Node = *Iter;
 		Node->Execute(InContext);
-		PropagateOutputPinsToInputPins(Node);
+		PropagateOutputPinsToInputPins(Node, NodeStack, ParentNode);
 	}
 }
 
@@ -173,7 +174,7 @@ void UCadenceGraphRunnerPathway::GatherPureNodesContributingToPin(UCadenceGraphN
 	}
 }
 
-void UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins(UCadenceGraphNode* InNode)
+void UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins(UCadenceGraphNode* InNode, const TArray<UCadenceGraphNode*>& InAllowedNodes, UCadenceGraphNode* InEndNode)
 {
 	TArray<UCadenceGraphNodePin*> OutputPins = InNode->GetOutputPins();
 	for (UCadenceGraphNodePin* OutputPin : OutputPins)
@@ -184,7 +185,9 @@ void UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins(UCadenceGraphNod
 		TArray<UCadenceGraphNodePin*> ConnectedInputPins = OutputPin->GetConnectedPins();
 		for (UCadenceGraphNodePin* ConnectedPin : ConnectedInputPins)
 		{
-			ConnectedPin->GetVariable()->CopyValueFrom(OutputPin->GetVariable());
+			UCadenceGraphNode* ParentNode = ConnectedPin->GetParentNode();
+			if(InEndNode == ParentNode || InAllowedNodes.Contains(ParentNode))
+				ConnectedPin->GetVariable()->CopyValueFrom(OutputPin->GetVariable());
 		}
 	}
 }
