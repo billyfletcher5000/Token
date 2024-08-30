@@ -6,8 +6,9 @@
 #include "UObject/Object.h"
 #include "CadenceSubsystem.generated.h"
 
-class UCadenceGraph;
+class UCadenceAsset;
 class UCadenceGraphRunner;
+
 /**
  * 
  */
@@ -28,7 +29,8 @@ public:
 	virtual TStatId GetStatId() const override;
 	// End UTickableWorldSubsystem
 
-	UCadenceGraphRunner* ActivateGraph(UCadenceGraph* InGraph);
+	UFUNCTION(BlueprintCallable)
+	UCadenceGraphRunner* ActivateGraph(UCadenceAsset* CadenceAsset);
 
 protected:
 	friend UCadenceGraphRunner;
@@ -38,4 +40,7 @@ protected:
 private:
 	UPROPERTY()
 	TArray<UCadenceGraphRunner*> ActiveRunners;
+
+	UPROPERTY()
+	TArray<UCadenceGraphRunner*> EndedRunners;
 };

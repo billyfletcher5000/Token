@@ -20,7 +20,7 @@ bool UCadenceDebugFloatNode::Execute(UCadenceContext* InContext)
 	TObjectPtr<UCadenceGraphNodePin> Pin = GetInputPin(FCadencePinConstants::Pin_Float);
 	ensure(Pin);
 
-	TSharedPtr<UCadenceVariableFloat> Variable = StaticCastSharedPtr<UCadenceVariableFloat>(Pin->GetVariable());
+	UCadenceVariableFloat* Variable = Pin->GetVariable<UCadenceVariableFloat>();
 	ensure(Variable);
 	
 	ensure(GEngine);

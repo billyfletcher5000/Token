@@ -3,6 +3,8 @@
 
 #include "CadenceGraphNodePin.h"
 
+#include "CadenceVariable.h"
+
 void UCadenceGraphNodePin::ConnectPin(UCadenceGraphNodePin* InPin)
 {
 	if(ensure(InPin) && !ConnectedPins.Contains(InPin))
@@ -35,3 +37,4 @@ void UCadenceGraphNodePin::GenerateGUID()
 {
 	GUID = FGuid::NewGuid();
 }
+

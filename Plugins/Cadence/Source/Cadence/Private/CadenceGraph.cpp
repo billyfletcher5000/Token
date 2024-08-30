@@ -37,37 +37,23 @@ void UCadenceGraph::ClearNodes()
 	Nodes.Empty();
 }
 
-TArray<TObjectPtr<UCadenceGraphNode>> UCadenceGraph::GetRootNodes() const
+TArray<TObjectPtr<UCadenceGraphNode>> UCadenceGraph::GetRootExecNodes() const
 {
 	TArray<TObjectPtr<UCadenceGraphNode>> Result;
 	
 	for(auto Iter = Nodes.begin(); Iter != Nodes.end(); ++Iter)
 	{
 		UCadenceGraphNode* Node = (*Iter);
-		TArray<TObjectPtr<UCadenceGraphNodePin>> InputPins = Node->GetInputPins();
-		
-		if(InputPins.Num() == 0)
+
+		if(Node->IsPure())
+			continue;
+					
+		UCadenceGraphNodePin* ExecPin = Node->GetExecPin();
+
+		if(ExecPin == nullptr || ExecPin->GetConnectedPins().Num() == 0)
 		{
 			Result.Add(Node);
-		}
-		else
-		{
-			bool bAnyConnectedInputPins = false;
-			
-			for(auto PinIter = InputPins.begin(); PinIter != InputPins.end(); ++PinIter)
-			{
-				UCadenceGraphNodePin* Pin = (*PinIter);
-
-				if(Pin->GetConnectedPins().Num() > 0)
-				{
-					bAnyConnectedInputPins = true;
-					break;
-				}
-			}
-
-			if(!bAnyConnectedInputPins)
-				Result.Add(Node);
-		}
+		}		
 	}
 
 	return Result;

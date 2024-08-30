@@ -23,14 +23,7 @@ bool UCadenceConstantValueFloatNode::Execute(UCadenceContext* InContext)
 	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Float);
 	ensure(Pin);
 
-	TSharedPtr<UCadenceVariableFloat> Variable = StaticCastSharedPtr<UCadenceVariableFloat>(Pin->GetVariable());
-	
-	if(!Variable.IsValid())
-	{
-		Variable = MakeShareable(NewObject<UCadenceVariableFloat>(Pin, Pin->GetVariableClass()));
-		Pin->SetVariable(Variable);
-	}
-
+	UCadenceVariableFloat* Variable = Pin->GetVariable<UCadenceVariableFloat>();
 	Variable->SetValue(Value);
 	
 	return true;
@@ -52,14 +45,7 @@ bool UCadenceConstantValueIntNode::Execute(UCadenceContext* InContext)
 	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Int);
 	ensure(Pin);
 
-	TSharedPtr<UCadenceVariableInt> Variable = StaticCastSharedPtr<UCadenceVariableInt>(Pin->GetVariable());
-	
-	if(!Variable.IsValid())
-	{
-		Variable = MakeShareable(NewObject<UCadenceVariableInt>(Pin, Pin->GetVariableClass()));
-		Pin->SetVariable(Variable);
-	}
-
+	UCadenceVariableInt* Variable = Pin->GetVariable<UCadenceVariableInt>();
 	Variable->SetValue(Value);
 	
 	return true;
@@ -82,15 +68,8 @@ bool UCadenceConstantValueBoolNode::Execute(UCadenceContext* InContext)
 	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Bool);
 	ensure(Pin);
 
-	TSharedPtr<UCadenceVariableBool> Variable = StaticCastSharedPtr<UCadenceVariableBool>(Pin->GetVariable());
-	
-	if(!Variable.IsValid())
-	{
-		Variable = MakeShareable(NewObject<UCadenceVariableBool>(Pin, Pin->GetVariableClass()));
-		Pin->SetVariable(Variable);
-	}
-
-	Variable->SetValue(Value);
+	//UCadenceVariableBool* Variable = Pin->GetVariable<UCadenceVariableBool>();
+	//Variable->SetValue(Value);
 	
 	return true;
 }

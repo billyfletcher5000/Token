@@ -10,7 +10,7 @@ class UCadenceGraph;
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceAsset : public UObject
 {
 	GENERATED_BODY()

@@ -8,17 +8,17 @@
 #include "CadenceGraphNode.h"
 #include "CadenceGraphNodePin.h"
 #include "CadenceSubsystem.h"
+#include "CadenceVariable.h"
 
 void UCadenceGraphRunner::Init(UCadenceContext* InContext)
 {
 	Context = InContext;
+	Context->Runner = this;
 }
 
 void UCadenceGraphRunner::Begin()
-{
-	Context->Runner = this;
-	
-	TArray<UCadenceGraphNode*> RootNodes = Context->Graph->GetRootNodes();
+{	
+	TArray<UCadenceGraphNode*> RootNodes = Context->Graph->GetRootExecNodes();
 
 	for(UCadenceGraphNode* RootNode : RootNodes)
 	{
@@ -124,7 +124,8 @@ UCadenceContext* UCadenceGraphRunnerPathway::GetContext()
 
 bool UCadenceGraphRunnerPathway::ExecuteNode(UCadenceGraphNode* InNode, UCadenceContext* InContext)
 {
-	for(UCadenceGraphNodePin* InputPin : InNode->GetInputPins())
+	TArray<UCadenceGraphNodePin*> InputPins = InNode->GetInputPins();
+	for(UCadenceGraphNodePin* InputPin : InputPins)
 		ProcessVariableInputPin(InContext, InputPin);
 
 	return InNode->Execute(InContext);
@@ -133,7 +134,7 @@ bool UCadenceGraphRunnerPathway::ExecuteNode(UCadenceGraphNode* InNode, UCadence
 void UCadenceGraphRunnerPathway::ProcessVariableInputPin(UCadenceContext* InContext, UCadenceGraphNodePin* InPin)
 {
 	// If it's a pure node asking for a variable's value, it should already have been processed at that point
-	if(InPin->GetParentNode()->IsPure())
+	if(InPin->IsExec() || InPin->GetParentNode()->IsPure())
 		return;
 	
 	TArray<UCadenceGraphNode*> NodeStack;
@@ -142,8 +143,9 @@ void UCadenceGraphRunnerPathway::ProcessVariableInputPin(UCadenceContext* InCont
 
 	for(auto Iter = NodeStack.rbegin(); Iter != NodeStack.rend(); ++Iter)
 	{
-		//ExecuteNode(*Iter, InContext);
-		(*Iter)->Execute(InContext);
+		UCadenceGraphNode* Node = *Iter;
+		Node->Execute(InContext);
+		PropagateOutputPinsToInputPins(Node);
 	}
 }
 
@@ -168,5 +170,21 @@ void UCadenceGraphRunnerPathway::GatherPureNodesContributingToPin(UCadenceGraphN
 		{			
 			GatherPureNodesContributingToPin(InputPin, InNodeStack);
 		}		
+	}
+}
+
+void UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins(UCadenceGraphNode* InNode)
+{
+	TArray<UCadenceGraphNodePin*> OutputPins = InNode->GetOutputPins();
+	for (UCadenceGraphNodePin* OutputPin : OutputPins)
+	{
+		if(OutputPin->IsExec())
+			continue;
+		
+		TArray<UCadenceGraphNodePin*> ConnectedInputPins = OutputPin->GetConnectedPins();
+		for (UCadenceGraphNodePin* ConnectedPin : ConnectedInputPins)
+		{
+			ConnectedPin->GetVariable()->CopyValueFrom(OutputPin->GetVariable());
+		}
 	}
 }

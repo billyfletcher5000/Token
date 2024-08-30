@@ -112,7 +112,7 @@ void UCadenceGraphEditorNode::RemoveUserInputPin(UCadenceGraphNodePin* Pin)
 		{
 			for(UEdGraphPin* EdPin : Pins)
 			{
-				if(Pin->PinName == EdPin->PinName)
+				if(Pin->GetPinName() == EdPin->PinName)
 				{
 					RemovePin(EdPin);
 					ReconstructNode();

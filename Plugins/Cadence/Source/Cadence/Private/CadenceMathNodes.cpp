@@ -28,11 +28,12 @@ bool UCadenceAddNode::Execute(UCadenceContext* InContext)
 
 	for(UCadenceGraphNodePin* InputPin : InputPins)
 	{
-		UCadenceVariableFloat* FloatVariable = Cast<UCadenceVariableFloat>(InputPin->GetVariable().Get());
+		UCadenceVariableFloat* FloatVariable = InputPin->GetVariable<UCadenceVariableFloat>();
 		AggregateValue += FloatVariable->GetValue();
 	}
 
-	UCadenceVariableFloat* OutputFloatVariable = Cast<UCadenceVariableFloat>(OutputPins[0]->GetVariable().Get());
+	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Float);
+	UCadenceVariableFloat* OutputFloatVariable = OutputPin->GetVariable<UCadenceVariableFloat>();
 	OutputFloatVariable->SetValue(AggregateValue);
 	
 	return true;

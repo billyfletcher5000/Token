@@ -18,14 +18,7 @@ bool UCadenceQuantizedDurationNode::Execute(UCadenceContext* InContext)
 	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Duration);
 	ensure(Pin);
 
-	TSharedPtr<UCadenceVariableFloat> Variable = StaticCastSharedPtr<UCadenceVariableFloat>(Pin->GetVariable());
-	
-	if(!Variable.IsValid())
-	{
-		Variable = MakeShareable(NewObject<UCadenceVariableFloat>(Pin, Pin->GetVariableClass()));
-		Pin->SetVariable(Variable);
-	}
-
+	UCadenceVariableFloat* Variable = Pin->GetVariable<UCadenceVariableFloat>();
 	Variable->SetValue(0.69f);
 	
 	return true;

@@ -15,7 +15,7 @@ namespace FCadenceMathNodeConstants
 }
 
 UCLASS()
-class CADENCE_API UCadenceAddNode : public UCadenceGraphNode, ICadenceGraphAddPinInterface
+class CADENCE_API UCadenceAddNode : public UCadenceGraphNode, public ICadenceGraphAddPinInterface
 {
 	GENERATED_BODY()
 

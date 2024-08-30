@@ -63,6 +63,7 @@ private:
 	bool ExecuteNode(UCadenceGraphNode* InNode, UCadenceContext* InContext);
 	void ProcessVariableInputPin(UCadenceContext* InContext, UCadenceGraphNodePin* InPin);
 	void GatherPureNodesContributingToPin(UCadenceGraphNodePin* InPin, TArray<UCadenceGraphNode*>& InNodeStack);
+	void PropagateOutputPinsToInputPins(UCadenceGraphNode* InNode);
 
 private:
 	UPROPERTY()

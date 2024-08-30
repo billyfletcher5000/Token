@@ -23,7 +23,7 @@ public:
 	void ClearNodes();
 
 	TArray<TObjectPtr<UCadenceGraphNode>> GetNodes() const { return Nodes; }
-	TArray<TObjectPtr<UCadenceGraphNode>> GetRootNodes() const;
+	TArray<TObjectPtr<UCadenceGraphNode>> GetRootExecNodes() const;
 
 public:
 	UPROPERTY()

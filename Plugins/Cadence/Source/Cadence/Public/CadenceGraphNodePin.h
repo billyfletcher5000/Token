@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CadenceVariable.h"
 #include "UObject/Object.h"
 #include "CadenceGraphNodePin.generated.h"
 
 class UCadenceGraphNode;
-class UCadenceVariable;
 
 /**
  * 
@@ -40,9 +40,12 @@ public:
 	
 	TSubclassOf<UCadenceVariable> GetVariableClass() const { return VariableClass; }
 	void SetVariableClass(TSubclassOf<UCadenceVariable> InVariableClass) { VariableClass = InVariableClass; }
-	
-	TSharedPtr<UCadenceVariable> GetVariable() const { return Variable.Pin(); }
-	void SetVariable(const TSharedPtr<UCadenceVariable>& InVariable) { Variable = InVariable; }
+
+	template<typename T = UCadenceVariable>
+	T* GetVariable(bool AutoCreate = true);
+
+	template<typename T = UCadenceVariable>
+	T* CreateVariable();
 	
 private:
 	UPROPERTY()
@@ -63,6 +66,22 @@ private:
 	UPROPERTY()
 	TSubclassOf<UCadenceVariable> VariableClass;
 
-private:
-	TWeakPtr<UCadenceVariable> Variable;
+	UPROPERTY()
+	TObjectPtr<UCadenceVariable> Variable;
 };
+
+template <typename T>
+T* UCadenceGraphNodePin::GetVariable(bool AutoCreate)
+{
+	if(Variable == nullptr && AutoCreate)
+		return CreateVariable<T>();
+
+	return Cast<T>(Variable);
+}
+
+template <typename T>
+T* UCadenceGraphNodePin::CreateVariable()
+{	
+	Variable = NewObject<UCadenceVariable>(this, VariableClass);
+	return Cast<T>(Variable);
+}
