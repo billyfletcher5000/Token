@@ -20,7 +20,7 @@ public:
 	virtual bool Execute(UCadenceContext* InContext) PURE_VIRTUAL(UCadenceTriggerRunner::Execute, return true;);
 	
 public:
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTriggered, UCadenceTriggerRunner* /* Trigger */, InTrigger);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTriggered, UCadenceTriggerRunner*, InTrigger);
 	FOnTriggered OnTriggeredDelegate;
 
 protected:
@@ -89,8 +89,21 @@ public:
 	virtual bool Execute(UCadenceContext* InContext) override;
 
 private:
+	UFUNCTION()
+	void OnCurrentTriggerTriggered(UCadenceTriggerRunner* InTrigger);
+	
+private:
 	UPROPERTY()
 	USequenceTriggerData* Data;
+
+	UPROPERTY()
+	int32 TriggerIndex = 0;
+
+	UPROPERTY()
+	UCadenceTriggerRunner* CurrentRunner = nullptr;
+
+	UPROPERTY()
+	int32 ActuatedCount = 0;
 };
 
 UCLASS()
@@ -103,7 +116,7 @@ public:
 
 public:
 	UPROPERTY()
-	EQuartzCommandQuantization TimePeriod;
+	TArray<TObjectPtr<UCadenceTriggerData>> TriggerList;
 
 	UPROPERTY()
 	int32 Count = 1;

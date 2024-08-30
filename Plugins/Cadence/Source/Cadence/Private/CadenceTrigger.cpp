@@ -23,9 +23,38 @@ bool UQuantizedTimeTriggerRunner::Execute(UCadenceContext* InContext)
 void USequenceTriggerRunner::Init(USequenceTriggerData* InData)
 {
 	Data = InData;
+	CurrentRunner = nullptr;
+	TriggerIndex = 0;
+	ActuatedCount = 0;
 }
 
 bool USequenceTriggerRunner::Execute(UCadenceContext* InContext)
 {
-	return Super::Execute(InContext);
+	int32 NumTriggers = Data->TriggerList.Num();
+	
+	if(NumTriggers == 0)
+		return true;
+	
+	if(CurrentRunner == nullptr)
+	{
+		if(TriggerIndex >= NumTriggers)
+		{
+			ActuatedCount++;
+			if(ActuatedCount >= Data->Count)
+				return true;
+			
+			TriggerIndex = 0;
+		}
+		
+		CurrentRunner = Data->TriggerList[TriggerIndex]->CreateRunner();
+		CurrentRunner->OnTriggeredDelegate.AddUniqueDynamic(this, &USequenceTriggerRunner::OnCurrentTriggerTriggered);
+	}
+	
+	return false;
+}
+
+void USequenceTriggerRunner::OnCurrentTriggerTriggered(UCadenceTriggerRunner* InTrigger)
+{
+	InTrigger->OnTriggeredDelegate.RemoveDynamic(this, &USequenceTriggerRunner::OnCurrentTriggerTriggered);
+	TriggerIndex++;
 }

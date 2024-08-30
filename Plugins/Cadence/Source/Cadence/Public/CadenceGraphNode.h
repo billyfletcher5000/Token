@@ -26,6 +26,7 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const { return FLinearColor::Blue; }
 	
 	virtual bool IsPure() const { return false; }
+	virtual bool IsLatent() const { return false; }
 	virtual bool HasInputExecPin() const { return true; }
 	virtual bool HasOutputExecPin() const { return true; }
 

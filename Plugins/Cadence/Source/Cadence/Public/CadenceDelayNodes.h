@@ -24,6 +24,7 @@ class CADENCE_API UCadenceDelayNode : public UCadenceGraphNode
 	GENERATED_BODY()
 
 public:
+	virtual bool IsLatent() const override { return true; }
 	virtual void CreateInputPins() override;
 	virtual bool Execute(UCadenceContext* InContext) override;
 	
