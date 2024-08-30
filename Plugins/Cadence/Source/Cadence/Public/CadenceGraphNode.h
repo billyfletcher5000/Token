@@ -8,6 +8,7 @@
 
 class UCadenceGraph;
 class UCadenceGraphNodePin;
+class UCadenceContext;
 
 /**
  * 
@@ -37,7 +38,7 @@ public:
 	TObjectPtr<UCadenceGraphNodePin> GetExecPin() const;
 	TObjectPtr<UCadenceGraphNodePin> GetThenPin() const;
 
-	virtual bool Execute() PURE_VIRTUAL(UCadenceGraphNode::Execute, return true;);
+	virtual bool Execute(UCadenceContext* InContext) PURE_VIRTUAL(UCadenceGraphNode::Execute, return true;);
 	
 	TArray<TObjectPtr<UCadenceGraphNodePin>>& GetInputPins() { return InputPins; }
 	TArray<TObjectPtr<UCadenceGraphNodePin>>& GetOutputPins() { return OutputPins; }

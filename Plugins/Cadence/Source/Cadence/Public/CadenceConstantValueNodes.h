@@ -23,7 +23,7 @@ class CADENCE_API UCadenceConstantValueFloatNode : public UCadenceGraphNode
 
 public:
 	virtual void CreateOutputPins() override;
-	virtual bool Execute() override;
+	virtual bool Execute(UCadenceContext* InContext) override;
 
 	virtual bool IsPure() const override { return true; }
 
@@ -44,7 +44,7 @@ class CADENCE_API UCadenceConstantValueIntNode : public UCadenceGraphNode
 
 public:
 	virtual void CreateOutputPins() override;
-	virtual bool Execute() override;
+	virtual bool Execute(UCadenceContext* InContext) override;
 
 	virtual bool IsPure() const override { return true; }
 
@@ -65,7 +65,7 @@ class CADENCE_API UCadenceConstantValueBoolNode : public UCadenceGraphNode
 
 public:
 	virtual void CreateOutputPins() override;
-	virtual bool Execute() override;
+	virtual bool Execute(UCadenceContext* InContext) override;
 
 	virtual bool IsPure() const override { return true; }
 

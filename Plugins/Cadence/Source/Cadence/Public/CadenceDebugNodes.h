@@ -22,7 +22,7 @@ class CADENCE_API UCadenceDebugFloatNode : public UCadenceGraphNode
 
 public:
 	virtual void CreateInputPins() override;
-	virtual bool Execute() override;
+	virtual bool Execute(UCadenceContext* InContext) override;
 	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Debug Float")); }
 	virtual FText GetNodeCategory() const override { return FCadenceDebugConstants::NodeCategory; }

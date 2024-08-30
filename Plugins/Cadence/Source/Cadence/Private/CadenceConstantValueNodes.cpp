@@ -18,7 +18,7 @@ void UCadenceConstantValueFloatNode::CreateOutputPins()
 	AddOutputVariablePin(FCadencePinConstants::Pin_Float, UCadenceVariableFloat::StaticClass());
 }
 
-bool UCadenceConstantValueFloatNode::Execute()
+bool UCadenceConstantValueFloatNode::Execute(UCadenceContext* InContext)
 {
 	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Float);
 	ensure(Pin);
@@ -47,7 +47,7 @@ void UCadenceConstantValueIntNode::CreateOutputPins()
 	AddOutputVariablePin(FCadencePinConstants::Pin_Int, UCadenceVariableInt::StaticClass());
 }
 
-bool UCadenceConstantValueIntNode::Execute()
+bool UCadenceConstantValueIntNode::Execute(UCadenceContext* InContext)
 {
 	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Int);
 	ensure(Pin);
@@ -77,7 +77,7 @@ void UCadenceConstantValueBoolNode::CreateOutputPins()
 	AddOutputVariablePin(FCadencePinConstants::Pin_Bool, UCadenceVariableBool::StaticClass());
 }
 
-bool UCadenceConstantValueBoolNode::Execute()
+bool UCadenceConstantValueBoolNode::Execute(UCadenceContext* InContext)
 {
 	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Bool);
 	ensure(Pin);

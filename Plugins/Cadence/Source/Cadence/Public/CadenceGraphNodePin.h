@@ -44,7 +44,7 @@ public:
 	TSharedPtr<UCadenceVariable> GetVariable() const { return Variable.Pin(); }
 	void SetVariable(const TSharedPtr<UCadenceVariable>& InVariable) { Variable = InVariable; }
 	
-public:
+private:
 	UPROPERTY()
 	TObjectPtr<UCadenceGraphNode> ParentNode;
 
