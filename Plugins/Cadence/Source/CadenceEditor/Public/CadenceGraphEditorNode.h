@@ -25,6 +25,9 @@ public:
 	
 	void RemoveUserInputPin(UCadenceGraphNodePin* Pin);
 	void AddUserInputPin();
+
+	UEdGraphPin* GetInputPinByName(const FName& InName);
+	UEdGraphPin* GetOutputPinByName(const FName& InName);
 	
 	TObjectPtr<UCadenceGraphNode> GetRuntimeGraphNode() const { return RuntimeGraphNode; }
 	

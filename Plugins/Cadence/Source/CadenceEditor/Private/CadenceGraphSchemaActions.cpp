@@ -6,6 +6,7 @@
 #include "CadenceGraph.h"
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorNode.h"
+#include "CadenceGraphNodePin.h"
 
 UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode)
 {
@@ -27,7 +28,30 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 
 	if (FromPin)
 	{
-		//ParentGraph->GetSchema()->TryCreateConnection(FromPin, InputPin);
+		UCadenceGraphEditorNode* FromEditorNode = Cast<UCadenceGraphEditorNode>(FromPin->GetOwningNode());
+		UCadenceGraphNode* FromRuntimeNode = FromEditorNode->GetRuntimeGraphNode();
+		if(FromPin->Direction == EGPD_Input)
+		{
+			if(UCadenceGraphNodePin* FromRuntimePin = FromRuntimeNode->GetInputPin(FromPin->PinName))
+			{
+				if(UCadenceGraphNodePin* RuntimeNodePin = RuntimeNode->GetMostAppropriateAutomaticOutputPin(FromRuntimePin))
+				{
+					UEdGraphPin* AppropriateEdPin = Node->GetOutputPinByName(RuntimeNodePin->GetPinName());
+					ParentEditorGraph->GetSchema()->TryCreateConnection(AppropriateEdPin, FromPin);
+				}
+			}
+		}
+		else
+		{
+			if(UCadenceGraphNodePin* FromRuntimePin = FromRuntimeNode->GetOutputPin(FromPin->PinName))
+			{
+				if(UCadenceGraphNodePin* RuntimeNodePin = RuntimeNode->GetMostAppropriateAutomaticInputPin(FromRuntimePin))
+				{
+					UEdGraphPin* AppropriateEdPin = Node->GetInputPinByName(RuntimeNodePin->GetPinName());
+					ParentEditorGraph->GetSchema()->TryCreateConnection(AppropriateEdPin, FromPin);
+				}
+			}
+		}
 	}
 
 	ParentGraph->Modify();

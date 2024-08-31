@@ -135,6 +135,28 @@ void UCadenceGraphEditorNode::AddUserInputPin()
 	}
 }
 
+UEdGraphPin* UCadenceGraphEditorNode::GetInputPinByName(const FName& InName)
+{
+	for(UEdGraphPin* Pin : Pins)
+	{
+		if(Pin->Direction == EGPD_Input && Pin->PinName == InName)
+			return Pin;
+	}
+
+	return nullptr;
+}
+
+UEdGraphPin* UCadenceGraphEditorNode::GetOutputPinByName(const FName& InName)
+{
+	for(UEdGraphPin* Pin : Pins)
+	{
+		if(Pin->Direction == EGPD_Output && Pin->PinName == InName)
+			return Pin;
+	}
+
+	return nullptr;
+}
+
 void UCadenceGraphEditorNode::CreatePinInternal(const EEdGraphPinDirection& InDirection, UCadenceGraphNodePin* InPin)
 {
 	UEdGraphPin* InputPin = CreatePin(

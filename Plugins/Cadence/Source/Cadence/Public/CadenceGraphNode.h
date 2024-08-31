@@ -47,6 +47,9 @@ public:
 	TObjectPtr<UCadenceGraphNodePin> GetInputPin(const FName& InPinName) const;
 	TObjectPtr<UCadenceGraphNodePin> GetOutputPin(const FName& InPinName) const;
 
+	UCadenceGraphNodePin* GetMostAppropriateAutomaticInputPin(UCadenceGraphNodePin* OtherPin);
+	UCadenceGraphNodePin* GetMostAppropriateAutomaticOutputPin(UCadenceGraphNodePin* OtherPin);
+	
 	void SetParentGraph(TObjectPtr<UCadenceGraph> InParentGraph) { ParentGraph = InParentGraph; }
 	UCadenceGraph* GetParentGraph() const { return ParentGraph; }
 

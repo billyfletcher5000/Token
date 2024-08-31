@@ -67,6 +67,34 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetOutputPin(const FName& In
 	return GetPinFromArray(OutputPins, InPinName);
 }
 
+UCadenceGraphNodePin* UCadenceGraphNode::GetMostAppropriateAutomaticInputPin(UCadenceGraphNodePin* OtherPin)
+{
+	for(UCadenceGraphNodePin* MyPin : InputPins)
+	{
+		if(MyPin->IsExec() && OtherPin->IsExec())
+			return MyPin;
+
+		if(MyPin->GetVariableClass() == OtherPin->GetVariableClass())
+			return MyPin;
+	}
+
+	return nullptr;
+}
+
+UCadenceGraphNodePin* UCadenceGraphNode::GetMostAppropriateAutomaticOutputPin(UCadenceGraphNodePin* OtherPin)
+{
+	for(UCadenceGraphNodePin* MyPin : OutputPins)
+	{
+		if(MyPin->IsExec() && OtherPin->IsExec())
+			return MyPin;
+
+		if(MyPin->GetVariableClass() == OtherPin->GetVariableClass())
+			return MyPin;
+	}
+
+	return nullptr;
+}
+
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputExecPin(const FName& InPinName)
 {
 	ensureMsgf(GetInputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin"));
