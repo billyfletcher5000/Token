@@ -14,6 +14,11 @@ class UCadenceGraph;
 class UCadenceGraphEditor;
 class IDetailsView;
 
+namespace FCadenceEditorConstants
+{	
+	const FString ContextIdentifier = TEXT("CadenceEditorContext");
+}
+
 class FCadenceGraphApplication : public FWorkflowCentricApplication, public FEditorUndoClient, public FNotifyHook
 {
 public:
@@ -56,6 +61,7 @@ private:
 	bool HasValidSelection() const;
 	
 	void PasteClipboardNodes();
+	void PasteClipboardNodesAtLocation(const FVector2D& InLocation);
 	bool HasValidNodesInClipboard() const;
 	// End UICommands
 

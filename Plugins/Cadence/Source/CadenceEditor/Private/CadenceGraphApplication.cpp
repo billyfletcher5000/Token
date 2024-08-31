@@ -8,9 +8,11 @@
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorNode.h"
 #include "CadenceGraphSchema.h"
+#include "EdGraphUtilities.h"
 #include "Framework/Commands/GenericCommands.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "IDetailsView.h"
+#include "Windows/WindowsPlatformApplicationMisc.h"
 
 
 const FName FCadenceGraphApplication::ToolkitFName = FName(TEXT("CadenceGraphApplication"));
@@ -215,14 +217,43 @@ bool FCadenceGraphApplication::CanDeleteSelectedNodes() const
 
 void FCadenceGraphApplication::CutSelectedNodes()
 {
+	CopySelectedNodes();
+	DeleteSelectedNodes();
 }
 
 void FCadenceGraphApplication::CopySelectedNodes()
 {
+	if (SlateGraphEditor.IsValid())
+	{
+		// Whole process stole from PCG plugin
+		TSharedPtr<SGraphEditor> SlateEditor = SlateGraphEditor.Pin();
+		const FGraphPanelSelectionSet SelectedNodes = SlateEditor->GetSelectedNodes();
+
+		//TODO: evaluate creating a clipboard object instead of ownership hack
+		for (UObject* SelectedNode : SelectedNodes)
+		{
+			UEdGraphNode* GraphNode = CastChecked<UEdGraphNode>(SelectedNode);
+			GraphNode->PrepareForCopying();
+		}
+
+		FString ExportedText;
+		FEdGraphUtilities::ExportNodesToText(SelectedNodes, ExportedText);
+		FPlatformApplicationMisc::ClipboardCopy(*ExportedText);
+
+		for (UObject* SelectedNode : SelectedNodes)
+		{
+			if (UCadenceGraphEditorNode* CadenceGraphNode = Cast<UCadenceGraphEditorNode>(SelectedNode))
+			{
+				CadenceGraphNode->PostCopy();
+			}
+		}
+	}
 }
 
 void FCadenceGraphApplication::DuplicateSelectedNodes()
 {
+	CopySelectedNodes();
+	PasteClipboardNodes();
 }
 
 bool FCadenceGraphApplication::HasValidSelection() const
@@ -237,12 +268,109 @@ bool FCadenceGraphApplication::HasValidSelection() const
 }
 
 void FCadenceGraphApplication::PasteClipboardNodes()
+{	
+	if (SlateGraphEditor.IsValid())
+	{
+		TSharedPtr<SGraphEditor> PinnedSlateGraphEditor = SlateGraphEditor.Pin();
+		PasteClipboardNodesAtLocation(PinnedSlateGraphEditor->GetPasteLocation());
+	}
+}
+
+void FCadenceGraphApplication::PasteClipboardNodesAtLocation(const FVector2D& InLocation)
 {
+	if (!SlateGraphEditor.IsValid() || !WorkingAsset || !WorkingAsset->GetGraph())
+	{
+		return;
+	}
+
+	UCadenceGraph* RuntimeGraph = WorkingAsset->GetGraph();
+	TSharedPtr<SGraphEditor> GraphEditorWidget = SlateGraphEditor.Pin();
+
+	const FScopedTransaction Transaction(*FCadenceEditorConstants::ContextIdentifier, FText::FromString(TEXT("PCG Editor: Paste")), nullptr);
+	WorkingGraphEditor->Modify();
+
+	// Clear the selection set (newly pasted stuff will be selected)
+	GraphEditorWidget->ClearSelectionSet();
+
+	// Grab the text to paste from the clipboard.
+	FString TextToImport;
+	FPlatformApplicationMisc::ClipboardPaste(TextToImport);
+
+	// Import the nodes
+	TSet<UEdGraphNode*> PastedNodes;
+	FEdGraphUtilities::ImportNodesFromText(WorkingGraphEditor, TextToImport, /*out*/ PastedNodes);
+
+	//Average position of nodes so we can move them while still maintaining relative distances to each other
+	FVector2D AvgNodePosition(0.0f, 0.0f);
+
+	// Number of nodes used to calculate AvgNodePosition
+	int32 AvgCount = 0;
+
+	for (UEdGraphNode* PastedNode : PastedNodes)
+	{
+		if (PastedNode)
+		{
+			AvgNodePosition.X += PastedNode->NodePosX;
+			AvgNodePosition.Y += PastedNode->NodePosY;
+			++AvgCount;
+		}
+	}
+
+	if (AvgCount > 0)
+	{
+		float InvNumNodes = 1.0f / float(AvgCount);
+		AvgNodePosition.X *= InvNumNodes;
+		AvgNodePosition.Y *= InvNumNodes;
+	}
+
+	TArray<UCadenceGraphNode*> NodesToPaste;
+
+	for (UEdGraphNode* PastedNode : PastedNodes)
+	{
+		GraphEditorWidget->SetNodeSelection(PastedNode, true);
+
+		PastedNode->NodePosX = (PastedNode->NodePosX - AvgNodePosition.X) + InLocation.X;
+		PastedNode->NodePosY = (PastedNode->NodePosY - AvgNodePosition.Y) + InLocation.Y;
+
+		PastedNode->SnapToGrid(SNodePanel::GetSnapGridSize());
+
+		PastedNode->CreateNewGuid();
+
+		UCadenceGraphEditorNode* PastedGraphEditorNode = Cast<UCadenceGraphEditorNode>(PastedNode);
+		if (UCadenceGraphNode* PastedRuntimeNode = PastedGraphEditorNode ? PastedGraphEditorNode->GetRuntimeGraphNode() : nullptr)
+		{			
+			RuntimeGraph->AddNode(PastedRuntimeNode);
+		}
+	}
+
+	/* Not sure if this part will be needed 
+	for (UEdGraphNode* PastedNode : PastedNodes)
+	{
+		UCadenceGraphEditorNode* PastedEditorNode = Cast<UCadenceGraphEditorNode>(PastedNode);
+		if (UCadenceGraphNode* PastedRuntimeNode = PastedEditorNode ? PastedEditorNode->GetRuntimeGraphNode() : nullptr)
+		{
+			PastedEditorNode->RebuildAfterPaste();
+		}
+	} 
+
+	for (UEdGraphNode* PastedNode : PastedNodes)
+	{
+		UCadenceGraphEditorNode* PastedEditorGraphNode = Cast<UCadenceGraphEditorNode>(PastedNode);
+		if (UCadenceGraphNode* PastedRuntimeNode = PastedEditorGraphNode ? PastedEditorGraphNode->GetPCGNode() : nullptr)
+		{
+			PastedEditorGraphNode->PostPaste();
+		}
+	}*/
+
+	GraphEditorWidget->NotifyGraphChanged();
 }
 
 bool FCadenceGraphApplication::HasValidNodesInClipboard() const
-{
-	return false;
+{	
+	FString ClipboardContent;
+	FPlatformApplicationMisc::ClipboardPaste(ClipboardContent);
+
+	return FEdGraphUtilities::CanImportNodesFromText(WorkingGraphEditor, ClipboardContent);
 }
 
 const FName FCadenceGraphApplicationMode::ModeName = FName(TEXT("CadenceGraphApplicationMode"));

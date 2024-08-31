@@ -4,9 +4,11 @@
 #include "CadenceGraphEditorNode.h"
 
 #include "CadenceGraphAddPinInterface.h"
+#include "CadenceGraphEditor.h"
 #include "CadenceGraphNodePin.h"
 #include "CadenceGraphSchema.h"
 #include "CadenceGraphUtility.h"
+#include "CadenceGraph.h"
 #include "CadenceVariable.h"
 #include "GraphEditorSettings.h"
 #include "Framework/Commands/GenericCommands.h"
@@ -31,20 +33,24 @@ void UCadenceGraphEditorNode::Construct(TObjectPtr<UCadenceGraphNode> InRuntimeG
 }
 
 void UCadenceGraphEditorNode::ReconstructConnections()
-{
+{	
 	for(UEdGraphPin* EdPin : Pins)
 	{
 		UCadenceGraphNodePin* RuntimePin = EdPin->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeGraphNode->GetInputPin(EdPin->PinName) : RuntimeGraphNode->GetOutputPin(EdPin->PinName);
+		RuntimePin->PruneConnections();
 		const TArray<TObjectPtr<UCadenceGraphNodePin>>& ConnectedRuntimePins = RuntimePin->GetConnectedPins();
-
+		
 		for(UCadenceGraphNodePin* ConnectedRuntimePin : ConnectedRuntimePins)
 		{
 			UCadenceGraphNode* ConnectedRuntimePinParent = ConnectedRuntimePin->GetParentNode();
-			UCadenceGraphEditorNode* ConnectedEditorNode = UCadenceGraphUtility::GetGraphEditorNodeForRuntimeNode(GetGraph(), ConnectedRuntimePinParent);
-			if(ensure(ConnectedEditorNode))
+			if(ensure(ConnectedRuntimePin))
 			{
-				UEdGraphPin* OtherPin = ConnectedEditorNode->FindPin(ConnectedRuntimePin->GetPinName(), EdPin->Direction == EEdGraphPinDirection::EGPD_Input ? EGPD_Output : EGPD_Input);
-				EdPin->MakeLinkTo(OtherPin);
+				UCadenceGraphEditorNode* ConnectedEditorNode = UCadenceGraphUtility::GetGraphEditorNodeForRuntimeNode(GetGraph(), ConnectedRuntimePinParent);
+				if(ensure(ConnectedEditorNode))
+				{
+					UEdGraphPin* OtherPin = ConnectedEditorNode->FindPin(ConnectedRuntimePin->GetPinName(), EdPin->Direction == EEdGraphPinDirection::EGPD_Input ? EGPD_Output : EGPD_Input);
+					EdPin->MakeLinkTo(OtherPin);
+				}
 			}
 		}
 	}
@@ -104,6 +110,15 @@ void UCadenceGraphEditorNode::GetNodeContextMenuActions(UToolMenu* Menu, UGraphN
 	}
 }
 
+void UCadenceGraphEditorNode::PrepareForCopying()
+{	
+	if (RuntimeGraphNode)
+	{
+		// Temporarily take ownership of the MaterialExpression, so that it is not deleted when cutting
+		RuntimeGraphNode->Rename(nullptr, this, REN_DontCreateRedirectors | REN_DoNotDirty);
+	}
+}
+
 void UCadenceGraphEditorNode::RemoveUserInputPin(UCadenceGraphNodePin* Pin)
 {	
 	if(ICadenceGraphAddPinInterface* AddPinInterface = Cast<ICadenceGraphAddPinInterface>(RuntimeGraphNode))
@@ -132,6 +147,17 @@ void UCadenceGraphEditorNode::AddUserInputPin()
 		CreatePinInternal(EGPD_Input, Pin);
 		ReconstructNode();
 		GetGraph()->NotifyNodeChanged(this);
+	}
+}
+
+void UCadenceGraphEditorNode::PostCopy()
+{	
+	if (RuntimeGraphNode)
+	{
+		UCadenceGraphEditor* EditorGraph = CastChecked<UCadenceGraphEditor>(GetGraph());
+		UCadenceGraph* RuntimeGraph = EditorGraph->GetRuntimeGraph();
+		check(RuntimeGraph);
+		RuntimeGraphNode->Rename(nullptr, RuntimeGraph, REN_DontCreateRedirectors | REN_DoNotDirty);
 	}
 }
 

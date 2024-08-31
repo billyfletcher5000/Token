@@ -44,7 +44,8 @@ public class CadenceEditor : ModuleRules
 				"PropertyEditor",
 				"Projects",
 				"ToolMenus",
-				"GraphEditor"
+				"GraphEditor",
+				"ApplicationCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

@@ -33,6 +33,23 @@ void UCadenceGraphNodePin::ClearConnections()
 	ConnectedPins.Empty();
 }
 
+void UCadenceGraphNodePin::PruneConnections()
+{
+	for(UCadenceGraphNodePin* Pin : ConnectedPins)
+	{
+		if(Pin != nullptr && Pin->GetParentNode() == nullptr)
+		{						
+			Pin->Rename(nullptr, GetTransientPackage(), REN_ForceNoResetLoaders | REN_DoNotDirty | REN_DontCreateRedirectors | REN_NonTransactional);
+			Pin->MarkAsGarbage();
+		}
+	}
+	
+	ConnectedPins.RemoveAll([](const TObjectPtr<UCadenceGraphNodePin>& Pin)
+	{
+		return Pin == nullptr || Pin->GetParentNode() == nullptr;
+	});
+}
+
 void UCadenceGraphNodePin::GenerateGUID()
 {
 	GUID = FGuid::NewGuid();

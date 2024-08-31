@@ -26,6 +26,8 @@ public:
 	void RemoveUserInputPin(UCadenceGraphNodePin* Pin);
 	void AddUserInputPin();
 
+	void PostCopy();
+	
 	UEdGraphPin* GetInputPinByName(const FName& InName);
 	UEdGraphPin* GetOutputPinByName(const FName& InName);
 	
@@ -37,6 +39,7 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return RuntimeGraphNode ? RuntimeGraphNode->GetNodeTitleColor() : FLinearColor(FColor::Blue); }
 	virtual bool CanUserDeleteNode() const override { return true; }
 	virtual void GetNodeContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const override;
+	virtual void PrepareForCopying() override;
 	// End UEdGraphNode
 
 private:
