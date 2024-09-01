@@ -260,7 +260,7 @@ void FCadenceGraphNamedVariableCustomization::CustomizeChildren(TSharedRef<IProp
 					 + SHorizontalBox::Slot()
 					 .AutoWidth()
 					 [
-						 SNew(SEditableText)
+						 SNew(SEditableTextBox)
 						 .Text_Static(&FCadenceGraphNamedVariableCustomization::GetVariableText, NameProperty)
 						 .OnTextCommitted_Static(&FCadenceGraphNamedVariableCustomization::OnVariableTextCommitted, NameProperty)
 					 ]
