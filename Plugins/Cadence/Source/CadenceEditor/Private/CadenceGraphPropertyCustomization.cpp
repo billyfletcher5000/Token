@@ -8,7 +8,7 @@
 #include "IDetailChildrenBuilder.h"
 #include "PropertyCustomizationHelpers.h"
 #include "Logging/StructuredLog.h"
-#include "UObject/UnrealTypePrivate.h"
+#include "Input/Reply.h"
 
 DEFINE_LOG_CATEGORY(LogCadence);
 
@@ -244,6 +244,20 @@ void FCadenceGraphNamedVariableCustomization::CustomizeChildren(TSharedRef<IProp
 				 [
 					 SNew(SHorizontalBox)
 					 + SHorizontalBox::Slot()
+					 .FillWidth(1.0f)
+					 .MaxWidth(32.0f)
+					 [
+						 SNew(SButton)
+						 .ButtonStyle(FAppStyle::Get(), "SimpleButton")
+						 .HAlign(HAlign_Left)
+						 .OnClicked_Static(&FCadenceGraphNamedVariableCustomization::OnDeleteButtonPressed, PropertyHandle.ToSharedPtr(), &ChildBuilder)
+						 [							 
+						 	SNew(SImage)
+							 .Image(FAppStyle::Get().GetBrush("Icons.Delete"))
+							 .ColorAndOpacity(FSlateColor::UseForeground())
+						 ]
+					 ]
+					 + SHorizontalBox::Slot()
 					 .AutoWidth()
 					 [
 						 SNew(SEditableText)
@@ -273,6 +287,22 @@ void FCadenceGraphNamedVariableCustomization::OnVariableTextCommitted(const FTex
 {
 	FName Name = FName(InText.ToString());
 	NameProperty->SetValue(Name);
+}
+
+FReply FCadenceGraphNamedVariableCustomization::OnDeleteButtonPressed(TSharedPtr<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder* ChildBuilder)
+{
+	auto ParentHandle = PropertyHandle->GetParentHandle();
+	auto ParentArrayHandle = ParentHandle->AsArray();
+
+	int32 ArrayIndex = PropertyHandle->GetIndexInArray();
+	if(ArrayIndex != INDEX_NONE)
+	{		
+		ParentArrayHandle->DeleteItem(ArrayIndex);
+		ChildBuilder->GetParentCategory().GetParentLayout().ForceRefreshDetails();
+		return FReply::Handled();
+	}
+
+	return FReply::Unhandled();
 }
 
 TSharedRef<IPropertyTypeCustomization> FCadenceGraphVariableCustomization::MakeInstance()

@@ -4,6 +4,8 @@
 #include "IPropertyTypeCustomization.h"
 
 class UCadenceVariable;
+class FReply;
+
 DECLARE_LOG_CATEGORY_EXTERN(LogCadence, Log, All);
 
 class FCadenceGraphUserVariableSetCustomization : public IPropertyTypeCustomization
@@ -46,6 +48,7 @@ public:
 protected:
 	static FText GetVariableText(TSharedPtr<IPropertyHandle> NameProperty);
 	static void OnVariableTextCommitted(const FText& InText, ETextCommit::Type CommitType, TSharedPtr<IPropertyHandle> NameProperty);
+	static FReply OnDeleteButtonPressed(TSharedPtr<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder* ChildBuilder);
 };
 
 class FCadenceGraphVariableCustomization : public IPropertyTypeCustomization
