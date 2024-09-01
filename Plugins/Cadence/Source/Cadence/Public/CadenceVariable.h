@@ -52,7 +52,7 @@ public:
 	void SetValue(const int32& InValue) { Value = InValue; }
 
 private:
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	int32 Value;
 };
 

@@ -2,6 +2,7 @@
 
 #include "Cadence.h"
 
+DEFINE_LOG_CATEGORY(LogCadence);
 #define LOCTEXT_NAMESPACE "FCadenceModule"
 
 void FCadenceModule::StartupModule()

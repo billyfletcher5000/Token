@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "CadenceGraph.generated.h"
 
+class UCadenceVariable;
 class UCadenceGraphNode;
 
 
@@ -16,7 +17,10 @@ struct FCadenceNamedVariable
 
 public:
 	UPROPERTY(EditAnywhere)
-	FName Name;	
+	FName Name;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UCadenceVariable> Variable;
 };
 
 USTRUCT(BlueprintType)

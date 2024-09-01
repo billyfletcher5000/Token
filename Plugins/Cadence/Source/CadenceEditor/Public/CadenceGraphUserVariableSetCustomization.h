@@ -2,6 +2,8 @@
 
 #include "IPropertyTypeCustomization.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogCadence, Log, All);
+
 class FCadenceGraphUserVariableSetCustomization : public IPropertyTypeCustomization
 {
 public:
@@ -19,6 +21,11 @@ private:
 	void OnSelectionChanged(FName NewValue, ESelectInfo::Type SelectInfoType);
 	
 	void GenerateVariableLists();
+	bool VariableAlreadyExistsWithName(TSharedPtr<IPropertyHandleArray> VariablesPropertyArray, const uint32& NumElements, const FName& InName);
+	FName GetUniqueDefaultVariableName(TSharedPtr<IPropertyHandleArray> VariablesPropertyArray);
+
+private:
+	static const FString DefaultVariableNameBase;
 	
 private:
 	FName CurrentItem;
