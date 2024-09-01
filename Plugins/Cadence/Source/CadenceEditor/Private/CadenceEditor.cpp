@@ -6,7 +6,8 @@
 #include "CadenceGraphAssetAction.h"
 #include "CadenceGraphEditorNode.h"
 #include "CadenceGraphEditorPin.h"
-#include "CadenceGraphUserVariableSetCustomization.h"
+#include "CadenceGraphPropertyCustomization.h"
+#include "CadenceVariable.h"
 #include "IAssetTools.h"
 #include "Interfaces/IPluginManager.h"
 #include "Styling/SlateStyleRegistry.h"
@@ -50,7 +51,11 @@ void FCadenceEditorModule::StartupModule()
 
 	PropertyModule.RegisterCustomPropertyTypeLayout(FCadenceGraphUserVariableSet::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceGraphUserVariableSetCustomization::MakeInstance ) );
-
+	PropertyModule.RegisterCustomPropertyTypeLayout(FCadenceNamedVariable::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceGraphNamedVariableCustomization::MakeInstance ) );
+	PropertyModule.RegisterCustomPropertyTypeLayout(UCadenceVariable::StaticClass()->GetFName(), 
+        FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FCadenceGraphVariableCustomization::MakeInstance));
+	
 	PropertyModule.NotifyCustomizationModuleChanged();
 }
 
@@ -67,6 +72,8 @@ void FCadenceEditorModule::ShutdownModule()
 	
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceGraphUserVariableSet::StaticStruct()->GetFName());
+	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceNamedVariable::StaticStruct()->GetFName());
+	PropertyModule.UnregisterCustomPropertyTypeLayout(UCadenceVariable::StaticClass()->GetFName());
 }
 
 #undef LOCTEXT_NAMESPACE

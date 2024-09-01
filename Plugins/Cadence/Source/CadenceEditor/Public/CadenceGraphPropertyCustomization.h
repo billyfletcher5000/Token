@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "IDetailCustomization.h"
 #include "IPropertyTypeCustomization.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogCadence, Log, All);
@@ -31,4 +32,22 @@ private:
 	FName CurrentItem;
 	TArray<FName> VariableTypeNames;
 	TMap<FName, UClass*> VariableTypeNameToClass;
+};
+
+class FCadenceGraphNamedVariableCustomization : public IPropertyTypeCustomization
+{
+public:
+	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
+	
+	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+};
+
+class FCadenceGraphVariableCustomization : public IPropertyTypeCustomization
+{
+public:
+	static TSharedRef<IPropertyTypeCustomization> MakeInstance();	
+	
+	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 };

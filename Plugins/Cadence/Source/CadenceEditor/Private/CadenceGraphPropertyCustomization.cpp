@@ -1,11 +1,13 @@
-﻿#include "CadenceGraphUserVariableSetCustomization.h"
+﻿#include "CadenceGraphPropertyCustomization.h"
 
 #include "CadenceGraph.h"
 #include "CadenceVariable.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
+#include "PropertyCustomizationHelpers.h"
 #include "Logging/StructuredLog.h"
+#include "UObject/UnrealTypePrivate.h"
 
 DEFINE_LOG_CATEGORY(LogCadence);
 
@@ -15,6 +17,11 @@ FCadenceGraphUserVariableSetCustomization::FCadenceGraphUserVariableSetCustomiza
 {
 	GenerateVariableLists();
 	CurrentItem = VariableTypeNames.Num() > 0 ? VariableTypeNames[0] : TEXT("Invalid");
+}
+
+TSharedRef<IPropertyTypeCustomization> FCadenceGraphUserVariableSetCustomization::MakeInstance()
+{
+	return MakeShareable(new FCadenceGraphUserVariableSetCustomization());
 }
 
 void FCadenceGraphUserVariableSetCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle,
@@ -36,8 +43,7 @@ void FCadenceGraphUserVariableSetCustomization::CustomizeChildren(TSharedRef<IPr
 
 	TSharedPtr<IPropertyHandle> VariablesPropHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FCadenceGraphUserVariableSet, Variables));
 	TSharedPtr<IPropertyHandleArray> PropertyArray = VariablesPropHandle->AsArray();
-	
-	
+		
 	auto OnAddClicked = [&ChildBuilder, PropertyArray, this]
 	{
 		if(PropertyArray->AddItem() == FPropertyAccess::Success)
@@ -114,11 +120,6 @@ void FCadenceGraphUserVariableSetCustomization::OnSelectionChanged(FName NewValu
 	CurrentItem = NewValue;
 }
 
-TSharedRef<IPropertyTypeCustomization> FCadenceGraphUserVariableSetCustomization::MakeInstance()
-{
-	return MakeShareable(new FCadenceGraphUserVariableSetCustomization());
-}
-
 void FCadenceGraphUserVariableSetCustomization::GenerateVariableLists()
 {
 	VariableTypeNames.Empty();
@@ -192,6 +193,85 @@ FName FCadenceGraphUserVariableSetCustomization::GetUniqueDefaultVariableName(TS
 	}
 
 	return CurrentTestName;
+}
+
+TSharedRef<IPropertyTypeCustomization> FCadenceGraphNamedVariableCustomization::MakeInstance()
+{
+	return MakeShareable(new FCadenceGraphNamedVariableCustomization());
+}
+
+void FCadenceGraphNamedVariableCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle,
+	FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
+{
+}
+
+void FCadenceGraphNamedVariableCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle,
+	IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
+{
+	if (!PropertyHandle->IsValidHandle())
+	{
+		return;
+	}
+
+	TSharedPtr<IPropertyHandle> NameProperty = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FCadenceNamedVariable, Name));
+	TSharedPtr<IPropertyHandle> VariableProperty = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FCadenceNamedVariable, Variable));
+
+	FName VariableName = NAME_Error;
+	NameProperty->GetValue(VariableName);
+	
+	ChildBuilder.AddCustomRow( FText::FromString("UserVariableRow"))
+				 .NameContent()
+				 [
+					 SNew(SHorizontalBox)
+					 + SHorizontalBox::Slot()
+					 .AutoWidth()
+					 [
+						 SNew(STextBlock)
+						 .Text(FText::FromName(VariableName))		 
+					 ]
+				 ]
+				 .ValueContent()
+				 [
+					 SNew(SHorizontalBox)
+					 + SHorizontalBox::Slot()
+					 .AutoWidth()
+					 [
+					 	SNew(SProperty, VariableProperty)
+					 	.ShouldDisplayName(false)
+					 ]
+				 ];
+}
+
+TSharedRef<IPropertyTypeCustomization> FCadenceGraphVariableCustomization::MakeInstance()
+{
+	return MakeShareable(new FCadenceGraphVariableCustomization());
+}
+
+void FCadenceGraphVariableCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle,
+	FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
+{
+}
+
+void FCadenceGraphVariableCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle,
+	IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
+{
+	// TArray<TWeakObjectPtr<UObject>> Objects;
+	// DetailBuilder.GetObjectsBeingCustomized(Objects);
+	//
+	// if(Objects.Num() != 1)
+	// 	return;
+	//
+	// UCadenceVariable* Variable = Cast<UCadenceVariable>(Objects[0]);
+
+	//TSharedRef<IPropertyHandle> Property = DetailBuilder.GetProperty(Variable->GetValuePropertyName());
+	if(!PropertyHandle->IsValidHandle())
+	{
+		UE_LOG(LogCadence, Error, TEXT("Bugger"));
+	}
+	else
+	{
+		UE_LOG(LogCadence, Warning, TEXT("WOO"));
+	}
 }
 
 
