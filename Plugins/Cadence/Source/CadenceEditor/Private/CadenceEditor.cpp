@@ -8,6 +8,7 @@
 #include "CadenceGraphEditorPin.h"
 #include "CadenceGraphPropertyCustomization.h"
 #include "CadenceVariable.h"
+#include "CadenceVariableInlineWidgetFunctions.h"
 #include "IAssetTools.h"
 #include "Interfaces/IPluginManager.h"
 #include "Styling/SlateStyleRegistry.h"
@@ -57,6 +58,8 @@ void FCadenceEditorModule::StartupModule()
         FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FCadenceGraphVariableCustomization::MakeInstance));
 	
 	PropertyModule.NotifyCustomizationModuleChanged();
+
+	FCadenceVariableInlineWidgetFunctions::RegisterAll(VariableToInlineWidgetFunc);
 }
 
 void FCadenceEditorModule::ShutdownModule()
@@ -74,6 +77,8 @@ void FCadenceEditorModule::ShutdownModule()
 	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceGraphUserVariableSet::StaticStruct()->GetFName());
 	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceNamedVariable::StaticStruct()->GetFName());
 	PropertyModule.UnregisterCustomPropertyTypeLayout(UCadenceVariable::StaticClass()->GetFName());
+	
+	VariableToInlineWidgetFunc.Empty();
 }
 
 #undef LOCTEXT_NAMESPACE

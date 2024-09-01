@@ -3,6 +3,7 @@
 #include "IDetailCustomization.h"
 #include "IPropertyTypeCustomization.h"
 
+class UCadenceVariable;
 DECLARE_LOG_CATEGORY_EXTERN(LogCadence, Log, All);
 
 class FCadenceGraphUserVariableSetCustomization : public IPropertyTypeCustomization

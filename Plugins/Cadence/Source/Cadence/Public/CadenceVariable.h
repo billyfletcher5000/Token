@@ -20,10 +20,6 @@ public:
 	virtual FName GetPinSubCategory() const PURE_VIRTUAL(UCadenceVariable::GetPinSubCategory, return NAME_None;);
 	virtual FLinearColor GetPinColor() const PURE_VIRTUAL(UCadenceVariable::GetPinSubCategory, return FLinearColor::White;);
 	virtual FName GetDisplayName() const { return GetPinSubCategory();}
-
-#if WITH_EDITOR
-	virtual FName GetValuePropertyName() const PURE_VIRTUAL(UCadenceVariable::GetValuePropertyName, return NAME_Error;); 
-#endif
 	
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) PURE_VIRTUAL();
 
@@ -40,10 +36,6 @@ class CADENCE_API UCadenceVariableInt : public UCadenceVariable
 public:
 	virtual FName GetPinSubCategory() const override { return TEXT("int32"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.4f, 0.4f, 1.0f); }
-
-#if WITH_EDITOR
-	virtual FName GetValuePropertyName() const override { return GET_MEMBER_NAME_CHECKED(UCadenceVariableInt, Value); } 
-#endif
 
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
 	{
@@ -68,10 +60,6 @@ class CADENCE_API UCadenceVariableFloat : public UCadenceVariable
 public:
 	virtual FName GetPinSubCategory() const override { return TEXT("float"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.0f, 1.0f, 0.0f); }
-
-#if WITH_EDITOR
-	virtual FName GetValuePropertyName() const override { return GET_MEMBER_NAME_CHECKED(UCadenceVariableFloat, Value); } 
-#endif
 	
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
 	{
@@ -97,10 +85,6 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("double"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.4f, 0.4f, 1.0f); }
 
-#if WITH_EDITOR
-	virtual FName GetValuePropertyName() const override { return GET_MEMBER_NAME_CHECKED(UCadenceVariableDouble, Value); } 
-#endif
-
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
 	{
 		UCadenceVariableDouble* CastedVariable = Cast<UCadenceVariableDouble>(OtherVariable);
@@ -109,7 +93,7 @@ public:
 	
 	double GetValue() const { return Value; }
 	void SetValue(const double& InValue) { Value = InValue; }
-
+	
 private:
 	UPROPERTY(EditAnywhere)
 	double Value;
@@ -123,10 +107,6 @@ class CADENCE_API UCadenceVariableBool : public UCadenceVariable
 public:
 	virtual FName GetPinSubCategory() const override { return TEXT("bool"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(1.0f, 0.0f, 0.0f); }
-
-#if WITH_EDITOR
-	virtual FName GetValuePropertyName() const override { return GET_MEMBER_NAME_CHECKED(UCadenceVariableBool, Value); } 
-#endif
 
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
 	{
@@ -151,10 +131,6 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("Vector"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(1.0f, 1.0f, 0.0f); }
 
-#if WITH_EDITOR
-	virtual FName GetValuePropertyName() const override { return GET_MEMBER_NAME_CHECKED(UCadenceVariableVector, Value); } 
-#endif
-
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
 	{
 		UCadenceVariableVector* CastedVariable = Cast<UCadenceVariableVector>(OtherVariable);
@@ -164,6 +140,8 @@ public:
 	FVector GetValue() const { return Value; }
 	void SetValue(const FVector& InValue) { Value = InValue; }
 
+	FVector* GetValuePtr() { return &Value; }
+	
 private:
 	UPROPERTY(EditAnywhere)
 	FVector Value;
@@ -177,10 +155,6 @@ class CADENCE_API UCadenceVariableVector2D : public UCadenceVariable
 public:
 	virtual FName GetPinSubCategory() const override { return TEXT("Vector2D"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.0f, 0.0f, 1.0f); }
-
-#if WITH_EDITOR
-	virtual FName GetValuePropertyName() const override { return GET_MEMBER_NAME_CHECKED(UCadenceVariableVector2D, Value); } 
-#endif
 
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
 	{
@@ -205,10 +179,6 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("UObject"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 1.0f); }
 
-#if WITH_EDITOR
-	virtual FName GetValuePropertyName() const override { return GET_MEMBER_NAME_CHECKED(UCadenceVariableUObject, Value); } 
-#endif
-
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
 	{
 		UCadenceVariableUObject* CastedVariable = Cast<UCadenceVariableUObject>(OtherVariable);
@@ -232,10 +202,6 @@ class CADENCE_API UCadenceVariableUObjectArray : public UCadenceVariable
 public:
 	virtual FName GetPinSubCategory() const override { return TEXT("UObject"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 1.0f); }
-
-#if WITH_EDITOR
-	virtual FName GetValuePropertyName() const override { return GET_MEMBER_NAME_CHECKED(UCadenceVariableUObjectArray, Value); } 
-#endif
 
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
 	{
@@ -262,10 +228,6 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("QuartzCommandQuantization"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 1.0f); }
 
-#if WITH_EDITOR
-	virtual FName GetValuePropertyName() const override { return GET_MEMBER_NAME_CHECKED(UCadenceVariableQuartzCommandQuantization, Value); } 
-#endif
-
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
 	{
 		UCadenceVariableQuartzCommandQuantization* CastedVariable = Cast<UCadenceVariableQuartzCommandQuantization>(OtherVariable);
@@ -290,10 +252,6 @@ class CADENCE_API UCadenceVariableTrigger : public UCadenceVariable
 public:
 	virtual FName GetPinSubCategory() const override { return TEXT("Trigger"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.75f, 0.0f, 0.0f); }
-
-#if WITH_EDITOR
-	virtual FName GetValuePropertyName() const override { return GET_MEMBER_NAME_CHECKED(UCadenceVariableTrigger, Value); } 
-#endif
 
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
 	{

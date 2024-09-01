@@ -1,5 +1,6 @@
 ﻿#include "CadenceGraphPropertyCustomization.h"
 
+#include "CadenceEditor.h"
 #include "CadenceGraph.h"
 #include "CadenceVariable.h"
 #include "DetailLayoutBuilder.h"
@@ -207,7 +208,7 @@ void FCadenceGraphNamedVariableCustomization::CustomizeHeader(TSharedRef<IProper
 
 void FCadenceGraphNamedVariableCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle,
 	IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
-{
+{	
 	if (!PropertyHandle->IsValidHandle())
 	{
 		return;
@@ -218,6 +219,25 @@ void FCadenceGraphNamedVariableCustomization::CustomizeChildren(TSharedRef<IProp
 
 	FName VariableName = NAME_Error;
 	NameProperty->GetValue(VariableName);
+
+	UObject* VariableUObject = nullptr;
+	VariableProperty->GetValue(VariableUObject);
+	UCadenceVariable* Variable = Cast<UCadenceVariable>(VariableUObject);
+
+	TSharedPtr<SWidget> VariablePropDisplay;
+	FCadenceEditorModule& CadenceEditorModule = FModuleManager::LoadModuleChecked<FCadenceEditorModule>("CadenceEditor");
+	auto VariableClassToWidgetFunctionMap = CadenceEditorModule.VariableToInlineWidgetFunc;
+	FName VariableClassName = Variable->GetClass()->GetFName();
+	if(VariableClassToWidgetFunctionMap.Contains(VariableClassName))
+	{
+		auto WidgetFunction = VariableClassToWidgetFunctionMap[VariableClassName];
+		VariablePropDisplay = WidgetFunction.Execute(Variable, VariableProperty);
+	}
+	else
+	{
+		VariablePropDisplay = SNew(SProperty, VariableProperty)
+			 .ShouldDisplayName(false);
+	}
 	
 	ChildBuilder.AddCustomRow( FText::FromString("UserVariableRow"))
 				 .NameContent()
@@ -236,8 +256,7 @@ void FCadenceGraphNamedVariableCustomization::CustomizeChildren(TSharedRef<IProp
 					 + SHorizontalBox::Slot()
 					 .AutoWidth()
 					 [
-					 	SNew(SProperty, VariableProperty)
-					 	.ShouldDisplayName(false)
+					 	VariablePropDisplay.ToSharedRef()
 					 ]
 				 ];
 }
