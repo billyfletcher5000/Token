@@ -106,6 +106,11 @@ void FCadenceGraphApplication::SetSelectedDetailsView(const TSharedPtr<IDetailsV
 	InDetailsView->OnFinishedChangingProperties().AddSP(this, &FCadenceGraphApplication::OnDetailsPropertyChangesFinished);
 }
 
+void FCadenceGraphApplication::SetGraphDetailsView(const TSharedPtr<IDetailsView>& InDetailsView)
+{
+	GraphDetailsView = InDetailsView;
+}
+
 void FCadenceGraphApplication::OnToolkitHostingStarted(const TSharedRef<IToolkit>& Toolkit)
 {
 }
@@ -381,7 +386,8 @@ FCadenceGraphApplicationMode::FCadenceGraphApplicationMode(TSharedPtr<FCadenceGr
 {
 	Application = InApplication;
 	Tabs.RegisterFactory(MakeShareable(new FCadenceGraphPrimaryTabFactory(InApplication)));
-	Tabs.RegisterFactory(MakeShareable(new FCadenceGraphPropertiesTabFactory(InApplication)));
+	Tabs.RegisterFactory(MakeShareable(new FCadenceGraphNodeDetailsTabFactory(InApplication)));
+	Tabs.RegisterFactory(MakeShareable(new FCadenceGraphDetailsTabFactory(InApplication)));
 
 	TabLayout = FTabManager::NewLayout(LayoutName)
 	->AddArea
@@ -394,7 +400,15 @@ FCadenceGraphApplicationMode::FCadenceGraphApplicationMode(TSharedPtr<FCadenceGr
 			->Split
 			(
 				FTabManager::NewStack()
-				->SetSizeCoefficient(0.75f)
+				->SetSizeCoefficient(0.25f)
+				->AddTab(
+					FCadenceGraphDetailsTabFactory::Identifier, ETabState::OpenedTab
+				)
+			)
+			->Split
+			(
+				FTabManager::NewStack()
+				->SetSizeCoefficient(0.5f)
 				->AddTab(
 				FCadenceGraphPrimaryTabFactory::Identifier, ETabState::OpenedTab
 				)
@@ -404,7 +418,7 @@ FCadenceGraphApplicationMode::FCadenceGraphApplicationMode(TSharedPtr<FCadenceGr
 				FTabManager::NewStack()
 				->SetSizeCoefficient(0.25f)
 				->AddTab(
-				FCadenceGraphPropertiesTabFactory::Identifier, ETabState::OpenedTab
+				FCadenceGraphNodeDetailsTabFactory::Identifier, ETabState::OpenedTab
 				)
 			)
 		)
@@ -474,19 +488,19 @@ FText FCadenceGraphPrimaryTabFactory::GetTabToolTipText(const FWorkflowTabSpawnI
 	return FText::FromString(TEXT("A primary view for the graph and whatnot"));
 }
 
-const FName FCadenceGraphPropertiesTabFactory::Identifier = FName(TEXT("FCadenceGraphDetailsTab"));
+const FName FCadenceGraphNodeDetailsTabFactory::Identifier = FName(TEXT("FCadenceGraphNodeDetailsTab"));
 
-FCadenceGraphPropertiesTabFactory::FCadenceGraphPropertiesTabFactory(TSharedPtr<FCadenceGraphApplication> InApplication)
+FCadenceGraphNodeDetailsTabFactory::FCadenceGraphNodeDetailsTabFactory(TSharedPtr<FCadenceGraphApplication> InApplication)
 : FWorkflowTabFactory(Identifier, InApplication)
 {
 	Application = InApplication;
 
-	TabLabel = FText::FromString(TEXT("Properties"));
-	ViewMenuDescription = FText::FromString(TEXT("Displays the Properties view of a Cadence Graph"));
-	ViewMenuTooltip = FText::FromString(TEXT("Show the Properties view."));
+	TabLabel = FText::FromString(TEXT("Node Details"));
+	ViewMenuDescription = FText::FromString(TEXT("Displays the Node Details view of a Cadence Graph"));
+	ViewMenuTooltip = FText::FromString(TEXT("Show the Node Details view."));
 }
 
-TSharedRef<SWidget> FCadenceGraphPropertiesTabFactory::CreateTabBody(const FWorkflowTabSpawnInfo& Info) const
+TSharedRef<SWidget> FCadenceGraphNodeDetailsTabFactory::CreateTabBody(const FWorkflowTabSpawnInfo& Info) const
 {
 	TSharedPtr<FCadenceGraphApplication> App = Application.Pin();
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
@@ -509,10 +523,56 @@ TSharedRef<SWidget> FCadenceGraphPropertiesTabFactory::CreateTabBody(const FWork
 				.HAlign(HAlign_Fill)
 				[
 					DetailsView.ToSharedRef()	
-				];	
+				];		
 }
 
-FText FCadenceGraphPropertiesTabFactory::GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const
+FText FCadenceGraphNodeDetailsTabFactory::GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const
 {
-	return FText::FromString(TEXT("Cadence Graph Properties View"));
+	return FText::FromString(TEXT("Cadence Graph Node Details View"));
+}
+
+
+const FName FCadenceGraphDetailsTabFactory::Identifier = FName(TEXT("FCadenceGraphDetailsTab"));
+
+FCadenceGraphDetailsTabFactory::FCadenceGraphDetailsTabFactory(TSharedPtr<FCadenceGraphApplication> InApplication)
+: FWorkflowTabFactory(Identifier, InApplication)
+{
+	Application = InApplication;
+
+	TabLabel = FText::FromString(TEXT("Graph Details"));
+	ViewMenuDescription = FText::FromString(TEXT("Displays the details view of a Cadence Graph"));
+	ViewMenuTooltip = FText::FromString(TEXT("Show the Graph Details view."));
+}
+
+TSharedRef<SWidget> FCadenceGraphDetailsTabFactory::CreateTabBody(const FWorkflowTabSpawnInfo& Info) const
+{
+	TSharedPtr<FCadenceGraphApplication> App = Application.Pin();
+	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
+	
+	FDetailsViewArgs GraphDetailsViewArgs;
+	{
+		GraphDetailsViewArgs.bHideSelectionTip = true;
+		GraphDetailsViewArgs.bSearchInitialKeyFocus = true;
+		GraphDetailsViewArgs.bShowOptions = true;
+		GraphDetailsViewArgs.NotifyHook = nullptr;
+		GraphDetailsViewArgs.bAllowSearch = false;
+		GraphDetailsViewArgs.bShowCustomFilterOption = false;
+	}
+
+	TSharedPtr<IDetailsView> GraphDetailsView = PropertyEditorModule.CreateDetailView(GraphDetailsViewArgs);
+	GraphDetailsView->SetObject(App->GetWorkingGraph());
+	App->SetGraphDetailsView(GraphDetailsView);
+
+	return SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				.FillHeight(1.0f)
+				.HAlign(HAlign_Fill)
+				[
+					GraphDetailsView.ToSharedRef()	
+				];		
+}
+
+FText FCadenceGraphDetailsTabFactory::GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const
+{
+	return FText::FromString(TEXT("Cadence Graph Details View"));
 }

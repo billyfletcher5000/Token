@@ -7,6 +7,28 @@
 #include "CadenceGraph.generated.h"
 
 class UCadenceGraphNode;
+
+
+USTRUCT(BlueprintType)
+struct FCadenceNamedVariable
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere)
+	FName Name;	
+};
+
+USTRUCT(BlueprintType)
+struct FCadenceGraphUserVariableSet 
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere)
+	TArray<FCadenceNamedVariable> Variables;
+};
+
 /**
  * 
  */
@@ -28,4 +50,7 @@ public:
 public:
 	UPROPERTY()
 	TArray<TObjectPtr<UCadenceGraphNode>> Nodes;
+
+	UPROPERTY(EditAnywhere)
+	FCadenceGraphUserVariableSet UserVariables;
 };

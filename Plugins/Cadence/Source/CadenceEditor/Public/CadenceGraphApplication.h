@@ -33,6 +33,7 @@ public:
 
 	void SetSlateGraphEditor(const TSharedPtr<SGraphEditor>& InSlateGraphEditor) { SlateGraphEditor = InSlateGraphEditor; }
 	void SetSelectedDetailsView(const TSharedPtr<IDetailsView>& InDetailsView);
+	void SetGraphDetailsView(const TSharedPtr<IDetailsView>& InDetailsView);
 
 public: // FAssetEditorToolkit
 	virtual FName GetToolkitFName() const override { return ToolkitFName; }
@@ -81,6 +82,7 @@ private:
 	TWeakPtr<SGraphEditor> SlateGraphEditor = nullptr;
 	FDelegateHandle PreSaveDelegateHandle;
 	TWeakPtr<IDetailsView> SelectedDetailsView;
+	TWeakPtr<IDetailsView> GraphDetailsView;
 };
 
 class FCadenceGraphApplicationMode : public FApplicationMode
@@ -122,10 +124,25 @@ public:
 	static const FName Identifier;
 };
 
-class FCadenceGraphPropertiesTabFactory : public FWorkflowTabFactory
+class FCadenceGraphNodeDetailsTabFactory : public FWorkflowTabFactory
 {
 public:
-	FCadenceGraphPropertiesTabFactory(TSharedPtr<FCadenceGraphApplication> InApplication);
+	FCadenceGraphNodeDetailsTabFactory(TSharedPtr<FCadenceGraphApplication> InApplication);
+
+	virtual TSharedRef<SWidget> CreateTabBody(const FWorkflowTabSpawnInfo& Info) const override;
+	virtual FText GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const override;
+
+private:
+	TWeakPtr<FCadenceGraphApplication> Application;
+
+public:
+	static const FName Identifier;
+};
+
+class FCadenceGraphDetailsTabFactory : public FWorkflowTabFactory
+{
+public:
+	FCadenceGraphDetailsTabFactory(TSharedPtr<FCadenceGraphApplication> InApplication);
 
 	virtual TSharedRef<SWidget> CreateTabBody(const FWorkflowTabSpawnInfo& Info) const override;
 	virtual FText GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const override;
