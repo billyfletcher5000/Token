@@ -246,8 +246,9 @@ void FCadenceGraphNamedVariableCustomization::CustomizeChildren(TSharedRef<IProp
 					 + SHorizontalBox::Slot()
 					 .AutoWidth()
 					 [
-						 SNew(STextBlock)
-						 .Text(FText::FromName(VariableName))		 
+						 SNew(SEditableText)
+						 .Text_Static(&FCadenceGraphNamedVariableCustomization::GetVariableText, NameProperty)
+						 .OnTextCommitted_Static(&FCadenceGraphNamedVariableCustomization::OnVariableTextCommitted, NameProperty)
 					 ]
 				 ]
 				 .ValueContent()
@@ -259,6 +260,19 @@ void FCadenceGraphNamedVariableCustomization::CustomizeChildren(TSharedRef<IProp
 					 	VariablePropDisplay.ToSharedRef()
 					 ]
 				 ];
+}
+
+FText FCadenceGraphNamedVariableCustomization::GetVariableText(TSharedPtr<IPropertyHandle> NameProperty)
+{
+	FName Name = NAME_Error;
+	NameProperty->GetValue(Name);
+	return FText::FromName(Name);
+}
+
+void FCadenceGraphNamedVariableCustomization::OnVariableTextCommitted(const FText& InText, ETextCommit::Type CommitType, TSharedPtr<IPropertyHandle> NameProperty)
+{
+	FName Name = FName(InText.ToString());
+	NameProperty->SetValue(Name);
 }
 
 TSharedRef<IPropertyTypeCustomization> FCadenceGraphVariableCustomization::MakeInstance()
