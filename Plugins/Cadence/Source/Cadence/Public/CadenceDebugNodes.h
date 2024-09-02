@@ -12,9 +12,20 @@ namespace FCadenceDebugConstants
 	static constexpr FLinearColor NodeTitleColor = FLinearColor(1.0f, 0.5f, 0.5f);
 }
 
-/**
- * 
- */
+UCLASS()
+class CADENCE_API UCadenceDebugIntNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateInputPins() override;
+	virtual bool Execute(UCadenceContext* InContext) override;
+	
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Debug Int")); }
+	virtual FText GetNodeCategory() const override { return FCadenceDebugConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceDebugConstants::NodeTitleColor; }
+};
+
 UCLASS()
 class CADENCE_API UCadenceDebugFloatNode : public UCadenceGraphNode
 {

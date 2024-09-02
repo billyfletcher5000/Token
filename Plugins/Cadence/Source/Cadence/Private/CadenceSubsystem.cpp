@@ -5,6 +5,7 @@
 
 #include "CadenceAsset.h"
 #include "CadenceGraphRunner.h"
+#include "CadenceGraph.h"
 
 void UCadenceSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -36,9 +37,12 @@ TStatId UCadenceSubsystem::GetStatId() const
 
 UCadenceGraphRunner* UCadenceSubsystem::ActivateGraph(UCadenceAsset* CadenceAsset)
 {
-	UCadenceGraphRunner* Runner = NewObject<UCadenceGraphRunner>();
-	UCadenceContext* Context = NewObject<UCadenceContext>();
-	Context->Graph = CadenceAsset->GetGraph();
+	UCadenceGraphRunner* Runner = NewObject<UCadenceGraphRunner>(this);
+	UCadenceContext* Context = NewObject<UCadenceContext>(Runner);
+	TObjectPtr<UCadenceGraph> Graph = CadenceAsset->GetGraph();
+	Context->SourceGraph = Graph;
+	Context->Graph = DuplicateObject(Graph, Context, "Graph");
+	Context->Asset = CadenceAsset;
 	Runner->Init(Context);
 
 	ActiveRunners.Add(Runner);

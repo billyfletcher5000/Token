@@ -18,10 +18,9 @@ bool UCadenceUserVariableGetterNode::Execute(UCadenceContext* InContext)
 	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Value);
 	TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedPins = OutputPin->GetConnectedPins();
 	
-	for(UCadenceGraphNodePin* ConnectedPin : ConnectedPins)
-		ConnectedPin->GetVariable()->CopyValueFrom(SourceVariable);
+	OutputPin->OverrideVariable(SourceVariable);
 	
-	return Super::Execute(InContext);
+	return true;
 }
 
 FText UCadenceUserVariableGetterNode::GetNodeTitle() const
@@ -58,12 +57,9 @@ bool UCadenceUserVariableSetterNode::Execute(UCadenceContext* InContext)
 	}
 	
 	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Value);
-	TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedPins = OutputPin->GetConnectedPins();
+	OutputPin->OverrideVariable(SourceVariable);
 	
-	for(UCadenceGraphNodePin* ConnectedPin : ConnectedPins)
-		ConnectedPin->GetVariable()->CopyValueFrom(SourceVariable);
-	
-	return Super::Execute(InContext);
+	return true;
 }
 
 FText UCadenceUserVariableSetterNode::GetNodeTitle() const

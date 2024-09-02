@@ -9,6 +9,26 @@
 #include "CadencePinConstants.h"
 #include "CadenceVariable.h"
 
+void UCadenceDebugIntNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+	AddInputVariablePin(FCadencePinConstants::Pin_Int, UCadenceVariableInt::StaticClass());
+}
+
+bool UCadenceDebugIntNode::Execute(UCadenceContext* InContext)
+{
+	TObjectPtr<UCadenceGraphNodePin> Pin = GetInputPin(FCadencePinConstants::Pin_Float);
+	ensure(Pin);
+
+	UCadenceVariableInt* Variable = Pin->GetVariable<UCadenceVariableInt>();
+	ensure(Variable);
+	
+	ensure(GEngine);
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::White, *FString::FromInt(Variable->GetValue()));
+	
+	return true;
+}
+
 void UCadenceDebugFloatNode::CreateInputPins()
 {
 	Super::CreateInputPins();

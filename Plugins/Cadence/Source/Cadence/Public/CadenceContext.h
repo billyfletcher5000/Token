@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "CadenceContext.generated.h"
 
+class UCadenceAsset;
 class UCadenceGraphRunnerPathway;
 class UCadenceGraphRunner;
 class UCadenceGraph;
@@ -27,6 +28,12 @@ public:
 
 	UPROPERTY()
 	UCadenceGraph* Graph;
+
+	UPROPERTY()
+	UCadenceAsset* Asset;
+
+	UPROPERTY()
+	UCadenceGraph* SourceGraph;
 
 	UPROPERTY()
 	UCadenceGraphRunner* Runner;

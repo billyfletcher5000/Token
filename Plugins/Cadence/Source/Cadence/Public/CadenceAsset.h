@@ -18,6 +18,7 @@ class CADENCE_API UCadenceAsset : public UObject
 public:
 	void CreateGraph();
 	UCadenceGraph* GetGraph() const { return Graph; }
+	void SetGraph(UCadenceGraph* InGraph) { Graph = InGraph; }
 
 public:
 	virtual void PreSave(FObjectPreSaveContext SaveContext) override;

@@ -47,6 +47,9 @@ public:
 
 	template<typename T = UCadenceVariable>
 	T* CreateVariable();
+
+	void OverrideVariable(UCadenceVariable* InVariable) { VariableOverride = InVariable; }
+	void ClearOverrideVariable() { VariableOverride = nullptr; }
 	
 private:
 	UPROPERTY()
@@ -69,11 +72,16 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UCadenceVariable> Variable;
+
+	UCadenceVariable* VariableOverride;
 };
 
 template <typename T>
 T* UCadenceGraphNodePin::GetVariable(bool AutoCreate)
 {
+	if(VariableOverride != nullptr)
+		return Cast<T>(VariableOverride);
+	
 	if(Variable == nullptr && AutoCreate)
 		return CreateVariable<T>();
 

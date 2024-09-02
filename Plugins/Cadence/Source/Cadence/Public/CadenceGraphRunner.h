@@ -33,7 +33,7 @@ protected:
 	void NotifyPathwayEnded(UCadenceGraphRunnerPathway* InPathway);
 	void RequestAdditionalPathway(UCadenceGraphNode* InStartNode);
 
-private:
+public:
 	UCadenceContext* GetContext();
 	
 private:

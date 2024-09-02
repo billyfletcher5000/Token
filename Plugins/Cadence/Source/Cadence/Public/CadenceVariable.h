@@ -146,8 +146,6 @@ public:
 	
 	FVector GetValue() const { return Value; }
 	void SetValue(const FVector& InValue) { Value = InValue; }
-
-	FVector* GetValuePtr() { return &Value; }
 	
 private:
 	UPROPERTY(EditAnywhere)
