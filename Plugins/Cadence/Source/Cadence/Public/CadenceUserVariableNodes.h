@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CadenceGraph.h"
 #include "CadenceGraphNode.h"
+#include "CadenceVariable.h"
 #include "UObject/Object.h"
 #include "CadenceUserVariableNodes.generated.h"
 
@@ -18,22 +18,40 @@ namespace FCadenceUserVariableConstants
 
 namespace FCadenceUserVariableHelper
 {
-	static FText GetGetterNodeMenuName(const FCadenceNamedVariable& NamedVariable)
+	static FText GetGetterNodeMenuName(const UCadenceVariable* NamedVariable)
 	{		
-		return FText::FromString(FCadenceUserVariableConstants::GetterPrefix + NamedVariable.Name.ToString());
+		return FText::FromString(FCadenceUserVariableConstants::GetterPrefix + NamedVariable->GetUserVariableName().ToString());
 	}
 	
-	static FText GetSetterNodeMenuName(const FCadenceNamedVariable& NamedVariable)
+	static FText GetSetterNodeMenuName(const UCadenceVariable* NamedVariable)
 	{		
-		return FText::FromString(FCadenceUserVariableConstants::SetterPrefix + NamedVariable.Name.ToString());
+		return FText::FromString(FCadenceUserVariableConstants::SetterPrefix + NamedVariable->GetUserVariableName().ToString());
 	}
 }
+
+UCLASS(Abstract)
+class CADENCE_API UCadenceUserVariableAccessNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+	
+public:	
+	virtual void SetSourceVariable(UCadenceVariable* InVariable) { SourceVariable = InVariable; }
+	virtual UCadenceVariable* GetSourceVariable() { return SourceVariable; }
+	
+#if WITH_EDITOR
+	virtual bool CanBeAutoCreated() const override { return false; }
+#endif
+	
+protected:
+	UPROPERTY()
+	TObjectPtr<UCadenceVariable> SourceVariable;
+};
 
 /**
  * 
  */
 UCLASS()
-class CADENCE_API UCadenceUserVariableGetterNode : public UCadenceGraphNode
+class CADENCE_API UCadenceUserVariableGetterNode : public UCadenceUserVariableAccessNode
 {
 	GENERATED_BODY()
 	
@@ -47,20 +65,10 @@ public:
 	virtual FText GetNodeMenuName() const override;
 	virtual FText GetNodeCategory() const override { return FCadenceUserVariableConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceUserVariableConstants::NodeTitleColor; }
-
-	void SetSourceVariable(FCadenceNamedVariable& InVariable) { SourceVariable = InVariable; }
-	
-#if WITH_EDITOR
-	virtual bool CanBeAutoCreated() const override { return false; }
-#endif
-	
-private:
-	UPROPERTY()
-	FCadenceNamedVariable SourceVariable;
 };
 
 UCLASS()
-class CADENCE_API UCadenceUserVariableSetterNode : public UCadenceGraphNode
+class CADENCE_API UCadenceUserVariableSetterNode : public UCadenceUserVariableAccessNode
 {
 	GENERATED_BODY()
 	
@@ -73,14 +81,4 @@ public:
 	virtual FText GetNodeMenuName() const override;
 	virtual FText GetNodeCategory() const override { return FCadenceUserVariableConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceUserVariableConstants::NodeTitleColor; }
-
-	void SetSourceVariable(FCadenceNamedVariable& InVariable) { SourceVariable = InVariable; }
-
-#if WITH_EDITOR
-	virtual bool CanBeAutoCreated() const override { return false; }
-#endif
-
-private:
-	UPROPERTY()
-	FCadenceNamedVariable SourceVariable;
 };

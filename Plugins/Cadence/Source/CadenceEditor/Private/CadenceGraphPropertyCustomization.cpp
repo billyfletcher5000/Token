@@ -2,6 +2,8 @@
 
 #include "CadenceEditor.h"
 #include "CadenceGraph.h"
+#include "CadenceGraphNode.h"
+#include "CadenceUserVariableNodes.h"
 #include "CadenceVariable.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
@@ -53,16 +55,15 @@ void FCadenceGraphUserVariableSetCustomization::CustomizeChildren(TSharedRef<IPr
 			PropertyArray->GetNumElements(NumElements);
 
 			TSharedRef<IPropertyHandle> NewElement = PropertyArray->GetElement(NumElements - 1);
-			auto NameProperty = NewElement->GetChildHandle(GET_MEMBER_NAME_CHECKED(FCadenceNamedVariable, Name));
 			auto VariableProperty = NewElement->GetChildHandle(GET_MEMBER_NAME_CHECKED(FCadenceNamedVariable, Variable));
 
 			TArray<UObject*> ElementObjects;
 			VariableProperty->GetOuterObjects(ElementObjects);
 			UCadenceGraph* Graph = Cast<UCadenceGraph>(ElementObjects[0]);
 			
-			NameProperty->SetValue(GetUniqueDefaultVariableName(PropertyArray));
 			UClass* VariableType = VariableTypeNameToClass[CurrentItem];
 			UCadenceVariable* NewVariable = NewObject<UCadenceVariable>(Graph, VariableType);
+			NewVariable->SetUserVariableName(GetUniqueDefaultVariableName(Graph->UserVariables.Variables));
 			VariableProperty->SetValue(NewVariable);
 
 			ChildBuilder.GetParentCategory().GetParentLayout().ForceRefreshDetails();			
@@ -164,30 +165,25 @@ void FCadenceGraphUserVariableSetCustomization::GenerateVariableLists()
 	//VariableTypeNames.Sort();	
 }
 
-bool FCadenceGraphUserVariableSetCustomization::VariableAlreadyExistsWithName(TSharedPtr<IPropertyHandleArray> VariablesPropertyArray, const uint32& NumElements, const FName& InName)
+bool FCadenceGraphUserVariableSetCustomization::VariableAlreadyExistsWithName(TArray<FCadenceNamedVariable>& UserVariableArray, const FName& InName)
 {
-	for(uint32 ElementIndex = 0; ElementIndex < NumElements; ++ElementIndex)
+	if(InName == NAME_None)
+		return false;
+	
+	for(FCadenceNamedVariable& Variable : UserVariableArray)
 	{
-		TSharedRef<IPropertyHandle> Element = VariablesPropertyArray->GetElement(ElementIndex);
-		TSharedPtr<IPropertyHandle> NameHandle = Element->GetChildHandle(GET_MEMBER_NAME_CHECKED(FCadenceNamedVariable, Name));
-		FName CurrentName = NAME_None;
-		NameHandle->GetValue(CurrentName);
-		if(CurrentName == InName)
+		if(Variable.Variable && Variable.Variable->GetUserVariableName() == InName)
 			return true;
 	}
 
 	return false;
 }
 
-FName FCadenceGraphUserVariableSetCustomization::GetUniqueDefaultVariableName(TSharedPtr<IPropertyHandleArray> VariablesPropertyArray)
+FName FCadenceGraphUserVariableSetCustomization::GetUniqueDefaultVariableName(TArray<FCadenceNamedVariable>& UserVariableArray)
 {
-	uint32 NumElements = 0;
-	if(VariablesPropertyArray->GetNumElements(NumElements) == FPropertyAccess::Fail)
-		return NAME_Error;
-
 	FName CurrentTestName = FName(DefaultVariableNameBase);
 	uint32 VariableCopyIndex = 1;
-	while(VariableAlreadyExistsWithName(VariablesPropertyArray, NumElements, CurrentTestName))
+	while(VariableAlreadyExistsWithName(UserVariableArray, CurrentTestName))
 	{
 		VariableCopyIndex++;
 		CurrentTestName = FName(DefaultVariableNameBase + " " + FString::FromInt(VariableCopyIndex));
@@ -214,11 +210,7 @@ void FCadenceGraphNamedVariableCustomization::CustomizeChildren(TSharedRef<IProp
 		return;
 	}
 
-	TSharedPtr<IPropertyHandle> NameProperty = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FCadenceNamedVariable, Name));
 	TSharedPtr<IPropertyHandle> VariableProperty = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FCadenceNamedVariable, Variable));
-
-	FName VariableName = NAME_Error;
-	NameProperty->GetValue(VariableName);
 
 	UObject* VariableUObject = nullptr;
 	VariableProperty->GetValue(VariableUObject);
@@ -250,7 +242,7 @@ void FCadenceGraphNamedVariableCustomization::CustomizeChildren(TSharedRef<IProp
 						 SNew(SButton)
 						 .ButtonStyle(FAppStyle::Get(), "SimpleButton")
 						 .HAlign(HAlign_Left)
-						 .OnClicked_Static(&FCadenceGraphNamedVariableCustomization::OnDeleteButtonPressed, PropertyHandle.ToSharedPtr(), &ChildBuilder)
+						 .OnClicked_Static(&FCadenceGraphNamedVariableCustomization::OnDeleteButtonPressed, PropertyHandle.ToSharedPtr(), &ChildBuilder, Variable)
 						 [							 
 						 	SNew(SImage)
 							 .Image(FAppStyle::Get().GetBrush("Icons.Delete"))
@@ -261,8 +253,8 @@ void FCadenceGraphNamedVariableCustomization::CustomizeChildren(TSharedRef<IProp
 					 .AutoWidth()
 					 [
 						 SNew(SEditableTextBox)
-						 .Text_Static(&FCadenceGraphNamedVariableCustomization::GetVariableText, NameProperty)
-						 .OnTextCommitted_Static(&FCadenceGraphNamedVariableCustomization::OnVariableTextCommitted, NameProperty)
+						 .Text_Static(&FCadenceGraphNamedVariableCustomization::GetVariableText, Variable)
+						 .OnTextCommitted_Static(&FCadenceGraphNamedVariableCustomization::OnVariableTextCommitted, Variable)
 					 ]
 				 ]
 				 .ValueContent()
@@ -276,20 +268,17 @@ void FCadenceGraphNamedVariableCustomization::CustomizeChildren(TSharedRef<IProp
 				 ];
 }
 
-FText FCadenceGraphNamedVariableCustomization::GetVariableText(TSharedPtr<IPropertyHandle> NameProperty)
+FText FCadenceGraphNamedVariableCustomization::GetVariableText(UCadenceVariable* Variable)
 {
-	FName Name = NAME_Error;
-	NameProperty->GetValue(Name);
-	return FText::FromName(Name);
+	return FText::FromName(Variable->GetUserVariableName());
 }
 
-void FCadenceGraphNamedVariableCustomization::OnVariableTextCommitted(const FText& InText, ETextCommit::Type CommitType, TSharedPtr<IPropertyHandle> NameProperty)
+void FCadenceGraphNamedVariableCustomization::OnVariableTextCommitted(const FText& InText, ETextCommit::Type CommitType, UCadenceVariable* Variable)
 {
-	FName Name = FName(InText.ToString());
-	NameProperty->SetValue(Name);
+	Variable->SetUserVariableName(FName(InText.ToString()));
 }
 
-FReply FCadenceGraphNamedVariableCustomization::OnDeleteButtonPressed(TSharedPtr<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder* ChildBuilder)
+FReply FCadenceGraphNamedVariableCustomization::OnDeleteButtonPressed(TSharedPtr<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder* ChildBuilder, UCadenceVariable* Variable)
 {
 	auto ParentHandle = PropertyHandle->GetParentHandle();
 	auto ParentArrayHandle = ParentHandle->AsArray();
@@ -304,37 +293,3 @@ FReply FCadenceGraphNamedVariableCustomization::OnDeleteButtonPressed(TSharedPtr
 
 	return FReply::Unhandled();
 }
-
-TSharedRef<IPropertyTypeCustomization> FCadenceGraphVariableCustomization::MakeInstance()
-{
-	return MakeShareable(new FCadenceGraphVariableCustomization());
-}
-
-void FCadenceGraphVariableCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle,
-	FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
-{
-}
-
-void FCadenceGraphVariableCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle,
-	IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
-{
-	// TArray<TWeakObjectPtr<UObject>> Objects;
-	// DetailBuilder.GetObjectsBeingCustomized(Objects);
-	//
-	// if(Objects.Num() != 1)
-	// 	return;
-	//
-	// UCadenceVariable* Variable = Cast<UCadenceVariable>(Objects[0]);
-
-	//TSharedRef<IPropertyHandle> Property = DetailBuilder.GetProperty(Variable->GetValuePropertyName());
-	if(!PropertyHandle->IsValidHandle())
-	{
-		UE_LOG(LogCadence, Error, TEXT("Bugger"));
-	}
-	else
-	{
-		UE_LOG(LogCadence, Warning, TEXT("WOO"));
-	}
-}
-
-

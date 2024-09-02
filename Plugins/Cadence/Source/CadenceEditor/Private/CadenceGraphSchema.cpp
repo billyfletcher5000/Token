@@ -62,7 +62,7 @@ void UCadenceGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& Conte
 		TSharedPtr<FNewVariableSetterNodeAction> SetterAction(
 				new FNewVariableSetterNodeAction(NamedVariable,
 					DefaultNode->GetNodeCategory(),
-					FCadenceUserVariableHelper::GetSetterNodeMenuName(NamedVariable),
+					FCadenceUserVariableHelper::GetSetterNodeMenuName(NamedVariable.Variable),
 					DefaultNode->GetCreateNodeTooltip(),
 					0
 				));
@@ -70,7 +70,7 @@ void UCadenceGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& Conte
 		TSharedPtr<FNewVariableGetterNodeAction> GetterAction(
 				new FNewVariableGetterNodeAction(NamedVariable,
 					DefaultNode->GetNodeCategory(),
-					FCadenceUserVariableHelper::GetGetterNodeMenuName(NamedVariable),
+					FCadenceUserVariableHelper::GetGetterNodeMenuName(NamedVariable.Variable),
 					DefaultNode->GetCreateNodeTooltip(),
 					0
 				));

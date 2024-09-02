@@ -72,7 +72,7 @@ UCadenceGraphNode* FNewVariableGetterNodeAction::CreateCadenceGraphNode(UCadence
 {
 	UCadenceGraphNode* Node = RuntimeGraph->CreateNode(UCadenceUserVariableGetterNode::StaticClass(), Location);
 	UCadenceUserVariableGetterNode* GetterNode = Cast<UCadenceUserVariableGetterNode>(Node);
-	GetterNode->SetSourceVariable(NamedVariable);
+	GetterNode->SetSourceVariable(NamedVariable.Variable);
 	GetterNode->CreateInputPins();
 	GetterNode->CreateOutputPins();
 	return Node;
@@ -82,7 +82,7 @@ UCadenceGraphNode* FNewVariableSetterNodeAction::CreateCadenceGraphNode(UCadence
 {
 	UCadenceGraphNode* Node = RuntimeGraph->CreateNode(UCadenceUserVariableSetterNode::StaticClass(), Location);
 	UCadenceUserVariableSetterNode* SetterNode = Cast<UCadenceUserVariableSetterNode>(Node);
-	SetterNode->SetSourceVariable(NamedVariable);
+	SetterNode->SetSourceVariable(NamedVariable.Variable);
 	SetterNode->CreateInputPins();
 	SetterNode->CreateOutputPins();	
 	return Node;

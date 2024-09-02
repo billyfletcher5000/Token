@@ -54,8 +54,6 @@ void FCadenceEditorModule::StartupModule()
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceGraphUserVariableSetCustomization::MakeInstance ) );
 	PropertyModule.RegisterCustomPropertyTypeLayout(FCadenceNamedVariable::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceGraphNamedVariableCustomization::MakeInstance ) );
-	PropertyModule.RegisterCustomPropertyTypeLayout(UCadenceVariable::StaticClass()->GetFName(), 
-        FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FCadenceGraphVariableCustomization::MakeInstance));
 	
 	PropertyModule.NotifyCustomizationModuleChanged();
 
@@ -76,7 +74,6 @@ void FCadenceEditorModule::ShutdownModule()
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceGraphUserVariableSet::StaticStruct()->GetFName());
 	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceNamedVariable::StaticStruct()->GetFName());
-	PropertyModule.UnregisterCustomPropertyTypeLayout(UCadenceVariable::StaticClass()->GetFName());
 	
 	VariableToInlineWidgetFunc.Empty();
 }

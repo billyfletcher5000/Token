@@ -17,9 +17,6 @@ struct FCadenceNamedVariable
 
 public:
 	UPROPERTY(EditAnywhere)
-	FName Name;
-
-	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCadenceVariable> Variable;
 };
 

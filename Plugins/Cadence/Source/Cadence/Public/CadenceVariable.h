@@ -19,12 +19,19 @@ class CADENCE_API UCadenceVariable : public UObject
 public:
 	virtual FName GetPinSubCategory() const PURE_VIRTUAL(UCadenceVariable::GetPinSubCategory, return NAME_None;);
 	virtual FLinearColor GetPinColor() const PURE_VIRTUAL(UCadenceVariable::GetPinSubCategory, return FLinearColor::White;);
-	virtual FName GetDisplayName() const { return GetPinSubCategory();}
+	virtual FName GetDisplayName() const { return GetPinSubCategory(); }
 	
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) PURE_VIRTUAL();
 
 	virtual bool IsArray() const { return false; }
 	virtual bool IsEnum() const  { return false; }
+
+	virtual void SetUserVariableName(const FName& InName) { UserVariableName = InName; }
+	virtual FName GetUserVariableName() const { return UserVariableName; }
+
+protected:
+	UPROPERTY()
+	FName UserVariableName = NAME_None;
 };
 
 
