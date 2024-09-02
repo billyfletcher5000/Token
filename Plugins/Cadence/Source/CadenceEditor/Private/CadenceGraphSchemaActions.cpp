@@ -7,10 +7,10 @@
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorNode.h"
 #include "CadenceGraphNodePin.h"
+#include "CadenceUserVariableNodes.h"
 
 UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode)
 {
-
 	UCadenceGraphEditor* ParentEditorGraph = Cast<UCadenceGraphEditor>(ParentGraph);
 	ensure(ParentEditorGraph);
 
@@ -18,7 +18,7 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 	ensure(RuntimeGraph);
 
 	RuntimeGraph->Modify();
-	UCadenceGraphNode* RuntimeNode = RuntimeGraph->CreateNode(RuntimeNodeType, Location);
+	UCadenceGraphNode* RuntimeNode = CreateCadenceGraphNode(RuntimeGraph, Location);	
 	RuntimeGraph->AddNode(RuntimeNode);
 	
 	FGraphNodeCreator<UCadenceGraphEditorNode> NodeCreator(*ParentGraph);
@@ -57,5 +57,33 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 	ParentGraph->Modify();
 	ParentGraph->AddNode(Node, true, true);	
 	
+	return Node;
+}
+
+UCadenceGraphNode* FNewNodeAction::CreateCadenceGraphNode(UCadenceGraph* RuntimeGraph, const FVector2D& Location)
+{
+	UCadenceGraphNode* Node =  RuntimeGraph->CreateNode(RuntimeNodeType, Location);
+	Node->CreateInputPins();
+	Node->CreateOutputPins();
+	return Node;
+}
+
+UCadenceGraphNode* FNewVariableGetterNodeAction::CreateCadenceGraphNode(UCadenceGraph* RuntimeGraph, const FVector2D& Location)
+{
+	UCadenceGraphNode* Node = RuntimeGraph->CreateNode(UCadenceUserVariableGetterNode::StaticClass(), Location);
+	UCadenceUserVariableGetterNode* GetterNode = Cast<UCadenceUserVariableGetterNode>(Node);
+	GetterNode->SetSourceVariable(NamedVariable);
+	GetterNode->CreateInputPins();
+	GetterNode->CreateOutputPins();
+	return Node;
+}
+
+UCadenceGraphNode* FNewVariableSetterNodeAction::CreateCadenceGraphNode(UCadenceGraph* RuntimeGraph, const FVector2D& Location)
+{
+	UCadenceGraphNode* Node = RuntimeGraph->CreateNode(UCadenceUserVariableSetterNode::StaticClass(), Location);
+	UCadenceUserVariableSetterNode* SetterNode = Cast<UCadenceUserVariableSetterNode>(Node);
+	SetterNode->SetSourceVariable(NamedVariable);
+	SetterNode->CreateInputPins();
+	SetterNode->CreateOutputPins();	
 	return Node;
 }

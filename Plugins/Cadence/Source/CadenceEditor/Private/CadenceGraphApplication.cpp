@@ -348,25 +348,6 @@ void FCadenceGraphApplication::PasteClipboardNodesAtLocation(const FVector2D& In
 		}
 	}
 
-	/* Not sure if this part will be needed 
-	for (UEdGraphNode* PastedNode : PastedNodes)
-	{
-		UCadenceGraphEditorNode* PastedEditorNode = Cast<UCadenceGraphEditorNode>(PastedNode);
-		if (UCadenceGraphNode* PastedRuntimeNode = PastedEditorNode ? PastedEditorNode->GetRuntimeGraphNode() : nullptr)
-		{
-			PastedEditorNode->RebuildAfterPaste();
-		}
-	} 
-
-	for (UEdGraphNode* PastedNode : PastedNodes)
-	{
-		UCadenceGraphEditorNode* PastedEditorGraphNode = Cast<UCadenceGraphEditorNode>(PastedNode);
-		if (UCadenceGraphNode* PastedRuntimeNode = PastedEditorGraphNode ? PastedEditorGraphNode->GetPCGNode() : nullptr)
-		{
-			PastedEditorGraphNode->PostPaste();
-		}
-	}*/
-
 	GraphEditorWidget->NotifyGraphChanged();
 }
 

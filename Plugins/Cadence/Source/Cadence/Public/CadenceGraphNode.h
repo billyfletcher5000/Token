@@ -56,6 +56,10 @@ public:
 	FVector2D GetPosition() const { return Position; }
 	void SetPosition(const FVector2D& InPosition) { Position.X = InPosition.X; Position.Y = InPosition.Y; }
 	void SetPosition(const double& X, const double& Y) { Position.X = X; Position.Y = Y; }
+
+#if WITH_EDITOR
+	virtual bool CanBeAutoCreated() const { return true; }
+#endif
 	
 protected:
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputExecPin(const FName& InPinName);

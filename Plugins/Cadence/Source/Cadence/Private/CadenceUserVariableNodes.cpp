@@ -1,0 +1,77 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "CadenceUserVariableNodes.h"
+
+#include "CadenceGraphNodePin.h"
+#include "CadencePinConstants.h"
+#include "CadenceVariable.h"
+
+void UCadenceUserVariableGetterNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+	AddOutputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable.Variable->GetClass());
+}
+
+bool UCadenceUserVariableGetterNode::Execute(UCadenceContext* InContext)
+{
+	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Value);
+	TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedPins = OutputPin->GetConnectedPins();
+	
+	for(UCadenceGraphNodePin* ConnectedPin : ConnectedPins)
+		ConnectedPin->GetVariable()->CopyValueFrom(SourceVariable.Variable);
+	
+	return Super::Execute(InContext);
+}
+
+FText UCadenceUserVariableGetterNode::GetNodeTitle() const
+{
+	return FText::FromName(SourceVariable.Name);
+}
+
+FText UCadenceUserVariableGetterNode::GetNodeMenuName() const
+{
+	return FCadenceUserVariableHelper::GetGetterNodeMenuName(SourceVariable);
+}
+
+void UCadenceUserVariableSetterNode::CreateInputPins()
+{
+	Super::CreateInputPins();	
+	AddInputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable.Variable->GetClass());
+}
+
+void UCadenceUserVariableSetterNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+	AddOutputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable.Variable->GetClass());
+}
+
+bool UCadenceUserVariableSetterNode::Execute(UCadenceContext* InContext)
+{
+	UCadenceGraphNodePin* InputPin = GetInputPin(FCadencePinConstants::Pin_Value);
+	TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedInputPins = InputPin->GetConnectedPins();
+	
+	if(ensure(ConnectedInputPins.Num() == 1))
+	{
+		UCadenceVariable* InVariable = ConnectedInputPins[0]->GetVariable();
+		SourceVariable.Variable->CopyValueFrom(InVariable);
+	}
+	
+	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Value);
+	TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedPins = OutputPin->GetConnectedPins();
+	
+	for(UCadenceGraphNodePin* ConnectedPin : ConnectedPins)
+		ConnectedPin->GetVariable()->CopyValueFrom(SourceVariable.Variable);
+	
+	return Super::Execute(InContext);
+}
+
+FText UCadenceUserVariableSetterNode::GetNodeTitle() const
+{
+	return FText::FromString(FCadenceUserVariableConstants::SetterPrefix + SourceVariable.Name.ToString());
+}
+
+FText UCadenceUserVariableSetterNode::GetNodeMenuName() const
+{
+	return FCadenceUserVariableHelper::GetSetterNodeMenuName(SourceVariable);
+}

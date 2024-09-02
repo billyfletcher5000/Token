@@ -4,11 +4,13 @@
 #include "CadenceGraphSchema.h"
 
 #include "CadenceGraph.h"
+#include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorNode.h"
 #include "CadenceGraphNode.h"
 #include "CadenceGraphNodePin.h"
 #include "CadenceGraphSchemaActions.h"
 #include "CadencePinConstants.h"
+#include "CadenceUserVariableNodes.h"
 #include "CadenceVariable.h"
 
 const FName UCadenceGraphSchema::PC_Exec = TEXT("exec");
@@ -37,16 +39,44 @@ void UCadenceGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& Conte
 	for(TObjectPtr<UClass> RuntimeNodeType : ValidRuntimeNodeTypes)
 	{
 		UCadenceGraphNode* DefaultNode = Cast<UCadenceGraphNode>(RuntimeNodeType->GetDefaultObject());
-				
-		TSharedPtr<FNewNodeAction> NewNodeAction(
-			new FNewNodeAction(RuntimeNodeType,
-				DefaultNode->GetNodeCategory(),
-				DefaultNode->GetNodeMenuName(),
-				DefaultNode->GetCreateNodeTooltip(),
-				0
-			));
+		if(DefaultNode->CanBeAutoCreated())
+		{
+			TSharedPtr<FNewNodeAction> NewNodeAction(
+				new FNewNodeAction(RuntimeNodeType,
+					DefaultNode->GetNodeCategory(),
+					DefaultNode->GetNodeMenuName(),
+					DefaultNode->GetCreateNodeTooltip(),
+					0
+				));
 		
-		ContextMenuBuilder.AddAction(NewNodeAction);
+			ContextMenuBuilder.AddAction(NewNodeAction);
+		}
+	}
+
+	const UCadenceGraphEditor* CadenceGraphEditor = Cast<UCadenceGraphEditor>(ContextMenuBuilder.CurrentGraph);
+	UCadenceGraph* RuntimeGraph = CadenceGraphEditor->GetRuntimeGraph();
+	FCadenceGraphUserVariableSet& UserVariables = RuntimeGraph->UserVariables;
+	for(FCadenceNamedVariable& NamedVariable : UserVariables.Variables)
+	{		
+		UCadenceGraphNode* DefaultNode = Cast<UCadenceGraphNode>(UCadenceUserVariableGetterNode::StaticClass()->GetDefaultObject());
+		TSharedPtr<FNewVariableSetterNodeAction> SetterAction(
+				new FNewVariableSetterNodeAction(NamedVariable,
+					DefaultNode->GetNodeCategory(),
+					FCadenceUserVariableHelper::GetSetterNodeMenuName(NamedVariable),
+					DefaultNode->GetCreateNodeTooltip(),
+					0
+				));
+
+		TSharedPtr<FNewVariableGetterNodeAction> GetterAction(
+				new FNewVariableGetterNodeAction(NamedVariable,
+					DefaultNode->GetNodeCategory(),
+					FCadenceUserVariableHelper::GetGetterNodeMenuName(NamedVariable),
+					DefaultNode->GetCreateNodeTooltip(),
+					0
+				));
+		
+		ContextMenuBuilder.AddAction(SetterAction);
+		ContextMenuBuilder.AddAction(GetterAction);
 	}
 }
 

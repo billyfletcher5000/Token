@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CadenceGraph.h"
 #include "EdGraph/EdGraphSchema.h"
 #include "CadenceGraphSchemaActions.generated.h"
 
@@ -21,8 +22,51 @@ public:
 	}
 
 	virtual UEdGraphNode* PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode) override;
+
+protected:
+	virtual UCadenceGraphNode* CreateCadenceGraphNode(UCadenceGraph* RuntimeGraph, const FVector2D& Location);
 	
 private:
 	UPROPERTY()
 	TSubclassOf<UCadenceGraphNode> RuntimeNodeType;
+};
+
+USTRUCT()
+struct FNewVariableGetterNodeAction : public FNewNodeAction
+{
+	GENERATED_BODY()
+
+public:
+	FNewVariableGetterNodeAction() {}
+	FNewVariableGetterNodeAction(FCadenceNamedVariable& InNamedVariable, FText InNodeCategory, FText InMenuDesc, FText InToolTip, const int32 InGrouping)
+	: FNewNodeAction(nullptr, InNodeCategory, InMenuDesc, InToolTip, InGrouping), NamedVariable(InNamedVariable)
+	{		
+	}
+	
+protected:
+	virtual UCadenceGraphNode* CreateCadenceGraphNode(UCadenceGraph* RuntimeGraph, const FVector2D& Location) override;
+	
+private:
+	UPROPERTY()
+	FCadenceNamedVariable NamedVariable;
+};
+
+USTRUCT()
+struct FNewVariableSetterNodeAction : public FNewNodeAction
+{
+	GENERATED_BODY()
+
+public:
+	FNewVariableSetterNodeAction() {}
+	FNewVariableSetterNodeAction(FCadenceNamedVariable& InNamedVariable, FText InNodeCategory, FText InMenuDesc, FText InToolTip, const int32 InGrouping)
+	: FNewNodeAction(nullptr, InNodeCategory, InMenuDesc, InToolTip, InGrouping), NamedVariable(InNamedVariable)
+	{		
+	}
+	
+protected:
+	virtual UCadenceGraphNode* CreateCadenceGraphNode(UCadenceGraph* RuntimeGraph, const FVector2D& Location) override;
+	
+private:
+	UPROPERTY()
+	FCadenceNamedVariable NamedVariable;
 };

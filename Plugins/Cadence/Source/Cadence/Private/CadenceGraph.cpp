@@ -15,9 +15,6 @@ TObjectPtr<UCadenceGraphNode> UCadenceGraph::CreateNode(TSubclassOf<UCadenceGrap
 	Node->SetParentGraph(this);
 	Node->SetPosition(Location);
 	
-	Node->CreateInputPins();
-	Node->CreateOutputPins();
-	
 	return Node;
 }
 
