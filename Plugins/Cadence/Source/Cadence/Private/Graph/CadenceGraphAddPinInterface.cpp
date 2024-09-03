@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CadenceGraphAddPinInterface.h"
+#include "Graph/CadenceGraphAddPinInterface.h"
 
 FName ICadenceGraphAddPinInterface::GetNameForAdditionalPin(int32 PinIndex)
 {

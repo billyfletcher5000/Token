@@ -4,8 +4,9 @@
 #include "CadenceSubsystem.h"
 
 #include "CadenceAsset.h"
-#include "CadenceGraphRunner.h"
-#include "CadenceGraph.h"
+#include "CadenceContext.h"
+#include "Graph/CadenceGraph.h"
+#include "Graph/CadenceGraphRunner.h"
 
 void UCadenceSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {

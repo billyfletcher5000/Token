@@ -1,11 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CadenceGraphNode.h"
+#include "Graph/CadenceGraphNode.h"
 
-#include "CadenceGraph.h"
-#include "CadenceGraphNodePin.h"
-#include "CadencePinConstants.h"
+#include "Graph/CadenceGraph.h"
+#include "Graph/CadenceGraphNodePin.h"
+#include "Graph/CadencePinConstants.h"
 
 
 void UCadenceGraphNode::DestroyNode()

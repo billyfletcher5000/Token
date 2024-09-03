@@ -4,7 +4,6 @@
 #include "CadenceGraphUtility.h"
 
 #include "EdGraph/EdGraph.h"
-#include "CadenceGraphNode.h"
 #include "CadenceGraphEditorNode.h"
 
 UCadenceGraphEditorNode* UCadenceGraphUtility::GetGraphEditorNodeForRuntimeNode(UEdGraph* InEditorGraph, UCadenceGraphNode* InRuntimeNode)

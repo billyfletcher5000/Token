@@ -1,12 +1,12 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CadenceDelayNodes.h"
+#include "Graph/Nodes/CadenceDelayNodes.h"
 
 #include "CadenceContext.h"
-#include "CadenceGraphNodePin.h"
-#include "CadencePinConstants.h"
-#include "CadenceVariable.h"
+#include "Graph/CadenceGraphNodePin.h"
+#include "Graph/CadencePinConstants.h"
+#include "Graph/CadenceVariable.h"
 
 void UCadenceDelayNode::CreateInputPins()
 {

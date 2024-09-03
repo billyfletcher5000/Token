@@ -3,15 +3,15 @@
 
 #include "CadenceGraphSchema.h"
 
-#include "CadenceGraph.h"
+#include "Graph/CadenceGraph.h"
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorNode.h"
-#include "CadenceGraphNode.h"
-#include "CadenceGraphNodePin.h"
+#include "Graph/CadenceGraphNode.h"
+#include "Graph/CadenceGraphNodePin.h"
 #include "CadenceGraphSchemaActions.h"
-#include "CadencePinConstants.h"
-#include "CadenceUserVariableNodes.h"
-#include "CadenceVariable.h"
+#include "Graph/CadencePinConstants.h"
+#include "Graph/Nodes/CadenceUserVariableNodes.h"
+#include "Graph/CadenceVariable.h"
 
 const FName UCadenceGraphSchema::PC_Exec = TEXT("exec");
 const FName UCadenceGraphSchema::PC_Variable = TEXT("variable");

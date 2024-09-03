@@ -3,6 +3,7 @@
 
 #include "CadenceVariableInlineWidgetFunctions.h"
 
+#include "Graph/CadenceVariable.h"
 #include "Widgets/Input/SNumericEntryBox.h"
 #include "Widgets/Input/SVectorInputBox.h"
 
