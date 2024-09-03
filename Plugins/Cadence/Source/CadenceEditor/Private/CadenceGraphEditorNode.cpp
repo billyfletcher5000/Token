@@ -3,13 +3,13 @@
 
 #include "CadenceGraphEditorNode.h"
 
-#include "CadenceGraphAddPinInterface.h"
+#include "Graph/CadenceGraphAddPinInterface.h"
+#include "Graph/CadenceGraphNodePin.h"
+#include "Graph/CadenceGraph.h"
+#include "Graph/CadenceVariable.h"
 #include "CadenceGraphEditor.h"
-#include "CadenceGraphNodePin.h"
 #include "CadenceGraphSchema.h"
 #include "CadenceGraphUtility.h"
-#include "CadenceGraph.h"
-#include "CadenceVariable.h"
 #include "GraphEditorSettings.h"
 #include "Framework/Commands/GenericCommands.h"
 

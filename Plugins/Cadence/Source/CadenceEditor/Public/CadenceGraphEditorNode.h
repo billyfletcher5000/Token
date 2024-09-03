@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CadenceGraphNode.h"
+#include "Graph/CadenceGraphNode.h"
 #include "EdGraph/EdGraphNode.h"
 #include "NodeFactory.h"
 #include "SGraphNode.h"

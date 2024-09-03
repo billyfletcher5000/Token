@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CadenceGraphAddPinInterface.h"
-#include "CadenceGraphNode.h"
+#include "Graph/CadenceGraphAddPinInterface.h"
+#include "Graph/CadenceGraphNode.h"
 #include "UObject/Object.h"
 #include "CadenceMathNodes.generated.h"
 

@@ -1,11 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CadenceMathNodes.h"
+#include "Graph/Nodes/CadenceMathNodes.h"
 
-#include "CadenceGraphNodePin.h"
-#include "CadencePinConstants.h"
-#include "CadenceVariable.h"
+#include "Graph/CadenceGraphNodePin.h"
+#include "Graph/CadencePinConstants.h"
+#include "Graph/CadenceVariable.h"
 
 // TODO: Add support for base numericals rather than just floats
 

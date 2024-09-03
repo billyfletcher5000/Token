@@ -4,7 +4,7 @@
 #include "CadenceGraphApplication.h"
 
 #include "CadenceAsset.h"
-#include "CadenceGraph.h"
+#include "Graph/CadenceGraph.h"
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorNode.h"
 #include "CadenceGraphSchema.h"

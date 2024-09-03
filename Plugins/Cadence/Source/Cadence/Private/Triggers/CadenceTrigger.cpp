@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CadenceTrigger.h"
+#include "Triggers/CadenceTrigger.h"
 
 #include "CadenceContext.h"
 

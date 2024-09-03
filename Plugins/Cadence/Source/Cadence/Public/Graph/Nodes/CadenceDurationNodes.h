@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CadenceGraphNode.h"
+#include "Graph/CadenceGraphNode.h"
 #include "CadenceDurationNodes.generated.h"
 
 namespace FCadenceDurationConstants

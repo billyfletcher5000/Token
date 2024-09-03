@@ -1,11 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CadenceUserVariableNodes.h"
+#include "Graph/Nodes/CadenceUserVariableNodes.h"
 
-#include "CadenceGraphNodePin.h"
-#include "CadencePinConstants.h"
-#include "CadenceVariable.h"
+#include "Graph/CadenceGraphNodePin.h"
+#include "Graph/CadencePinConstants.h"
+#include "Graph/CadenceVariable.h"
 
 void UCadenceUserVariableGetterNode::CreateOutputPins()
 {

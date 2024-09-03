@@ -2,12 +2,10 @@
 
 #include "CadenceEditor.h"
 
-#include "CadenceGraph.h"
+#include "Graph/CadenceGraph.h"
 #include "CadenceGraphAssetAction.h"
-#include "CadenceGraphEditorNode.h"
 #include "CadenceGraphEditorPin.h"
 #include "CadenceGraphPropertyCustomization.h"
-#include "CadenceVariable.h"
 #include "CadenceVariableInlineWidgetFunctions.h"
 #include "IAssetTools.h"
 #include "Interfaces/IPluginManager.h"

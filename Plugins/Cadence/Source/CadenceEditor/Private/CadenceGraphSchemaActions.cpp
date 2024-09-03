@@ -3,11 +3,11 @@
 
 #include "CadenceGraphSchemaActions.h"
 
-#include "CadenceGraph.h"
+#include "Graph/CadenceGraph.h"
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorNode.h"
-#include "CadenceGraphNodePin.h"
-#include "CadenceUserVariableNodes.h"
+#include "Graph/CadenceGraphNodePin.h"
+#include "Graph/Nodes/CadenceUserVariableNodes.h"
 
 UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode)
 {

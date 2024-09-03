@@ -3,7 +3,7 @@
 
 #include "CadenceAsset.h"
 
-#include "CadenceGraph.h"
+#include "Graph/CadenceGraph.h"
 #include "UObject/ObjectSaveContext.h"
 
 void UCadenceAsset::CreateGraph()

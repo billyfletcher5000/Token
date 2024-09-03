@@ -1,9 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CadenceGraphNodePin.h"
+#include "Graph/CadenceGraphNodePin.h"
 
-#include "CadenceVariable.h"
+#include "Graph/CadenceVariable.h"
 
 void UCadenceGraphNodePin::ConnectPin(UCadenceGraphNodePin* InPin)
 {

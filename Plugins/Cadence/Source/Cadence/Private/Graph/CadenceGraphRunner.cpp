@@ -1,14 +1,14 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CadenceGraphRunner.h"
+#include "Graph/CadenceGraphRunner.h"
 
 #include "CadenceContext.h"
-#include "CadenceGraph.h"
-#include "CadenceGraphNode.h"
-#include "CadenceGraphNodePin.h"
+#include "Graph/CadenceGraph.h"
+#include "Graph/CadenceGraphNode.h"
+#include "Graph/CadenceGraphNodePin.h"
 #include "CadenceSubsystem.h"
-#include "CadenceVariable.h"
+#include "Graph/CadenceVariable.h"
 
 void UCadenceGraphRunner::Init(UCadenceContext* InContext)
 {

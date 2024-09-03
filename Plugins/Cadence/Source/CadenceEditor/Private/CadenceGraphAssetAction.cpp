@@ -1,7 +1,7 @@
 ﻿#include "CadenceGraphAssetAction.h"
 
 #include "CadenceAsset.h"
-#include "CadenceGraph.h"
+#include "Graph/CadenceGraph.h"
 #include "CadenceGraphApplication.h"
 
 const FText FCadenceGraphAssetAction::AssetName = FText::FromString(TEXT("Cadence Graph"));

@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CadenceGraphNode.h"
-#include "CadenceVariable.h"
+#include "Graph/CadenceGraphNode.h"
+#include "Graph/CadenceVariable.h"
 #include "UObject/Object.h"
 #include "CadenceUserVariableNodes.generated.h"
 

@@ -1,10 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CadenceGraph.h"
+#include "Graph/CadenceGraph.h"
 
-#include "CadenceGraphNode.h"
-#include "CadenceGraphNodePin.h"
+#include "Graph/CadenceGraphNode.h"
+#include "Graph/CadenceGraphNodePin.h"
 
 TObjectPtr<UCadenceGraphNode> UCadenceGraph::CreateNode(TSubclassOf<UCadenceGraphNode> InClass,	const FVector2D& Location)
 {

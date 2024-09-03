@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "CadenceEditor.h"
-#include "CadenceVariable.h"
 
 class FCadenceVariableInlineWidgetFunctions
 {

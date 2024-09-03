@@ -1,10 +1,8 @@
 ﻿#include "CadenceGraphPropertyCustomization.h"
 
 #include "CadenceEditor.h"
-#include "CadenceGraph.h"
-#include "CadenceGraphNode.h"
-#include "CadenceUserVariableNodes.h"
-#include "CadenceVariable.h"
+#include "Graph/CadenceGraph.h"
+#include "Graph/CadenceVariable.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
