@@ -38,6 +38,8 @@ public class Cadence : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"Niagara",
+				"NiagaraCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
