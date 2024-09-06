@@ -7,6 +7,8 @@
 #include "CadenceBlockGridActor.generated.h"
 
 class UNiagaraSystem;
+class UNiagaraComponent;
+class USceneCaptureComponent2D;
 
 UCLASS()
 class CADENCE_API ACadenceBlockGridActor : public AActor
@@ -14,14 +16,19 @@ class CADENCE_API ACadenceBlockGridActor : public AActor
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
 	ACadenceBlockGridActor();
 
 protected:
-	// Called when the game starts or when spawned
+	// AActor
 	virtual void BeginPlay() override;
-
 	virtual void OnConstruction(const FTransform& Transform) override;
+
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	// AActor End
+	
+	virtual void UpdateEditorValues(); 	
 	
 public:
 	// Called every frame
@@ -49,6 +56,24 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Block Grid")
 	FVector2D GridVisualScale = FVector2D(16.0f,16.0f);
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, Category="Block Grid")
+	TObjectPtr<UTextureRenderTarget2D> SceneCaptureRenderTexture;
+	
+	UPROPERTY(EditAnywhere, Category="Block Grid")
+	TObjectPtr<UMaterial> SceneCapturePostProcessMaterial;
+	
+	UPROPERTY(EditAnywhere, Category="Block Grid", AdvancedDisplay)
+	FName GridTotalSizeVariableName = "User.GridSize";
+
+	UPROPERTY(EditAnywhere, Category="Block Grid", AdvancedDisplay)
+	FName GridVisualScaleVariableName = "User.GridScale";
+	
+	UPROPERTY(EditAnywhere, Category="Block Grid", AdvancedDisplay)
+	FName RenderTextureVariableName = "User.RenderTexture";
+
+	UPROPERTY(EditAnywhere)
 	TObjectPtr<UNiagaraComponent> NiagaraComponent;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USceneCaptureComponent2D> SceneCaptureComponent2D;
 };

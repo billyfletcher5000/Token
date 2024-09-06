@@ -5,6 +5,8 @@
 
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
+#include "Components/SceneCaptureComponent2D.h"
+#include "Engine/TextureRenderTarget2D.h"
 
 // Sets default values
 ACadenceBlockGridActor::ACadenceBlockGridActor()
@@ -12,7 +14,28 @@ ACadenceBlockGridActor::ACadenceBlockGridActor()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	USceneComponent* RootSceneComponent = CreateDefaultSubobject<USceneComponent>("SceneComponent");
+	SetRootComponent(RootSceneComponent);
+	
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>("NiagaraBlockGridComponent");
+	NiagaraComponent->AttachToComponent(RootSceneComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	
+	SceneCaptureComponent2D = CreateDefaultSubobject<USceneCaptureComponent2D>("SceneCaptureOrtho2D");
+	SceneCaptureComponent2D->AttachToComponent(RootSceneComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	SceneCaptureComponent2D->SetRelativeLocation(FVector((GridTotalSize.Y * GridVisualScale.Y) / 2.0f, 0.0f, 0.0f));
+	SceneCaptureComponent2D->SetRelativeRotation(FRotator(0.0f, 180.0f, 0.0f));
+
+	SceneCaptureComponent2D->OrthoWidth = GridTotalSize.Y * GridVisualScale.Y;
+	SceneCaptureComponent2D->ProjectionType = ECameraProjectionMode::Orthographic;
+	SceneCaptureComponent2D->bAutoCalculateOrthoPlanes = false;
+	SceneCaptureComponent2D->bUpdateOrthoPlanes = false;
+
+	//TODO: Decide if I need one or both or neither
+	SceneCaptureComponent2D->bCaptureEveryFrame = true; 
+	SceneCaptureComponent2D->bCaptureOnMovement = true;
+
+	SceneCaptureComponent2D->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_RenderScenePrimitives;
+	SceneCaptureComponent2D->CaptureSource = SCS_FinalColorLDR;
 }
 
 // Called when the game starts or when spawned
@@ -24,12 +47,44 @@ void ACadenceBlockGridActor::BeginPlay()
 void ACadenceBlockGridActor::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
+	UpdateEditorValues();
+}
 
+#if WITH_EDITOR
+void ACadenceBlockGridActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	UpdateEditorValues();
+}
+
+void ACadenceBlockGridActor::UpdateEditorValues()
+{
 	if(NiagaraSystem && NiagaraComponent)
 	{
 		NiagaraComponent->SetAsset(NiagaraSystem);
+		NiagaraComponent->SetVariableVec2(GridTotalSizeVariableName, GridTotalSize);
+		NiagaraComponent->SetVariableVec2(GridVisualScaleVariableName, GridVisualScale);
+
+		if(SceneCaptureRenderTexture)
+		{
+			NiagaraComponent->SetVariableTexture(RenderTextureVariableName, CastChecked<UTexture>(SceneCaptureRenderTexture));
+		}
+	}
+	
+	if(SceneCaptureComponent2D)
+	{
+		if(SceneCapturePostProcessMaterial)
+		{
+			SceneCaptureComponent2D->AddOrUpdateBlendable(SceneCapturePostProcessMaterial, 1.0f);
+		}
+
+		if(SceneCaptureRenderTexture)
+		{
+			SceneCaptureComponent2D->TextureTarget = SceneCaptureRenderTexture;
+		}
 	}
 }
+#endif
 
 // Called every frame
 void ACadenceBlockGridActor::Tick(float DeltaTime)
