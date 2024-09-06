@@ -1,13 +1,15 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "CadenceEditor.h"
+#include "CadenceEditorModule.h"
 
+#include "CadenceSettings.h"
 #include "Graph/CadenceGraph.h"
 #include "CadenceGraphAssetAction.h"
 #include "CadenceGraphEditorPin.h"
 #include "CadenceGraphPropertyCustomization.h"
 #include "CadenceVariableInlineWidgetFunctions.h"
 #include "IAssetTools.h"
+#include "ISettingsModule.h"
 #include "Interfaces/IPluginManager.h"
 #include "Styling/SlateStyleRegistry.h"
 
@@ -19,8 +21,14 @@ const FName FCadenceEditorModule::StyleSetName = FName(TEXT("CadenceStyle"));
 
 void FCadenceEditorModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	ISettingsModule* SettingsModule = FModuleManager::Get().GetModulePtr<ISettingsModule>("Settings");
+	if (SettingsModule)
+	{
+		SettingsModule->RegisterSettings("Project", "Plugins", "Cadence", NSLOCTEXT("Cadence", "Cadence", "Cadence"),
+			NSLOCTEXT("Cadence", "Configure Cadence settings", "Configure Cadence settings"), GetMutableDefault<UCadenceSettings>());
+	}
 
+	
 	IAssetTools& AssetToolsModule = IAssetTools::Get();
 	EAssetTypeCategories::Type AssetType = AssetToolsModule.RegisterAdvancedAssetCategory(CategoryKey, CategoryDisplayName);
 

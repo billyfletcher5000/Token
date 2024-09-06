@@ -10,6 +10,7 @@ class UCadenceAsset;
 class UCadenceGraphRunnerPathway;
 class UCadenceGraphRunner;
 class UCadenceGraph;
+class UCadenceActorSettings;
 
 /**
  * Context object passed to all executing nodes, primarily for them to get track specific information
@@ -27,19 +28,19 @@ public:
 	FName TrackName;
 
 	UPROPERTY()
-	UCadenceGraph* Graph;
+	TObjectPtr<UCadenceGraph> Graph;
 
 	UPROPERTY()
-	UCadenceAsset* Asset;
+	TObjectPtr<UCadenceAsset> Asset;
 
 	UPROPERTY()
-	UCadenceGraph* SourceGraph;
+	TObjectPtr<UCadenceGraph> SourceGraph;
 
 	UPROPERTY()
-	UCadenceGraphRunner* Runner;
+	TObjectPtr<UCadenceGraphRunner> Runner;
 
 	UPROPERTY()
-	UCadenceGraphRunnerPathway* Pathway;
+	TObjectPtr<UCadenceGraphRunnerPathway> Pathway;
 
 	UPROPERTY()
 	float DeltaSeconds = 0.0f;

@@ -1,6 +1,6 @@
 ﻿#include "CadenceGraphPropertyCustomization.h"
 
-#include "CadenceEditor.h"
+#include "CadenceEditorModule.h"
 #include "Graph/CadenceGraph.h"
 #include "Graph/CadenceVariable.h"
 #include "DetailLayoutBuilder.h"

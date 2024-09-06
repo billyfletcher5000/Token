@@ -8,6 +8,7 @@
 
 class UCadenceVariable;
 class UCadenceGraphNode;
+class UCadenceActorSettings;
 
 
 USTRUCT(BlueprintType)
@@ -39,6 +40,8 @@ class CADENCE_API UCadenceGraph : public UObject
 	GENERATED_BODY()
 
 public:
+	UCadenceGraph();
+	
 	TObjectPtr<UCadenceGraphNode> CreateNode(TSubclassOf<UCadenceGraphNode> InClass, const FVector2D& Location);
 	
 	void AddNode(TObjectPtr<UCadenceGraphNode> InNode);
@@ -52,6 +55,9 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<UCadenceGraphNode>> Nodes;
 
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UCadenceActorSettings> ActorSettings;
+	
 	UPROPERTY(EditAnywhere)
 	FCadenceGraphUserVariableSet UserVariables;
 };

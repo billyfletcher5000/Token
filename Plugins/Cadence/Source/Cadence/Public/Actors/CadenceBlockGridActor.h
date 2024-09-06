@@ -57,6 +57,9 @@ protected:
 	FVector2D GridVisualScale = FVector2D(16.0f,16.0f);
 
 	UPROPERTY(EditAnywhere, Category="Block Grid")
+	float FarClipDistance = 300.0f;
+
+	UPROPERTY(EditAnywhere, Category="Block Grid")
 	TObjectPtr<UTextureRenderTarget2D> SceneCaptureRenderTexture;
 	
 	UPROPERTY(EditAnywhere, Category="Block Grid")
@@ -70,6 +73,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category="Block Grid", AdvancedDisplay)
 	FName RenderTextureVariableName = "User.RenderTexture";
+	
+	UPROPERTY(EditAnywhere, Category="Block Grid", AdvancedDisplay)
+	FName BackMovementVariableName = "User.BackMovementAmount";
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UNiagaraComponent> NiagaraComponent;

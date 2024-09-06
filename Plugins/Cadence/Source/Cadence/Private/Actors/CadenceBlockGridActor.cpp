@@ -22,14 +22,15 @@ ACadenceBlockGridActor::ACadenceBlockGridActor()
 	
 	SceneCaptureComponent2D = CreateDefaultSubobject<USceneCaptureComponent2D>("SceneCaptureOrtho2D");
 	SceneCaptureComponent2D->AttachToComponent(RootSceneComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	SceneCaptureComponent2D->SetRelativeLocation(FVector((GridTotalSize.Y * GridVisualScale.Y) / 2.0f, 0.0f, 0.0f));
+	SceneCaptureComponent2D->SetRelativeLocation(FVector(110.0f, 0.0f, 0.0f));
 	SceneCaptureComponent2D->SetRelativeRotation(FRotator(0.0f, 180.0f, 0.0f));
 
 	SceneCaptureComponent2D->OrthoWidth = GridTotalSize.Y * GridVisualScale.Y;
 	SceneCaptureComponent2D->ProjectionType = ECameraProjectionMode::Orthographic;
 	SceneCaptureComponent2D->bAutoCalculateOrthoPlanes = false;
 	SceneCaptureComponent2D->bUpdateOrthoPlanes = false;
-
+	SceneCaptureComponent2D->MaxViewDistanceOverride = FarClipDistance;
+	
 	//TODO: Decide if I need one or both or neither
 	SceneCaptureComponent2D->bCaptureEveryFrame = true; 
 	SceneCaptureComponent2D->bCaptureOnMovement = true;
@@ -56,6 +57,7 @@ void ACadenceBlockGridActor::PostEditChangeProperty(FPropertyChangedEvent& Prope
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	UpdateEditorValues();
 }
+#endif
 
 void ACadenceBlockGridActor::UpdateEditorValues()
 {
@@ -64,6 +66,7 @@ void ACadenceBlockGridActor::UpdateEditorValues()
 		NiagaraComponent->SetAsset(NiagaraSystem);
 		NiagaraComponent->SetVariableVec2(GridTotalSizeVariableName, GridTotalSize);
 		NiagaraComponent->SetVariableVec2(GridVisualScaleVariableName, GridVisualScale);
+		NiagaraComponent->SetVariableFloat(BackMovementVariableName, FarClipDistance);
 
 		if(SceneCaptureRenderTexture)
 		{
@@ -73,6 +76,8 @@ void ACadenceBlockGridActor::UpdateEditorValues()
 	
 	if(SceneCaptureComponent2D)
 	{
+		SceneCaptureComponent2D->MaxViewDistanceOverride = FarClipDistance;
+			
 		if(SceneCapturePostProcessMaterial)
 		{
 			SceneCaptureComponent2D->AddOrUpdateBlendable(SceneCapturePostProcessMaterial, 1.0f);
@@ -84,7 +89,6 @@ void ACadenceBlockGridActor::UpdateEditorValues()
 		}
 	}
 }
-#endif
 
 // Called every frame
 void ACadenceBlockGridActor::Tick(float DeltaTime)

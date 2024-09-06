@@ -3,8 +3,17 @@
 
 #include "Graph/CadenceGraph.h"
 
+#include "CadenceSettings.h"
 #include "Graph/CadenceGraphNode.h"
 #include "Graph/CadenceGraphNodePin.h"
+
+UCadenceGraph::UCadenceGraph()
+{	
+	const UCadenceSettings* Settings = GetDefault<UCadenceSettings>();
+	check(Settings);
+
+	ActorSettings = Settings->GetDefaultActorSettings();
+}
 
 TObjectPtr<UCadenceGraphNode> UCadenceGraph::CreateNode(TSubclassOf<UCadenceGraphNode> InClass,	const FVector2D& Location)
 {

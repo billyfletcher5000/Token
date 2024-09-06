@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CadenceEditor.h"
+#include "CadenceEditorModule.h"
 
 class FCadenceVariableInlineWidgetFunctions
 {

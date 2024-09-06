@@ -5,6 +5,7 @@
 
 #include "CadenceAsset.h"
 #include "CadenceContext.h"
+#include "CadenceSettings.h"
 #include "Graph/CadenceGraph.h"
 #include "Graph/CadenceGraphRunner.h"
 
@@ -37,7 +38,7 @@ TStatId UCadenceSubsystem::GetStatId() const
 }
 
 UCadenceGraphRunner* UCadenceSubsystem::ActivateGraph(UCadenceAsset* CadenceAsset)
-{
+{	
 	UCadenceGraphRunner* Runner = NewObject<UCadenceGraphRunner>(this);
 	UCadenceContext* Context = NewObject<UCadenceContext>(Runner);
 	TObjectPtr<UCadenceGraph> Graph = CadenceAsset->GetGraph();
