@@ -10,6 +10,14 @@ class UCadenceGraph;
 class UCadenceGraphNodePin;
 class UCadenceContext;
 
+UENUM()
+enum class ECadenceNodeExecuteResult : uint8
+{
+	Running = 0,
+	Complete,
+	Failed
+};
+
 /**
  * 
  */
@@ -19,6 +27,8 @@ class CADENCE_API UCadenceGraphNode : public UObject
 	GENERATED_BODY()
 	
 public:
+	void GenerateGUID();
+	
 	virtual FText GetNodeTitle() const { return GetNodeMenuName(); }
 	virtual FText GetNodeMenuName() const { return FText::FromString(StaticClass()->GetName()); }
 	virtual FText GetNodeCategory() const { return FText::FromName(NAME_Default); }
@@ -39,7 +49,7 @@ public:
 	TObjectPtr<UCadenceGraphNodePin> GetExecPin() const;
 	TObjectPtr<UCadenceGraphNodePin> GetThenPin() const;
 
-	virtual bool Execute(UCadenceContext* InContext) PURE_VIRTUAL(UCadenceGraphNode::Execute, return true;);
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) PURE_VIRTUAL(UCadenceGraphNode::Execute, return ECadenceNodeExecuteResult::Complete;);
 	
 	TArray<TObjectPtr<UCadenceGraphNodePin>>& GetInputPins() { return InputPins; }
 	TArray<TObjectPtr<UCadenceGraphNodePin>>& GetOutputPins() { return OutputPins; }
@@ -56,6 +66,8 @@ public:
 	FVector2D GetPosition() const { return Position; }
 	void SetPosition(const FVector2D& InPosition) { Position.X = InPosition.X; Position.Y = InPosition.Y; }
 	void SetPosition(const double& X, const double& Y) { Position.X = X; Position.Y = Y; }
+
+	FGuid GetGUID() const { return GUID; }
 
 #if WITH_EDITOR
 	virtual bool CanBeAutoCreated() const { return true; }
@@ -86,4 +98,8 @@ public:
 
 	UPROPERTY()
 	FVector2D Position;
+
+private:
+	UPROPERTY(VisibleAnywhere, NonPIEDuplicateTransient, TextExportTransient, NonTransactional)
+	FGuid GUID;
 };

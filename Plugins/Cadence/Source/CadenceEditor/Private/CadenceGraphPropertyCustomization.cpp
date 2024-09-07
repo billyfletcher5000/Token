@@ -10,7 +10,7 @@
 #include "Logging/StructuredLog.h"
 #include "Input/Reply.h"
 
-DEFINE_LOG_CATEGORY(LogCadence);
+DEFINE_LOG_CATEGORY(LogCadenceEditor);
 
 const FString FCadenceGraphUserVariableSetCustomization::DefaultVariableNameBase = TEXT("NewVar"); 
 
@@ -151,7 +151,7 @@ void FCadenceGraphUserVariableSetCustomization::GenerateVariableLists()
 		if(VariableTypeNames.Contains(VariableDisplayName))
 		{
 			UClass* PreviousVariableType = VariableTypeNameToClass[VariableDisplayName];
-			UE_LOGFMT(LogCadence, Warning, "UserVariableSet: Conflicting Variable types detected: Type: {0} | ClassA: {1} | ClassB: {2}", VariableDisplayName.ToString(), VariableType->GetName(), PreviousVariableType->GetName());
+			UE_LOGFMT(LogCadenceEditor, Warning, "UserVariableSet: Conflicting Variable types detected: Type: {0} | ClassA: {1} | ClassB: {2}", VariableDisplayName.ToString(), VariableType->GetName(), PreviousVariableType->GetName());
 		}
 		else
 		{

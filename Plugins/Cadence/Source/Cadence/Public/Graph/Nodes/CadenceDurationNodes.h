@@ -22,7 +22,7 @@ class CADENCE_API UCadenceQuantizedDurationNode : public UCadenceGraphNode
 
 public:
 	virtual void CreateOutputPins() override;
-	virtual bool Execute(UCadenceContext* InContext) override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 
 	virtual bool IsPure() const override { return true; }
 

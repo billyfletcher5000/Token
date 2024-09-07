@@ -13,7 +13,7 @@ void UCadenceQuantizedDurationNode::CreateOutputPins()
 	AddOutputVariablePin(FCadencePinConstants::Pin_Duration, UCadenceVariableFloat::StaticClass());
 }
 
-bool UCadenceQuantizedDurationNode::Execute(UCadenceContext* InContext)
+ECadenceNodeExecuteResult UCadenceQuantizedDurationNode::Execute(UCadenceContext* InContext)
 {
 	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Duration);
 	ensure(Pin);
@@ -21,5 +21,5 @@ bool UCadenceQuantizedDurationNode::Execute(UCadenceContext* InContext)
 	UCadenceVariableFloat* Variable = Pin->GetVariable<UCadenceVariableFloat>();
 	Variable->SetValue(0.69f);
 	
-	return true;
+	return ECadenceNodeExecuteResult::Complete;
 }

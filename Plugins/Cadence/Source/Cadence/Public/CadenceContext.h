@@ -6,6 +6,8 @@
 #include "UObject/Object.h"
 #include "CadenceContext.generated.h"
 
+class UCadenceGraphNode;
+class UCadenceActorLifetimeManager;
 class UCadenceAsset;
 class UCadenceGraphRunnerPathway;
 class UCadenceGraphRunner;
@@ -41,6 +43,12 @@ public:
 
 	UPROPERTY()
 	TObjectPtr<UCadenceGraphRunnerPathway> Pathway;
+
+	UPROPERTY()
+	TObjectPtr<UCadenceActorLifetimeManager> ActorLifetimeManager;
+
+	UPROPERTY()
+	TObjectPtr<UCadenceGraphNode> ParentNode = nullptr;
 
 	UPROPERTY()
 	float DeltaSeconds = 0.0f;

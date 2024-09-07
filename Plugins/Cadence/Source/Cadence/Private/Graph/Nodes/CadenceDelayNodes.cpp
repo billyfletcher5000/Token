@@ -14,7 +14,7 @@ void UCadenceDelayNode::CreateInputPins()
 	AddInputVariablePin(FCadencePinConstants::Pin_Duration, UCadenceVariableFloat::StaticClass());
 }
 
-bool UCadenceDelayNode::Execute(UCadenceContext* InContext)
+ECadenceNodeExecuteResult UCadenceDelayNode::Execute(UCadenceContext* InContext)
 {
 	UCadenceGraphNodePin* InputPin = GetInputPin(FCadencePinConstants::Pin_Duration);
 	UCadenceVariableFloat* InputFloatVariable = InputPin->GetVariable<UCadenceVariableFloat>();
@@ -31,11 +31,11 @@ bool UCadenceDelayNode::Execute(UCadenceContext* InContext)
 	if(TimeElapsed > Duration)
 	{
 		TimeElapsedMap.Remove(InContext->Pathway);
-		return true;
+		return ECadenceNodeExecuteResult::Complete;
 	}
 	else
 	{
 		TimeElapsedMap[InContext->Pathway] = TimeElapsed;
-		return false;
+		return ECadenceNodeExecuteResult::Running;
 	}
 }

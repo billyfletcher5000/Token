@@ -24,7 +24,7 @@ class CADENCE_API UCadenceTriggerSequenceNode : public UCadenceGraphNode, public
 public:
 	virtual void CreateInputPins() override;
 	virtual void CreateOutputPins() override;
-	virtual bool Execute(UCadenceContext* InContext) override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 
 	virtual TObjectPtr<UCadenceGraphNodePin> AddUserInputPin() override;
 	virtual bool RemoveUserInputPin(UCadenceGraphNodePin* Pin) override;
@@ -48,7 +48,7 @@ class CADENCE_API UCadenceQuantizedTimeTriggerNode : public UCadenceGraphNode
 
 public:
 	virtual void CreateOutputPins() override;
-	virtual bool Execute(UCadenceContext* InContext) override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 
 	virtual bool IsPure() const override { return true; }
 

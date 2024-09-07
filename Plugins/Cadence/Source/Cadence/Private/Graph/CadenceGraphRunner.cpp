@@ -48,6 +48,8 @@ void UCadenceGraphRunner::Tick(const float& InDeltaSeconds)
 
 void UCadenceGraphRunner::End()
 {
+	GetContext()->ActorLifetimeManager->OnGraphEnded();
+	
 	UCadenceSubsystem* CadenceSubsystem = GWorld->GetSubsystem<UCadenceSubsystem>();
 	if(ensure(CadenceSubsystem))
 	{
@@ -84,8 +86,15 @@ void UCadenceGraphRunnerPathway::Tick(const float& InDeltaSeconds)
 {
 	UCadenceContext* CurrentContext = GetContext();
 	CurrentContext->DeltaSeconds = InDeltaSeconds;
+
+	ECadenceNodeExecuteResult Result = ExecuteNode(CurrentNode, CurrentContext);
+	if(Result == ECadenceNodeExecuteResult::Failed)
+	{
+		End();
+		return;
+	}
 	
-	if(ExecuteNode(CurrentNode, CurrentContext))
+	if(Result == ECadenceNodeExecuteResult::Complete)
 	{		
 		TArray<UCadenceGraphNodePin*> ConnectedPins = CurrentNode->GetThenPin()->GetConnectedPins();
 
@@ -122,13 +131,21 @@ UCadenceContext* UCadenceGraphRunnerPathway::GetContext()
 	return Context;
 }
 
-bool UCadenceGraphRunnerPathway::ExecuteNode(UCadenceGraphNode* InNode, UCadenceContext* InContext)
+ECadenceNodeExecuteResult UCadenceGraphRunnerPathway::ExecuteNode(UCadenceGraphNode* InNode, UCadenceContext* InContext)
 {
 	TArray<UCadenceGraphNodePin*> InputPins = InNode->GetInputPins();
 	for(UCadenceGraphNodePin* InputPin : InputPins)
 		ProcessVariableInputPin(InContext, InputPin);
 
-	return InNode->Execute(InContext);
+	ECadenceNodeExecuteResult Result = InNode->Execute(InContext);
+
+	if(Result == ECadenceNodeExecuteResult::Complete)
+	{		
+		PropagateOutputPinsToInputPins(InNode, InContext);
+		ReleaseInputPinVariables(InNode, InContext);
+	}
+
+	return Result;
 }
 
 void UCadenceGraphRunnerPathway::ProcessVariableInputPin(UCadenceContext* InContext, UCadenceGraphNodePin* InPin)
@@ -146,7 +163,8 @@ void UCadenceGraphRunnerPathway::ProcessVariableInputPin(UCadenceContext* InCont
 	{
 		UCadenceGraphNode* Node = *Iter;
 		Node->Execute(InContext);
-		PropagateOutputPinsToInputPins(Node, NodeStack, ParentNode);
+		PropagateOutputPinsToInputPins(Node, NodeStack, ParentNode, InContext);
+		ReleaseInputPinVariables(Node, InContext);
 	}
 }
 
@@ -174,7 +192,46 @@ void UCadenceGraphRunnerPathway::GatherPureNodesContributingToPin(UCadenceGraphN
 	}
 }
 
-void UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins(UCadenceGraphNode* InNode, const TArray<UCadenceGraphNode*>& InAllowedNodes, UCadenceGraphNode* InEndNode)
+void UCadenceGraphRunnerPathway::ReleaseInputPinVariables(UCadenceGraphNode* InNode, UCadenceContext* InContext)
+{
+	TArray<TObjectPtr<UCadenceGraphNodePin>> InputPins = InNode->GetInputPins();
+
+	for(UCadenceGraphNodePin* InputPin : InputPins)
+	{
+		if(InputPin->IsExec())
+			continue;
+
+		UCadenceVariable* Variable = InputPin->GetVariable();
+		if(ensure(Variable))
+		{
+			UE_LOG(LogCadence, Log, TEXT("ReleaseInputPinVariables Pre-Unregister: %s - %s"), *InNode->GetName(), *InputPin->GetGUID().ToString());
+			Variable->OnParentNodeReleased(InContext);
+		}
+	}
+}
+
+void UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins(UCadenceGraphNode* InNode, UCadenceContext* InContext)
+{
+	TArray<UCadenceGraphNodePin*> OutputPins = InNode->GetOutputPins();
+	for (UCadenceGraphNodePin* OutputPin : OutputPins)
+	{
+		if(OutputPin->IsExec())
+			continue;
+		
+		TArray<UCadenceGraphNodePin*> ConnectedInputPins = OutputPin->GetConnectedPins();
+		for (UCadenceGraphNodePin* ConnectedPin : ConnectedInputPins)
+		{			
+			UE_LOG(LogCadence, Log, TEXT("PropagateOutputPinsToInputPins Pre-CopyValue: %s - %s"), *InNode->GetName(), *ConnectedPin->GetGUID().ToString());
+			InContext->ParentNode = ConnectedPin->GetParentNode();
+			ConnectedPin->GetVariable()->CopyValueFrom(OutputPin->GetVariable(), InContext);			
+		}
+
+		UE_LOG(LogCadence, Log, TEXT("PropagateOutputPinsToInputPins Pre-Unregister: %s - %s"), *InNode->GetName(), *OutputPin->GetGUID().ToString());
+		OutputPin->GetVariable()->OnParentNodeReleased(InContext);
+	}
+}
+
+void UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins(UCadenceGraphNode* InNode, const TArray<UCadenceGraphNode*>& InAllowedNodes, UCadenceGraphNode* InEndNode, UCadenceContext* InContext)
 {
 	TArray<UCadenceGraphNodePin*> OutputPins = InNode->GetOutputPins();
 	for (UCadenceGraphNodePin* OutputPin : OutputPins)
@@ -187,7 +244,14 @@ void UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins(UCadenceGraphNod
 		{
 			UCadenceGraphNode* ParentNode = ConnectedPin->GetParentNode();
 			if(InEndNode == ParentNode || InAllowedNodes.Contains(ParentNode))
-				ConnectedPin->GetVariable()->CopyValueFrom(OutputPin->GetVariable());
+			{
+				UE_LOG(LogCadence, Log, TEXT("PropagateOutputPinsToInputPins Pre-CopyValue: %s - %s"), *InNode->GetName(), *ConnectedPin->GetGUID().ToString());
+				InContext->ParentNode = ConnectedPin->GetParentNode();
+				ConnectedPin->GetVariable()->CopyValueFrom(OutputPin->GetVariable(), InContext);
+			}
 		}
+
+		UE_LOG(LogCadence, Log, TEXT("PropagateOutputPinsToInputPins Pre-Unregister: %s - %s"), *InNode->GetName(), *OutputPin->GetGUID().ToString());
+		OutputPin->GetVariable()->OnParentNodeReleased(InContext);
 	}
 }

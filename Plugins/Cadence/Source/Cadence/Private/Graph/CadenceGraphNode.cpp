@@ -8,6 +8,11 @@
 #include "Graph/CadencePinConstants.h"
 
 
+void UCadenceGraphNode::GenerateGUID()
+{
+	GUID = FGuid::NewGuid();
+}
+
 void UCadenceGraphNode::DestroyNode()
 {
 	for(UCadenceGraphNodePin* Pin : InputPins)

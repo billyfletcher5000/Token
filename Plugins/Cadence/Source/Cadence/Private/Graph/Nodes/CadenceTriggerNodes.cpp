@@ -20,7 +20,7 @@ void UCadenceTriggerSequenceNode::CreateOutputPins()
 	AddOutputVariablePin(FCadencePinConstants::Pin_Trigger, UCadenceVariableTrigger::StaticClass());
 }
 
-bool UCadenceTriggerSequenceNode::Execute(UCadenceContext* InContext)
+ECadenceNodeExecuteResult UCadenceTriggerSequenceNode::Execute(UCadenceContext* InContext)
 {
 	return Super::Execute(InContext);
 }
@@ -48,7 +48,7 @@ void UCadenceQuantizedTimeTriggerNode::CreateOutputPins()
 	AddOutputVariablePin(FCadencePinConstants::Pin_Trigger, UCadenceVariableTrigger::StaticClass());
 }
 
-bool UCadenceQuantizedTimeTriggerNode::Execute(UCadenceContext* InContext)
+ECadenceNodeExecuteResult UCadenceQuantizedTimeTriggerNode::Execute(UCadenceContext* InContext)
 {
 	return Super::Execute(InContext);
 }

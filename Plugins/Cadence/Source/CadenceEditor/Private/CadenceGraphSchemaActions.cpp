@@ -62,7 +62,7 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 
 UCadenceGraphNode* FNewNodeAction::CreateCadenceGraphNode(UCadenceGraph* RuntimeGraph, const FVector2D& Location)
 {
-	UCadenceGraphNode* Node =  RuntimeGraph->CreateNode(RuntimeNodeType, Location);
+	UCadenceGraphNode* Node = RuntimeGraph->CreateNode(RuntimeNodeType, Location);
 	Node->CreateInputPins();
 	Node->CreateOutputPins();
 	return Node;

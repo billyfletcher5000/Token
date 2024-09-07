@@ -6,6 +6,7 @@
 #include "CadenceAsset.h"
 #include "CadenceContext.h"
 #include "CadenceSettings.h"
+#include "Actors/CadenceActorLifetime.h"
 #include "Graph/CadenceGraph.h"
 #include "Graph/CadenceGraphRunner.h"
 
@@ -45,6 +46,7 @@ UCadenceGraphRunner* UCadenceSubsystem::ActivateGraph(UCadenceAsset* CadenceAsse
 	Context->SourceGraph = Graph;
 	Context->Graph = DuplicateObject(Graph, Context, "Graph");
 	Context->Asset = CadenceAsset;
+	Context->ActorLifetimeManager = NewObject<UCadenceActorLifetimeManager>();
 	Runner->Init(Context);
 
 	ActiveRunners.Add(Runner);

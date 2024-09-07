@@ -57,7 +57,7 @@ class CADENCE_API UCadenceUserVariableGetterNode : public UCadenceUserVariableAc
 	
 public:
 	virtual void CreateOutputPins() override;
-	virtual bool Execute(UCadenceContext* InContext) override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 
 	virtual bool IsPure() const override { return true; }
 
@@ -75,7 +75,7 @@ class CADENCE_API UCadenceUserVariableSetterNode : public UCadenceUserVariableAc
 public:	
 	virtual void CreateInputPins() override;
 	virtual void CreateOutputPins() override;
-	virtual bool Execute(UCadenceContext* InContext) override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 
 	virtual FText GetNodeTitle() const override;
 	virtual FText GetNodeMenuName() const override;

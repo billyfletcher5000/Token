@@ -19,6 +19,7 @@ TObjectPtr<UCadenceGraphNode> UCadenceGraph::CreateNode(TSubclassOf<UCadenceGrap
 {
 	TObjectPtr<UCadenceGraphNode> Node = NewObject<UCadenceGraphNode>(this, InClass);
 
+	Node->GenerateGUID();
 	Node->SetFlags(RF_Transactional);	
 	
 	Node->SetParentGraph(this);
@@ -63,4 +64,40 @@ TArray<TObjectPtr<UCadenceGraphNode>> UCadenceGraph::GetRootExecNodes() const
 	}
 
 	return Result;
+}
+
+TArray<TObjectPtr<UCadenceGraphNode>> UCadenceGraph::GetRootExecNodesThatLeadToNode(UCadenceGraphNode* InNode) const
+{
+	TArray<TObjectPtr<UCadenceGraphNode>> RootNodes;
+
+	if(!ensureMsgf(!InNode->IsPure(), TEXT("Pure node calculation currently unsupported!")))
+	{
+		return RootNodes;
+	}
+	
+	GatherRootExecNodes(RootNodes, InNode);
+
+	return RootNodes;
+}
+
+void UCadenceGraph::GatherRootExecNodes(TArray<TObjectPtr<UCadenceGraphNode>>& InRootNodeList, UCadenceGraphNode* InNode) const
+{	
+	UCadenceGraphNodePin* ExecPin = InNode->GetExecPin();
+	if(ExecPin == nullptr)
+	{
+		InRootNodeList.Add(InNode);
+		return;
+	}
+	
+	TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedPins = ExecPin->GetConnectedPins();
+	if(ConnectedPins.Num() == 0)
+	{
+		InRootNodeList.Add(InNode);
+		return;
+	}
+	
+	for(UCadenceGraphNodePin* ConnectedPin : ConnectedPins)
+	{
+		GatherRootExecNodes(InRootNodeList, ConnectedPin->GetParentNode());
+	}
 }

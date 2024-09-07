@@ -51,6 +51,11 @@ public:
 	TArray<TObjectPtr<UCadenceGraphNode>> GetNodes() const { return Nodes; }
 	TArray<TObjectPtr<UCadenceGraphNode>> GetRootExecNodes() const;
 
+	TArray<TObjectPtr<UCadenceGraphNode>> GetRootExecNodesThatLeadToNode(UCadenceGraphNode* InNode) const;
+
+private:
+	void GatherRootExecNodes(TArray<TObjectPtr<UCadenceGraphNode>>& InRootNodeList, UCadenceGraphNode* InNode) const;
+
 public:
 	UPROPERTY()
 	TArray<TObjectPtr<UCadenceGraphNode>> Nodes;

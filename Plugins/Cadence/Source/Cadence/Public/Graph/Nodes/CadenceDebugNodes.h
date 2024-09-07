@@ -19,7 +19,7 @@ class CADENCE_API UCadenceDebugIntNode : public UCadenceGraphNode
 
 public:
 	virtual void CreateInputPins() override;
-	virtual bool Execute(UCadenceContext* InContext) override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Debug Int")); }
 	virtual FText GetNodeCategory() const override { return FCadenceDebugConstants::NodeCategory; }
@@ -33,9 +33,23 @@ class CADENCE_API UCadenceDebugFloatNode : public UCadenceGraphNode
 
 public:
 	virtual void CreateInputPins() override;
-	virtual bool Execute(UCadenceContext* InContext) override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Debug Float")); }
+	virtual FText GetNodeCategory() const override { return FCadenceDebugConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceDebugConstants::NodeTitleColor; }
+};
+
+UCLASS()
+class CADENCE_API UCadenceDebugActorNameNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateInputPins() override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+	
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Debug Actor Name")); }
 	virtual FText GetNodeCategory() const override { return FCadenceDebugConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceDebugConstants::NodeTitleColor; }
 };

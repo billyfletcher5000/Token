@@ -1,13 +1,12 @@
 ﻿#pragma once
 
-#include "IDetailCustomization.h"
 #include "IPropertyTypeCustomization.h"
 
 struct FCadenceNamedVariable;
 class UCadenceVariable;
 class FReply;
 
-DECLARE_LOG_CATEGORY_EXTERN(LogCadence, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogCadenceEditor, Log, All);
 
 class FCadenceGraphUserVariableSetCustomization : public IPropertyTypeCustomization
 {

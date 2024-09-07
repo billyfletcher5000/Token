@@ -5,10 +5,10 @@
 #include "CoreMinimal.h"
 #include "CadenceContext.h"
 #include "UObject/Object.h"
+#include "Graph/CadenceGraphNode.h"
 #include "CadenceGraphRunner.generated.h"
 
 class UCadenceGraphNodePin;
-class UCadenceGraphNode;
 class UCadenceContext;
 class UCadenceGraph;
 class UCadenceGraphRunnerPathway;
@@ -60,10 +60,12 @@ public:
 private:
 	UCadenceContext* GetContext();
 
-	bool ExecuteNode(UCadenceGraphNode* InNode, UCadenceContext* InContext);
+	ECadenceNodeExecuteResult ExecuteNode(UCadenceGraphNode* InNode, UCadenceContext* InContext);
 	void ProcessVariableInputPin(UCadenceContext* InContext, UCadenceGraphNodePin* InPin);
 	void GatherPureNodesContributingToPin(UCadenceGraphNodePin* InPin, TArray<UCadenceGraphNode*>& InNodeStack);
-	void PropagateOutputPinsToInputPins(UCadenceGraphNode* InNode, const TArray<UCadenceGraphNode*>& InAllowedNodes, UCadenceGraphNode* InEndNode);
+	void ReleaseInputPinVariables(UCadenceGraphNode* InNode, UCadenceContext* InContext);
+	void PropagateOutputPinsToInputPins(UCadenceGraphNode* InNode, UCadenceContext* InContext);
+	void PropagateOutputPinsToInputPins(UCadenceGraphNode* InNode, const TArray<UCadenceGraphNode*>& InAllowedNodes, UCadenceGraphNode* InEndNode, UCadenceContext* InContext);
 
 private:
 	UPROPERTY()

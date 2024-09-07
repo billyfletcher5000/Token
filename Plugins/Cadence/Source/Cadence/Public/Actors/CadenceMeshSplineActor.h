@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/SplineComponent.h"
 #include "Components/SplineMeshComponent.h"
 
 #include "CadenceMeshSplineActor.generated.h"
 
-class USplineComponent;
 
 UCLASS()
 class CADENCE_API ACadenceMeshSplineActor : public AActor
@@ -17,11 +17,23 @@ class CADENCE_API ACadenceMeshSplineActor : public AActor
 public:
 	ACadenceMeshSplineActor();
 
+	USplineComponent* GetSplineComponent() const { return SplineComponent; }
+
+	void SetSplinePoints(const TArray<FVector>& InPoints, ESplineCoordinateSpace::Type InCoordinateSpace = ESplineCoordinateSpace::World);
+	
+	// AActor
 	virtual void OnConstruction(const FTransform& Transform) override;
+	// AActor end
+	
+protected:
+	void UpdateMeshComponents(const EComponentCreationMethod& CreationMethod, bool bDestroyPrevious);
 
 protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USplineComponent> SplineComponent;
+
+	UPROPERTY()
+	TArray<TObjectPtr<USplineMeshComponent>> MeshComponents;
 
 	UPROPERTY(EditAnywhere, Category="Spline Mesh")
 	bool bHasSpecificStartMesh = false;

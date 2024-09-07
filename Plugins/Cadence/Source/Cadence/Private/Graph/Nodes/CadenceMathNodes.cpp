@@ -22,7 +22,7 @@ void UCadenceAddNode::CreateOutputPins()
 	AddOutputVariablePin(FCadencePinConstants::Pin_Float, UCadenceVariableFloat::StaticClass());
 }
 
-bool UCadenceAddNode::Execute(UCadenceContext* InContext)
+ECadenceNodeExecuteResult UCadenceAddNode::Execute(UCadenceContext* InContext)
 {
 	float AggregateValue = 0.0f;
 
@@ -36,7 +36,7 @@ bool UCadenceAddNode::Execute(UCadenceContext* InContext)
 	UCadenceVariableFloat* OutputFloatVariable = OutputPin->GetVariable<UCadenceVariableFloat>();
 	OutputFloatVariable->SetValue(AggregateValue);
 	
-	return true;
+	return ECadenceNodeExecuteResult::Complete;
 }
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceAddNode::AddUserInputPin()

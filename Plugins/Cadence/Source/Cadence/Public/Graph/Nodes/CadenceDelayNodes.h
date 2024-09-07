@@ -26,7 +26,7 @@ class CADENCE_API UCadenceDelayNode : public UCadenceGraphNode
 public:
 	virtual bool IsLatent() const override { return true; }
 	virtual void CreateInputPins() override;
-	virtual bool Execute(UCadenceContext* InContext) override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Delay")); }
 	virtual FText GetNodeCategory() const override { return FCadenceDelayConstants::NodeCategory; }

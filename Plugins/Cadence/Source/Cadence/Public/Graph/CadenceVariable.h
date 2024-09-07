@@ -3,6 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Cadence.h"
+#include "CadenceContext.h"
+#include "Actors/CadenceActorLifetime.h"
 #include "UObject/Object.h"
 #include "CadenceVariable.generated.h"
 
@@ -21,7 +24,10 @@ public:
 	virtual FLinearColor GetPinColor() const PURE_VIRTUAL(UCadenceVariable::GetPinSubCategory, return FLinearColor::White;);
 	virtual FName GetDisplayName() const { return GetPinSubCategory(); }
 	
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) PURE_VIRTUAL();
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) PURE_VIRTUAL();
+
+	// Called when a variable's parent node, if it has one, is complete and has transferred data from this variable to others
+	virtual void OnParentNodeReleased(UCadenceContext* InContext) {}
 
 	virtual bool IsArray() const { return false; }
 	virtual bool IsEnum() const  { return false; }
@@ -29,9 +35,23 @@ public:
 	virtual void SetUserVariableName(const FName& InName) { UserVariableName = InName; }
 	virtual FName GetUserVariableName() const { return UserVariableName; }
 
+	FGuid GetGUID()
+	{
+		if(!GUID.IsValid())
+		{
+			GUID = FGuid::NewGuid();
+		}
+
+		return GUID;
+	}
+
 protected:
 	UPROPERTY()
 	FName UserVariableName = NAME_None;
+
+private:
+	UPROPERTY(VisibleAnywhere, NonPIEDuplicateTransient, TextExportTransient, NonTransactional)
+	FGuid GUID;
 };
 
 
@@ -44,7 +64,7 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("int32"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.4f, 0.4f, 1.0f); }
 
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableInt* IntVariable = Cast<UCadenceVariableInt>(OtherVariable);
 		Value = IntVariable->GetValue();
@@ -68,7 +88,7 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("float"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.0f, 1.0f, 0.0f); }
 	
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableFloat* CastedVariable = Cast<UCadenceVariableFloat>(OtherVariable);
 		Value = CastedVariable->GetValue();
@@ -92,7 +112,7 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("double"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.4f, 0.4f, 1.0f); }
 
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableDouble* CastedVariable = Cast<UCadenceVariableDouble>(OtherVariable);
 		Value = CastedVariable->GetValue();
@@ -115,7 +135,7 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("bool"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(1.0f, 0.0f, 0.0f); }
 
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableBool* CastedVariable = Cast<UCadenceVariableBool>(OtherVariable);
 		Value = CastedVariable->GetValue();
@@ -138,7 +158,7 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("Vector"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(1.0f, 1.0f, 0.0f); }
 
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableVector* CastedVariable = Cast<UCadenceVariableVector>(OtherVariable);
 		Value = CastedVariable->GetValue();
@@ -161,7 +181,7 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("Vector2D"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.0f, 0.0f, 1.0f); }
 
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableVector2D* CastedVariable = Cast<UCadenceVariableVector2D>(OtherVariable);
 		Value = CastedVariable->GetValue();
@@ -184,7 +204,7 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("UObject"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 1.0f); }
 
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableUObject* CastedVariable = Cast<UCadenceVariableUObject>(OtherVariable);
 		Value = CastedVariable->GetValue();
@@ -208,7 +228,7 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("UObject"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 1.0f); }
 
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableUObjectArray* CastedVariable = Cast<UCadenceVariableUObjectArray>(OtherVariable);
 		Value = CastedVariable->GetValue();
@@ -233,7 +253,7 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("QuartzCommandQuantization"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 1.0f); }
 
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableQuartzCommandQuantization* CastedVariable = Cast<UCadenceVariableQuartzCommandQuantization>(OtherVariable);
 		Value = CastedVariable->GetValue();
@@ -250,6 +270,46 @@ private:
 };
 
 UCLASS()
+class CADENCE_API UCadenceVariableActor : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinSubCategory() const override { return TEXT("Actor"); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 0.95f); }
+
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
+	{
+		UCadenceVariableActor* CastedVariable = Cast<UCadenceVariableActor>(OtherVariable);
+		Value = CastedVariable->GetValue();
+
+		if(InContext)
+		{
+			FGuid TempGUID = GetGUID();
+			UE_LOG(LogCadence, Log, TEXT("CopyValueFrom Register: %s - This - %s - Other - %s"), *GetName(), *TempGUID.ToString(), *OtherVariable->GetGUID().ToString());
+			InContext->ActorLifetimeManager->RegisterActorUsage(Value, TempGUID, InContext->ParentNode);
+		}
+	}
+
+	virtual void OnParentNodeReleased(UCadenceContext* InContext) override
+	{
+		if(ensure(InContext))
+		{
+			FGuid TempGUID = GetGUID();
+			UE_LOG(LogCadence, Log, TEXT("OnParentNodeReleased Unregister: %s - %s"), *GetName(), *TempGUID.ToString());
+			InContext->ActorLifetimeManager->UnregisterActorUsage(Value, TempGUID);
+		}
+	}
+	
+	TObjectPtr<AActor> GetValue() const { return Value; }
+	void SetValue(const TObjectPtr<AActor>& InValue) { Value = InValue; }
+
+private:
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<AActor> Value;
+};
+
+UCLASS()
 class CADENCE_API UCadenceVariableTrigger : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -258,7 +318,7 @@ public:
 	virtual FName GetPinSubCategory() const override { return TEXT("Trigger"); }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.75f, 0.0f, 0.0f); }
 
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable) override
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableTrigger* CastedVariable = Cast<UCadenceVariableTrigger>(OtherVariable);
 		Value = CastedVariable->GetValue();

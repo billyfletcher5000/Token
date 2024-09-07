@@ -13,14 +13,14 @@ void UCadenceUserVariableGetterNode::CreateOutputPins()
 	AddOutputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable->GetClass());
 }
 
-bool UCadenceUserVariableGetterNode::Execute(UCadenceContext* InContext)
+ECadenceNodeExecuteResult UCadenceUserVariableGetterNode::Execute(UCadenceContext* InContext)
 {
 	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Value);
 	TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedPins = OutputPin->GetConnectedPins();
 	
 	OutputPin->OverrideVariable(SourceVariable);
 	
-	return true;
+	return ECadenceNodeExecuteResult::Complete;
 }
 
 FText UCadenceUserVariableGetterNode::GetNodeTitle() const
@@ -45,7 +45,7 @@ void UCadenceUserVariableSetterNode::CreateOutputPins()
 	AddOutputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable->GetClass());
 }
 
-bool UCadenceUserVariableSetterNode::Execute(UCadenceContext* InContext)
+ECadenceNodeExecuteResult UCadenceUserVariableSetterNode::Execute(UCadenceContext* InContext)
 {
 	UCadenceGraphNodePin* InputPin = GetInputPin(FCadencePinConstants::Pin_Value);
 	TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedInputPins = InputPin->GetConnectedPins();
@@ -53,13 +53,19 @@ bool UCadenceUserVariableSetterNode::Execute(UCadenceContext* InContext)
 	if(ensure(ConnectedInputPins.Num() == 1))
 	{
 		UCadenceVariable* InVariable = ConnectedInputPins[0]->GetVariable();
-		SourceVariable->CopyValueFrom(InVariable);
+		UE_LOG(LogCadence, Log, TEXT("PropagateOutputPinsToInputPins Pre-CopyValue: %s - %s"), *GetName(), *ConnectedInputPins[0]->GetGUID().ToString());
+		InContext->ParentNode = this;
+		SourceVariable->CopyValueFrom(InVariable, InContext);
+	}
+	else
+	{
+		return ECadenceNodeExecuteResult::Failed;
 	}
 	
 	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Value);
 	OutputPin->OverrideVariable(SourceVariable);
 	
-	return true;
+	return ECadenceNodeExecuteResult::Complete;
 }
 
 FText UCadenceUserVariableSetterNode::GetNodeTitle() const

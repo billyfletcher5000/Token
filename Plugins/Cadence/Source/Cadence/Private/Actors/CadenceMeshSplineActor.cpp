@@ -16,9 +16,23 @@ ACadenceMeshSplineActor::ACadenceMeshSplineActor()
 	SetRootComponent(SplineComponent);
 }
 
-void ACadenceMeshSplineActor::OnConstruction(const FTransform& Transform)
+void ACadenceMeshSplineActor::SetSplinePoints(const TArray<FVector>& InPoints, ESplineCoordinateSpace::Type InCoordinateSpace)
 {
-	Super::OnConstruction(Transform);
+	SplineComponent->SetSplinePoints(InPoints, InCoordinateSpace);
+	UpdateMeshComponents(EComponentCreationMethod::Instance, true);
+}
+
+void ACadenceMeshSplineActor::UpdateMeshComponents(const EComponentCreationMethod& CreationMethod, bool bDestroyPrevious)
+{
+	if(bDestroyPrevious)
+	{
+		for(USplineMeshComponent* MeshComponent : MeshComponents)
+		{
+			MeshComponent->DestroyComponent();
+		}
+	}
+	
+	MeshComponents.Empty();
 
 	int32 NumPoints = SplineComponent->GetNumberOfSplinePoints();
 	
@@ -26,7 +40,7 @@ void ACadenceMeshSplineActor::OnConstruction(const FTransform& Transform)
 	{		
 		USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(this, USplineMeshComponent::StaticClass());
 		SplineMeshComponent->RegisterComponentWithWorld(GetWorld());
-		SplineMeshComponent->CreationMethod = EComponentCreationMethod::UserConstructionScript;
+		SplineMeshComponent->CreationMethod = CreationMethod;
 		SplineMeshComponent->SetMobility(EComponentMobility::Movable);  
 		SplineMeshComponent->AttachToComponent(SplineComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
@@ -57,6 +71,15 @@ void ACadenceMeshSplineActor::OnConstruction(const FTransform& Transform)
 		SplineMeshComponent->SetEndScale(SplineMeshScale);
 		
 		SplineMeshComponent->SetForwardAxis(ForwardAxis);
-		SplineMeshComponent->SetStartAndEnd(StartPosition, StartTangent, EndPosition, EndTangent);		
+		SplineMeshComponent->SetStartAndEnd(StartPosition, StartTangent, EndPosition, EndTangent);
+
+		MeshComponents.Add(SplineMeshComponent);
 	}	
+}
+
+void ACadenceMeshSplineActor::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	UpdateMeshComponents(EComponentCreationMethod::UserConstructionScript, false);
 }

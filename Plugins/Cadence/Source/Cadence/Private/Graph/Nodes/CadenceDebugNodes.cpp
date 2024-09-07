@@ -15,18 +15,21 @@ void UCadenceDebugIntNode::CreateInputPins()
 	AddInputVariablePin(FCadencePinConstants::Pin_Int, UCadenceVariableInt::StaticClass());
 }
 
-bool UCadenceDebugIntNode::Execute(UCadenceContext* InContext)
+ECadenceNodeExecuteResult UCadenceDebugIntNode::Execute(UCadenceContext* InContext)
 {
 	TObjectPtr<UCadenceGraphNodePin> Pin = GetInputPin(FCadencePinConstants::Pin_Float);
 	ensure(Pin);
 
 	UCadenceVariableInt* Variable = Pin->GetVariable<UCadenceVariableInt>();
 	ensure(Variable);
+
+	FString Output = FString::FromInt(Variable->GetValue());
 	
 	ensure(GEngine);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::White, *FString::FromInt(Variable->GetValue()));
+	UE_LOG(LogCadence, Log, TEXT("Debug Node Output: %s"), *Output);
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::White, *Output);
 	
-	return true;
+	return ECadenceNodeExecuteResult::Complete;
 }
 
 void UCadenceDebugFloatNode::CreateInputPins()
@@ -35,16 +38,39 @@ void UCadenceDebugFloatNode::CreateInputPins()
 	AddInputVariablePin(FCadencePinConstants::Pin_Float, UCadenceVariableFloat::StaticClass());	
 }
 
-bool UCadenceDebugFloatNode::Execute(UCadenceContext* InContext)
+ECadenceNodeExecuteResult UCadenceDebugFloatNode::Execute(UCadenceContext* InContext)
 {
 	TObjectPtr<UCadenceGraphNodePin> Pin = GetInputPin(FCadencePinConstants::Pin_Float);
 	ensure(Pin);
 
 	UCadenceVariableFloat* Variable = Pin->GetVariable<UCadenceVariableFloat>();
 	ensure(Variable);
+
+	FString Output = FString::SanitizeFloat(Variable->GetValue());
 	
 	ensure(GEngine);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, *FString::SanitizeFloat(Variable->GetValue()));
+	UE_LOG(LogCadence, Log, TEXT("Debug Node Output: %s"), *Output);
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, *Output);
 	
-	return true;
+	return ECadenceNodeExecuteResult::Complete;
+}
+
+void UCadenceDebugActorNameNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+	AddInputVariablePin(FCadencePinConstants::Pin_Actor, UCadenceVariableActor::StaticClass());	
+}
+
+ECadenceNodeExecuteResult UCadenceDebugActorNameNode::Execute(UCadenceContext* InContext)
+{	
+	TObjectPtr<UCadenceGraphNodePin> Pin = GetInputPin(FCadencePinConstants::Pin_Actor);
+	UCadenceVariableActor* Variable = Pin->GetVariable<UCadenceVariableActor>();
+
+	FString Output = Variable->GetValue()->GetName();
+	
+	ensure(GEngine);
+	UE_LOG(LogCadence, Log, TEXT("Debug Node Output: %s"), *Output);
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, *Output);
+	
+	return ECadenceNodeExecuteResult::Complete;
 }

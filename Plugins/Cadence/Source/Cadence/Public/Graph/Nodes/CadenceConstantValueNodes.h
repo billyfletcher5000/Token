@@ -23,7 +23,7 @@ class CADENCE_API UCadenceConstantValueFloatNode : public UCadenceGraphNode
 
 public:
 	virtual void CreateOutputPins() override;
-	virtual bool Execute(UCadenceContext* InContext) override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 
 	virtual bool IsPure() const override { return true; }
 
@@ -44,7 +44,7 @@ class CADENCE_API UCadenceConstantValueIntNode : public UCadenceGraphNode
 
 public:
 	virtual void CreateOutputPins() override;
-	virtual bool Execute(UCadenceContext* InContext) override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 
 	virtual bool IsPure() const override { return true; }
 
@@ -65,7 +65,7 @@ class CADENCE_API UCadenceConstantValueBoolNode : public UCadenceGraphNode
 
 public:
 	virtual void CreateOutputPins() override;
-	virtual bool Execute(UCadenceContext* InContext) override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 
 	virtual bool IsPure() const override { return true; }
 
@@ -77,4 +77,47 @@ public:
 private:
 	UPROPERTY(EditAnywhere)
 	bool Value;
+};
+
+UCLASS()
+class CADENCE_API UCadenceConstantValueVectorNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateOutputPins() override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+
+	virtual bool IsPure() const override { return true; }
+
+	virtual FText GetNodeTitle() const override;
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Vector Constant")); }
+	virtual FText GetNodeCategory() const override { return FCadenceConstantValueConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceConstantValueConstants::NodeTitleColor; }
+	
+private:
+	UPROPERTY(EditAnywhere)
+	FVector Value;
+};
+
+
+UCLASS()
+class CADENCE_API UCadenceConstantValueVector2Node : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateOutputPins() override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+
+	virtual bool IsPure() const override { return true; }
+
+	virtual FText GetNodeTitle() const override;
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Vector2 Constant")); }
+	virtual FText GetNodeCategory() const override { return FCadenceConstantValueConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceConstantValueConstants::NodeTitleColor; }
+	
+private:
+	UPROPERTY(EditAnywhere)
+	FVector2D Value;
 };
