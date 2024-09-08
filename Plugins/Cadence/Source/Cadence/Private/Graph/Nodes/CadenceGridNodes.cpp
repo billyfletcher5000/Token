@@ -53,8 +53,8 @@ ECadenceNodeExecuteResult UCadenceGridCreateLineNode::Execute(UCadenceContext* I
 	UCadenceVariableVector2D* PointAVariable = PointAInputPin->GetVariable<UCadenceVariableVector2D>();
 	UCadenceVariableVector2D* PointBVariable = PointBInputPin->GetVariable<UCadenceVariableVector2D>();
 	
-	FVector PointAWorldLocation = BlockGridActor->GridPositionToWorldLocation(PointAVariable->GetValue());
-	FVector PointBWorldLocation = BlockGridActor->GridPositionToWorldLocation(PointBVariable->GetValue());
+	FVector PointAWorldLocation = bUseNormalisedPositions ? BlockGridActor->NormalisedPositionToWorldLocation(PointAVariable->GetValue()): BlockGridActor->GridPositionToWorldLocation(PointAVariable->GetValue());
+	FVector PointBWorldLocation = bUseNormalisedPositions ? BlockGridActor->NormalisedPositionToWorldLocation(PointBVariable->GetValue()): BlockGridActor->GridPositionToWorldLocation(PointBVariable->GetValue());
 
 	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Actor);
 	UCadenceVariableActor* OutputVariable = OutputPin->GetVariable<UCadenceVariableActor>();

@@ -31,6 +31,10 @@ protected:
 	static const FName BlockGridInputPinName;
 	static const FName PointAInputPinName;
 	static const FName PointBInputPinName;
+
+protected:
+	UPROPERTY(EditAnywhere)
+	bool bUseNormalisedPositions = true;
 };
 
 UCLASS()

@@ -46,6 +46,15 @@ public:
 	UFUNCTION(Blueprintable, BlueprintPure)
 	FVector2D WorldLocationToGridPosition(const FVector& InWorldPosition, const bool bInSnapToPixel = true) const;
 
+	UFUNCTION(Blueprintable, BlueprintPure)
+	FVector NormalisedPositionToLocalLocation(const FVector2D& InNormalisedPosition) const;
+
+	UFUNCTION(Blueprintable, BlueprintPure)
+	FVector NormalisedPositionToWorldLocation(const FVector2D& InNormalisedPosition) const;
+
+	UFUNCTION(Blueprintable, BlueprintPure)
+	FVector2D WorldLocationToNormalisedPosition(const FVector& InWorldPosition, const bool bInSnapToPixel = true) const;
+
 protected:
 	UPROPERTY(EditAnywhere, Category="Block Grid")
 	TObjectPtr<UNiagaraSystem> NiagaraSystem;

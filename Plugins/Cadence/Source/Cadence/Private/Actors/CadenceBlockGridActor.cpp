@@ -129,3 +129,18 @@ FVector2D ACadenceBlockGridActor::WorldLocationToGridPosition(const FVector& InW
 	return ScaledGridPosition / GridVisualScale;
 }
 
+FVector ACadenceBlockGridActor::NormalisedPositionToLocalLocation(const FVector2D& InNormalisedPosition) const
+{
+	return GridPositionToLocalLocation(InNormalisedPosition * GridTotalSize);
+}
+
+FVector ACadenceBlockGridActor::NormalisedPositionToWorldLocation(const FVector2D& InNormalisedPosition) const
+{
+	return GridPositionToWorldLocation(InNormalisedPosition * GridTotalSize);
+}
+
+FVector2D ACadenceBlockGridActor::WorldLocationToNormalisedPosition(const FVector& InWorldPosition,	const bool bInSnapToPixel) const
+{
+	return WorldLocationToGridPosition(InWorldPosition, bInSnapToPixel) / GridTotalSize;
+}
+
