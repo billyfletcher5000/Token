@@ -7,6 +7,7 @@
 #include "EngineUtils.h"
 #include "Actors/CadenceActorSettings.h"
 #include "Actors/CadenceBlockGridActor.h"
+#include "Actors/CadenceBlockGridSplineActor.h"
 #include "Actors/CadenceMeshSplineActor.h"
 #include "Components/SplineComponent.h"
 #include "Graph/CadenceGraph.h"
@@ -62,7 +63,12 @@ ECadenceNodeExecuteResult UCadenceGridCreateLineNode::Execute(UCadenceContext* I
 	UClass* LineMeshClass = InContext->Graph->ActorSettings->GetLineMeshSplineActorType();
 	
 	ACadenceMeshSplineActor* MeshSplineActor = SpawnActor<ACadenceMeshSplineActor>(LineMeshClass, InContext, OutputPin, PointAWorldLocation);
-	MeshSplineActor->SetSplinePoints({PointAWorldLocation, PointBWorldLocation}, ESplineCoordinateSpace::World);	
+	MeshSplineActor->SetSplinePoints({PointAWorldLocation, PointBWorldLocation}, ESplineCoordinateSpace::World);
+	
+	if(ACadenceBlockGridSplineActor* BlockGridSplineActor = Cast<ACadenceBlockGridSplineActor>(MeshSplineActor))
+	{
+		BlockGridSplineActor->SetGridBlockWidth(LineWidth);
+	}
 
 	OutputVariable->SetValue(MeshSplineActor);
 	

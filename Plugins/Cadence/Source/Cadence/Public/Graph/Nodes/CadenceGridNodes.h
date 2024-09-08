@@ -35,6 +35,9 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere)
 	bool bUseNormalisedPositions = true;
+
+	UPROPERTY(EditAnywhere)
+	float LineWidth = 1.0f;
 };
 
 UCLASS()

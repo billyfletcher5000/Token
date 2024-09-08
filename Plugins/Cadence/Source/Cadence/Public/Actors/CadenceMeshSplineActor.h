@@ -26,7 +26,7 @@ public:
 	// AActor end
 	
 protected:
-	void UpdateMeshComponents(const EComponentCreationMethod& CreationMethod, bool bDestroyPrevious);
+	virtual void UpdateMeshComponents(const EComponentCreationMethod& CreationMethod, bool bDestroyPrevious);
 
 protected:
 	UPROPERTY(VisibleAnywhere)

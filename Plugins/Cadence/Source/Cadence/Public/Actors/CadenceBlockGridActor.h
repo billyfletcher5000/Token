@@ -66,7 +66,7 @@ protected:
 	FVector2D GridVisualScale = FVector2D(16.0f,16.0f);
 
 	UPROPERTY(EditAnywhere, Category="Block Grid")
-	float FarClipDistance = 300.0f;
+	float FarClipDistance = -300.0f;
 
 	UPROPERTY(EditAnywhere, Category="Block Grid")
 	TObjectPtr<UTextureRenderTarget2D> SceneCaptureRenderTexture;

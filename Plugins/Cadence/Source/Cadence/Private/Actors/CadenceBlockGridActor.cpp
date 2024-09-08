@@ -22,8 +22,8 @@ ACadenceBlockGridActor::ACadenceBlockGridActor()
 	
 	SceneCaptureComponent2D = CreateDefaultSubobject<USceneCaptureComponent2D>("SceneCaptureOrtho2D");
 	SceneCaptureComponent2D->AttachToComponent(RootSceneComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	SceneCaptureComponent2D->SetRelativeLocation(FVector(110.0f, 0.0f, 0.0f));
-	SceneCaptureComponent2D->SetRelativeRotation(FRotator(0.0f, 180.0f, 0.0f));
+	SceneCaptureComponent2D->SetRelativeLocation(FVector(-110.0f, 0.0f, 0.0f));
+	SceneCaptureComponent2D->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
 
 	SceneCaptureComponent2D->OrthoWidth = GridTotalSize.Y * GridVisualScale.Y;
 	SceneCaptureComponent2D->ProjectionType = ECameraProjectionMode::Orthographic;
