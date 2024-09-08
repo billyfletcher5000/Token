@@ -100,6 +100,6 @@ public:
 	FVector2D Position;
 
 private:
-	UPROPERTY(VisibleAnywhere, NonPIEDuplicateTransient, TextExportTransient, NonTransactional)
+	UPROPERTY(VisibleAnywhere)
 	FGuid GUID;
 };

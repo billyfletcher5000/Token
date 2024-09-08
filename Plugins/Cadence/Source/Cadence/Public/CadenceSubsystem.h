@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Graph/CadenceGraph.h"
 #include "UObject/Object.h"
 #include "CadenceSubsystem.generated.h"
 
+class UCadenceGraph;
 class UCadenceAsset;
 class UCadenceGraphRunner;
 
@@ -36,6 +38,8 @@ protected:
 	friend UCadenceGraphRunner;
 
 	void NotifyGraphComplete(UCadenceGraphRunner* InRunner);
+
+	static void LogOuterRelationships(UCadenceGraph* Copy, UCadenceGraph* Source);
 
 private:
 	UPROPERTY()
