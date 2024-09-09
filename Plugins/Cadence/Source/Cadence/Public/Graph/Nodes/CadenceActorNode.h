@@ -39,3 +39,4 @@ protected:
 	UPROPERTY(EditAnywhere)
 	ECadenceActorLifetime Lifetime = ECadenceActorLifetime::Automatic;
 };
+

@@ -28,6 +28,7 @@ public:
 	
 protected:
 	virtual void UpdateMeshComponents(const EComponentCreationMethod& CreationMethod, bool bDestroyPrevious);
+	virtual void UpdateMeshComponentPositions();
 
 protected:
 	UPROPERTY(VisibleAnywhere)

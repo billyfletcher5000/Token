@@ -66,7 +66,7 @@ bool UCadenceSplinePointProxySceneComponent::MoveComponentImpl(const FVector& De
 		UpdateOverlaps();
 	}
 
-	if(bMoved)
+	if(bMoved && PointIndex != -1)
 	{
 		MeshSplineActor->SetSplinePoint(PointIndex, GetComponentLocation());
 	}

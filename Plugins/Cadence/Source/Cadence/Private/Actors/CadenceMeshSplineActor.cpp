@@ -19,12 +19,13 @@ ACadenceMeshSplineActor::ACadenceMeshSplineActor()
 void ACadenceMeshSplineActor::SetSplinePoints(const TArray<FVector>& InPoints, ESplineCoordinateSpace::Type InCoordinateSpace)
 {
 	SplineComponent->SetSplinePoints(InPoints, InCoordinateSpace);
-	UpdateMeshComponents(EComponentCreationMethod::Instance, true);
+	UpdateMeshComponentPositions();
 }
 
 void ACadenceMeshSplineActor::SetSplinePoint(const int32& InPointIndex, const FVector& InPosition, ESplineCoordinateSpace::Type InCoordinateSpace)
 {
 	SplineComponent->SetLocationAtSplinePoint(InPointIndex, InPosition, InCoordinateSpace);
+	UpdateMeshComponentPositions();
 }
 
 void ACadenceMeshSplineActor::UpdateMeshComponents(const EComponentCreationMethod& CreationMethod, bool bDestroyPrevious)
@@ -79,6 +80,33 @@ void ACadenceMeshSplineActor::UpdateMeshComponents(const EComponentCreationMetho
 		SplineMeshComponent->SetStartAndEnd(StartPosition, StartTangent, EndPosition, EndTangent);
 
 		MeshComponents.Add(SplineMeshComponent);
+	}	
+}
+
+void ACadenceMeshSplineActor::UpdateMeshComponentPositions()
+{
+	int32 NumPoints = SplineComponent->GetNumberOfSplinePoints();
+
+	if(MeshComponents.Num() != NumPoints - 1)
+	{
+		UpdateMeshComponents(EComponentCreationMethod::Instance, true);
+		return;
+	}
+	
+	for(int32 CurrentIndex = 0; CurrentIndex < NumPoints - 1; ++CurrentIndex)
+	{
+		USplineMeshComponent* SplineMeshComponent = MeshComponents[CurrentIndex];
+
+		FVector StartPosition = SplineComponent->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::Local);
+		FVector StartTangent = SplineComponent->GetTangentAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::Local);
+		FVector EndPosition = SplineComponent->GetLocationAtSplinePoint(CurrentIndex + 1, ESplineCoordinateSpace::Local);
+		FVector EndTangent = SplineComponent->GetTangentAtSplinePoint(CurrentIndex + 1, ESplineCoordinateSpace::Local);
+
+		SplineMeshComponent->SetStartScale(SplineMeshScale);
+		SplineMeshComponent->SetEndScale(SplineMeshScale);
+		
+		SplineMeshComponent->SetForwardAxis(ForwardAxis);
+		SplineMeshComponent->SetStartAndEnd(StartPosition, StartTangent, EndPosition, EndTangent);
 	}	
 }
 
