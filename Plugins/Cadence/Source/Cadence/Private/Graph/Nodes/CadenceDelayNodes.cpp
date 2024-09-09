@@ -20,5 +20,5 @@ void UCadenceDelayNode::CreateLatentActions(TArray<TScriptInterface<ICadenceTick
 	UCadenceVariableFloat* InputFloatVariable = InputPin->GetVariable<UCadenceVariableFloat>();
 
 	float Duration = InputFloatVariable->GetValue();
-	InActionList.Add(UCadenceDelayTickableAction::Create(Duration));
+	InActionList.Add(UCadenceDelayTickable::Create(Duration));
 }

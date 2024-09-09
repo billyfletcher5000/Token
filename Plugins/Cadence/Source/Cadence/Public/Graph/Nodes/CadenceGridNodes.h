@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CadenceActorNode.h"
+#include "CadenceLatentNode.h"
 #include "CadenceMath.h"
 
 #include "CadenceGridNodes.generated.h"
@@ -12,6 +13,12 @@ namespace FCadenceGridNodeConstants
 {
 	static const FText NodeCategory = FText::FromString(TEXT("Block Grid"));
 	static constexpr FLinearColor NodeTitleColor = FLinearColor(0.1f, 0.1f, 0.1f);
+	static const FName BlockGridInputPinName = TEXT("Block Grid");
+	static const FName PointInputPinName = TEXT("Point");
+	static const FName PointAInputPinName = TEXT("Point A");
+	static const FName PointBInputPinName = TEXT("Point B");
+	static const FName PointProxyAOutputPinName = TEXT("PointProxy A");
+	static const FName PointProxyBOutputPinName = TEXT("PointProxy B");
 }
 
 UCLASS()
@@ -27,13 +34,6 @@ public:
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Create Grid Line")); }
 	virtual FText GetNodeCategory() const override { return FCadenceGridNodeConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceGridNodeConstants::NodeTitleColor; }
-
-protected:	
-	static const FName BlockGridInputPinName;
-	static const FName PointAInputPinName;
-	static const FName PointBInputPinName;
-	static const FName PointProxyAOutputPinName;
-	static const FName PointProxyBOutputPinName;
 
 protected:
 	UPROPERTY(EditAnywhere)
@@ -65,13 +65,13 @@ protected:
 };
 
 UCLASS()
-class CADENCE_API UCadenceGridMoveToPointNode : public UCadenceActorNode
+class CADENCE_API UCadenceGridMoveToPointNode : public UCadenceLatentNode
 {
 	GENERATED_BODY()
 
 public:
 	virtual void CreateInputPins() override;
-	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+	virtual void CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList) override;
 	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Move To Grid Point")); }
 	virtual FText GetNodeCategory() const override { return FCadenceGridNodeConstants::NodeCategory; }

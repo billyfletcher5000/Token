@@ -15,20 +15,16 @@
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadencePinConstants.h"
 #include "Graph/CadenceVariable.h"
+#include "TickableActions/CadenceMoveTickableActions.h"
 
-const FName UCadenceGridCreateLineNode::BlockGridInputPinName = TEXT("Block Grid");
-const FName UCadenceGridCreateLineNode::PointAInputPinName = TEXT("Point A");
-const FName UCadenceGridCreateLineNode::PointBInputPinName = TEXT("Point B");
-const FName UCadenceGridCreateLineNode::PointProxyAOutputPinName = TEXT("PointProxy A");
-const FName UCadenceGridCreateLineNode::PointProxyBOutputPinName = TEXT("PointProxy B");
 
 void UCadenceGridCreateLineNode::CreateInputPins()
 {
 	Super::CreateInputPins();
 
-	AddInputVariablePin(BlockGridInputPinName, UCadenceVariableActor::StaticClass());
-	AddInputVariablePin(PointAInputPinName, UCadenceVariableVector2D::StaticClass());
-	AddInputVariablePin(PointBInputPinName, UCadenceVariableVector2D::StaticClass());
+	AddInputVariablePin(FCadenceGridNodeConstants::BlockGridInputPinName, UCadenceVariableActor::StaticClass());
+	AddInputVariablePin(FCadenceGridNodeConstants::PointAInputPinName, UCadenceVariableVector2D::StaticClass());
+	AddInputVariablePin(FCadenceGridNodeConstants::PointBInputPinName, UCadenceVariableVector2D::StaticClass());
 }
 
 void UCadenceGridCreateLineNode::CreateOutputPins()
@@ -36,13 +32,13 @@ void UCadenceGridCreateLineNode::CreateOutputPins()
 	Super::CreateOutputPins();
 
 	AddOutputVariablePin(FCadencePinConstants::Pin_Actor, UCadenceVariableActor::StaticClass());
-	AddOutputVariablePin(PointProxyAOutputPinName, UCadenceVariableActor::StaticClass());
-	AddOutputVariablePin(PointProxyBOutputPinName, UCadenceVariableActor::StaticClass());
+	AddOutputVariablePin(FCadenceGridNodeConstants::PointProxyAOutputPinName, UCadenceVariableActor::StaticClass());
+	AddOutputVariablePin(FCadenceGridNodeConstants::PointProxyBOutputPinName, UCadenceVariableActor::StaticClass());
 }
 
 ECadenceNodeExecuteResult UCadenceGridCreateLineNode::Execute(UCadenceContext* InContext)
 {
-	UCadenceGraphNodePin* BlockGridInputPin = GetInputPin(BlockGridInputPinName);
+	UCadenceGraphNodePin* BlockGridInputPin = GetInputPin(FCadenceGridNodeConstants::BlockGridInputPinName);
 	
 	UCadenceVariableActor* BlockGridVariable = BlockGridInputPin->GetVariable<UCadenceVariableActor>();
 	ACadenceBlockGridActor* BlockGridActor = Cast<ACadenceBlockGridActor>(BlockGridVariable->GetValue());
@@ -53,8 +49,8 @@ ECadenceNodeExecuteResult UCadenceGridCreateLineNode::Execute(UCadenceContext* I
 		return ECadenceNodeExecuteResult::Failed;
 	}
 
-	UCadenceGraphNodePin* PointAInputPin = GetInputPin(PointAInputPinName);
-	UCadenceGraphNodePin* PointBInputPin = GetInputPin(PointBInputPinName);
+	UCadenceGraphNodePin* PointAInputPin = GetInputPin(FCadenceGridNodeConstants::PointAInputPinName);
+	UCadenceGraphNodePin* PointBInputPin = GetInputPin(FCadenceGridNodeConstants::PointBInputPinName);
 	
 	UCadenceVariableVector2D* PointAVariable = PointAInputPin->GetVariable<UCadenceVariableVector2D>();
 	UCadenceVariableVector2D* PointBVariable = PointBInputPin->GetVariable<UCadenceVariableVector2D>();
@@ -77,8 +73,8 @@ ECadenceNodeExecuteResult UCadenceGridCreateLineNode::Execute(UCadenceContext* I
 
 	OutputVariable->SetValue(MeshSplineActor);
 
-	UCadenceGraphNodePin* ProxyAOutputPin = GetOutputPin(PointProxyAOutputPinName);
-	UCadenceGraphNodePin* ProxyBOutputPin = GetOutputPin(PointProxyBOutputPinName);
+	UCadenceGraphNodePin* ProxyAOutputPin = GetOutputPin(FCadenceGridNodeConstants::PointProxyAOutputPinName);
+	UCadenceGraphNodePin* ProxyBOutputPin = GetOutputPin(FCadenceGridNodeConstants::PointProxyBOutputPinName);
 
 	if(ProxyAOutputPin->HasConnections())
 	{
@@ -126,9 +122,7 @@ ECadenceNodeExecuteResult UCadenceGridGetGridNode::Execute(UCadenceContext* InCo
 		UE_LOG(LogCadence, Error, TEXT("No Block Grid Actors found in scene, Get Grid Node failed!"));
 		return ECadenceNodeExecuteResult::Failed;
 	}
-	
-	
-	
+		
 	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Actor);
 	UCadenceVariableActor* OutputVariable = OutputPin->GetVariable<UCadenceVariableActor>();
 
@@ -145,21 +139,33 @@ ECadenceNodeExecuteResult UCadenceGridGetGridNode::Execute(UCadenceContext* InCo
 void UCadenceGridMoveToPointNode::CreateInputPins()
 {
 	Super::CreateInputPins();
-
+	
+	AddInputVariablePin(FCadenceGridNodeConstants::BlockGridInputPinName, UCadenceVariableActor::StaticClass());
+	AddInputVariablePin(FCadencePinConstants::Pin_Actor, UCadenceVariableActor::StaticClass());
 	AddInputVariablePin(FCadencePinConstants::Pin_Position, UCadenceVariableVector2D::StaticClass());
 	AddInputVariablePin(FCadencePinConstants::Pin_Duration, UCadenceVariableFloat::StaticClass());
 }
 
-ECadenceNodeExecuteResult UCadenceGridMoveToPointNode::Execute(UCadenceContext* InContext)
+void UCadenceGridMoveToPointNode::CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList)
 {
+	UCadenceGraphNodePin* BlockGridPin = GetInputPin(FCadenceGridNodeConstants::BlockGridInputPinName);
+	UCadenceVariableActor* BlockGridVariable = BlockGridPin->GetVariable<UCadenceVariableActor>();
+	ACadenceBlockGridActor* BlockGridActor = Cast<ACadenceBlockGridActor>(BlockGridVariable->GetValue());
+	
+	UCadenceGraphNodePin* ActorPin = GetInputPin(FCadencePinConstants::Pin_Actor);
+	UCadenceVariableActor* ActorVariable = ActorPin->GetVariable<UCadenceVariableActor>();
+	AActor* Actor = ActorVariable->GetValue();
+	
 	UCadenceGraphNodePin* PositionPin = GetInputPin(FCadencePinConstants::Pin_Position);
 	UCadenceGraphNodePin* DurationPin = GetInputPin(FCadencePinConstants::Pin_Duration);
 
-	FVector2D TargetPosition = GraphPosition;
+	FVector2D TargetPosition = EndPosition;
 	if(PositionPin->HasConnections())
 	{
 		TargetPosition = PositionPin->GetVariable<UCadenceVariableVector2D>()->GetValue();
 	}
+
+	FVector TargetWorldPosition = bUseNormalisedPositions ? BlockGridActor->NormalisedPositionToWorldLocation(TargetPosition) : BlockGridActor->GridPositionToWorldLocation(TargetPosition);
 
 	float TargetDuration = Duration;
 	if(DurationPin->HasConnections())
@@ -167,7 +173,5 @@ ECadenceNodeExecuteResult UCadenceGridMoveToPointNode::Execute(UCadenceContext* 
 		TargetDuration = PositionPin->GetVariable<UCadenceVariableFloat>()->GetValue();
 	}
 
-	
-	
-	return Super::Execute(InContext);
+	InActionList.Add(UCadenceActorTranslateTickable::Create(Actor, TargetDuration, TargetWorldPosition, Easing));
 }

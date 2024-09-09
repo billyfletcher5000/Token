@@ -11,15 +11,19 @@
 template<typename T, typename FloatType = float>
 class TCadenceInterpolator : ICadenceTickableAction
 {
-public:	
+public:
+	T GetValue() const { return Value; }
+	
 	virtual bool Tick(const float& InDeltaSeconds) override
 	{
 		Progress += InDeltaSeconds / Duration;
 		if(Progress < 1.0)
 		{
-			UCadenceMath::Ease(Start, End, Progress, Ease);
+			Value = UCadenceMath::Ease(Start, End, Progress, Ease);
 			return false;
 		}
+
+		Value = End;
 		return true;
 	}
 
@@ -41,6 +45,8 @@ protected:
 	FloatType Duration = 0.0f;
 	TEnumAsByte<ECadenceEasingFunc::Type> Ease = ECadenceEasingFunc::Linear;
 	FloatType Progress = 0.0f;
+
+	T Value;
 };
 
 template<>

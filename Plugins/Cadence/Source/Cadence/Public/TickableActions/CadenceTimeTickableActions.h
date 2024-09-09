@@ -8,14 +8,14 @@
 #include "CadenceTimeTickableActions.generated.h"
 
 UCLASS()
-class UCadenceDelayTickableAction : public UObject, public ICadenceTickableAction
+class UCadenceDelayTickable : public UObject, public ICadenceTickableAction
 {
 	GENERATED_BODY()
 	
 public:
-	static UCadenceDelayTickableAction* Create(const float& InDuration)
+	static UCadenceDelayTickable* Create(const float& InDuration)
 	{
-		UCadenceDelayTickableAction* Action = NewObject<UCadenceDelayTickableAction>();
+		UCadenceDelayTickable* Action = NewObject<UCadenceDelayTickable>();
 		Action->Duration = InDuration;
 		return Action;		
 	}
