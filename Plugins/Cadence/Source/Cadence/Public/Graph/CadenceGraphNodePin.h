@@ -25,6 +25,7 @@ public:
 	void DisconnectPin(UCadenceGraphNodePin* InPin);
 	void ClearConnections();
 	void PruneConnections();
+	bool HasConnections() const { return ConnectedPins.Num() > 0; }
 
 	void SetParentNode(UCadenceGraphNode* InParent) { ParentNode = InParent; }
 	UCadenceGraphNode* GetParentNode() const { return ParentNode; }

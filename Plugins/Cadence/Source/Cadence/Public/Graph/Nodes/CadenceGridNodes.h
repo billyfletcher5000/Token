@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CadenceActorNode.h"
+#include "CadenceMath.h"
 
 #include "CadenceGridNodes.generated.h"
 
@@ -31,6 +32,8 @@ protected:
 	static const FName BlockGridInputPinName;
 	static const FName PointAInputPinName;
 	static const FName PointBInputPinName;
+	static const FName PointProxyAOutputPinName;
+	static const FName PointProxyBOutputPinName;
 
 protected:
 	UPROPERTY(EditAnywhere)
@@ -46,7 +49,7 @@ class CADENCE_API UCadenceGridGetGridNode : public UCadenceActorNode
 	GENERATED_BODY()
 
 public:
-	//virtual bool IsPure() const override { return true; }
+	virtual bool IsPure() const override { return true; }
 	
 	virtual void CreateOutputPins() override;
 	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
@@ -59,4 +62,31 @@ protected:
 	static const FName BlockGridInputPinName;
 	static const FName PointAInputPinName;
 	static const FName PointBInputPinName;
+};
+
+UCLASS()
+class CADENCE_API UCadenceGridMoveToPointNode : public UCadenceActorNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateInputPins() override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+	
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Move To Grid Point")); }
+	virtual FText GetNodeCategory() const override { return FCadenceGridNodeConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceGridNodeConstants::NodeTitleColor; }
+
+protected:
+	UPROPERTY(EditAnywhere)
+	bool bUseNormalisedPositions = true;
+	
+	UPROPERTY(EditAnywhere)
+	TEnumAsByte<ECadenceEasingFunc::Type> Easing = ECadenceEasingFunc::Linear;
+	
+	UPROPERTY(EditAnywhere, DisplayName="(O) Position")
+	FVector2D EndPosition;
+	
+	UPROPERTY(EditAnywhere, DisplayName="(O) Duration")
+	float Duration;
 };

@@ -9,6 +9,7 @@
 #include "Actors/CadenceBlockGridActor.h"
 #include "Actors/CadenceBlockGridSplineActor.h"
 #include "Actors/CadenceMeshSplineActor.h"
+#include "Actors/CadenceSplinePointProxy.h"
 #include "Components/SplineComponent.h"
 #include "Graph/CadenceGraph.h"
 #include "Graph/CadenceGraphNodePin.h"
@@ -18,6 +19,8 @@
 const FName UCadenceGridCreateLineNode::BlockGridInputPinName = TEXT("Block Grid");
 const FName UCadenceGridCreateLineNode::PointAInputPinName = TEXT("Point A");
 const FName UCadenceGridCreateLineNode::PointBInputPinName = TEXT("Point B");
+const FName UCadenceGridCreateLineNode::PointProxyAOutputPinName = TEXT("PointProxy A");
+const FName UCadenceGridCreateLineNode::PointProxyBOutputPinName = TEXT("PointProxy B");
 
 void UCadenceGridCreateLineNode::CreateInputPins()
 {
@@ -33,6 +36,8 @@ void UCadenceGridCreateLineNode::CreateOutputPins()
 	Super::CreateOutputPins();
 
 	AddOutputVariablePin(FCadencePinConstants::Pin_Actor, UCadenceVariableActor::StaticClass());
+	AddOutputVariablePin(PointProxyAOutputPinName, UCadenceVariableActor::StaticClass());
+	AddOutputVariablePin(PointProxyBOutputPinName, UCadenceVariableActor::StaticClass());
 }
 
 ECadenceNodeExecuteResult UCadenceGridCreateLineNode::Execute(UCadenceContext* InContext)
@@ -71,6 +76,25 @@ ECadenceNodeExecuteResult UCadenceGridCreateLineNode::Execute(UCadenceContext* I
 	}
 
 	OutputVariable->SetValue(MeshSplineActor);
+
+	UCadenceGraphNodePin* ProxyAOutputPin = GetOutputPin(PointProxyAOutputPinName);
+	UCadenceGraphNodePin* ProxyBOutputPin = GetOutputPin(PointProxyBOutputPinName);
+
+	if(ProxyAOutputPin->HasConnections())
+	{
+		ACadenceSplinePointProxy* PointProxy = SpawnActor<ACadenceSplinePointProxy>(InContext, ProxyAOutputPin, PointAWorldLocation);
+		PointProxy->Init(MeshSplineActor, 0);
+
+		ProxyAOutputPin->GetVariable<UCadenceVariableActor>()->SetValue(PointProxy);
+	}
+
+	if(ProxyBOutputPin->HasConnections())
+	{
+		ACadenceSplinePointProxy* PointProxy = SpawnActor<ACadenceSplinePointProxy>(InContext, ProxyBOutputPin, PointBWorldLocation);
+		PointProxy->Init(MeshSplineActor, 1);
+
+		ProxyBOutputPin->GetVariable<UCadenceVariableActor>()->SetValue(PointProxy);
+	}
 	
 	return ECadenceNodeExecuteResult::Complete;
 }
@@ -116,4 +140,34 @@ ECadenceNodeExecuteResult UCadenceGridGetGridNode::Execute(UCadenceContext* InCo
 	OutputVariable->SetValue(BlockGridActor);
 	
 	return ECadenceNodeExecuteResult::Complete;
+}
+
+void UCadenceGridMoveToPointNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+
+	AddInputVariablePin(FCadencePinConstants::Pin_Position, UCadenceVariableVector2D::StaticClass());
+	AddInputVariablePin(FCadencePinConstants::Pin_Duration, UCadenceVariableFloat::StaticClass());
+}
+
+ECadenceNodeExecuteResult UCadenceGridMoveToPointNode::Execute(UCadenceContext* InContext)
+{
+	UCadenceGraphNodePin* PositionPin = GetInputPin(FCadencePinConstants::Pin_Position);
+	UCadenceGraphNodePin* DurationPin = GetInputPin(FCadencePinConstants::Pin_Duration);
+
+	FVector2D TargetPosition = GraphPosition;
+	if(PositionPin->HasConnections())
+	{
+		TargetPosition = PositionPin->GetVariable<UCadenceVariableVector2D>()->GetValue();
+	}
+
+	float TargetDuration = Duration;
+	if(DurationPin->HasConnections())
+	{
+		TargetDuration = PositionPin->GetVariable<UCadenceVariableFloat>()->GetValue();
+	}
+
+	
+	
+	return Super::Execute(InContext);
 }

@@ -22,6 +22,11 @@ void ACadenceMeshSplineActor::SetSplinePoints(const TArray<FVector>& InPoints, E
 	UpdateMeshComponents(EComponentCreationMethod::Instance, true);
 }
 
+void ACadenceMeshSplineActor::SetSplinePoint(const int32& InPointIndex, const FVector& InPosition, ESplineCoordinateSpace::Type InCoordinateSpace)
+{
+	SplineComponent->SetLocationAtSplinePoint(InPointIndex, InPosition, InCoordinateSpace);
+}
+
 void ACadenceMeshSplineActor::UpdateMeshComponents(const EComponentCreationMethod& CreationMethod, bool bDestroyPrevious)
 {
 	if(bDestroyPrevious)

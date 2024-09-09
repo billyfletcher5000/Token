@@ -20,6 +20,7 @@ public:
 	USplineComponent* GetSplineComponent() const { return SplineComponent; }
 
 	void SetSplinePoints(const TArray<FVector>& InPoints, ESplineCoordinateSpace::Type InCoordinateSpace = ESplineCoordinateSpace::World);
+	void SetSplinePoint(const int32& InPointIndex, const FVector& InPosition, ESplineCoordinateSpace::Type InCoordinateSpace = ESplineCoordinateSpace::World);
 	
 	// AActor
 	virtual void OnConstruction(const FTransform& Transform) override;

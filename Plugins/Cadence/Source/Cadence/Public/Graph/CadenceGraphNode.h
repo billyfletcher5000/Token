@@ -63,9 +63,9 @@ public:
 	void SetParentGraph(TObjectPtr<UCadenceGraph> InParentGraph) { ParentGraph = InParentGraph; }
 	UCadenceGraph* GetParentGraph() const { return ParentGraph; }
 
-	FVector2D GetPosition() const { return Position; }
-	void SetPosition(const FVector2D& InPosition) { Position.X = InPosition.X; Position.Y = InPosition.Y; }
-	void SetPosition(const double& X, const double& Y) { Position.X = X; Position.Y = Y; }
+	FVector2D GetGraphPosition() const { return GraphPosition; }
+	void SetGraphPosition(const FVector2D& InGraphPosition) { GraphPosition.X = InGraphPosition.X; GraphPosition.Y = InGraphPosition.Y; }
+	void SetGraphPosition(const double& X, const double& Y) { GraphPosition.X = X; GraphPosition.Y = Y; }
 
 	FGuid GetGUID() const { return GUID; }
 
@@ -77,7 +77,7 @@ protected:
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputExecPin(const FName& InPinName);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputExecPin(const FName& InPinName);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
-	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const bool& bInOptional = false);
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateExecPin(const FName& InPinName);	
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
 	virtual bool RemoveInputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
@@ -97,7 +97,7 @@ public:
 	TArray<TObjectPtr<UCadenceGraphNodePin>> OutputPins;
 
 	UPROPERTY()
-	FVector2D Position;
+	FVector2D GraphPosition;
 
 private:
 	UPROPERTY(VisibleAnywhere)

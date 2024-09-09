@@ -30,7 +30,7 @@ void UCadenceActorLifetimeManager::RegisterActorUsage(AActor* InActor, const FGu
 {
 	FCadenceActorLifetimeData* LifetimeData = Data.FindByPredicate([InActor](const FCadenceActorLifetimeData& Element) { return Element.Actor == InActor; });
 
-	if(ensure(LifetimeData) && ensure(PinVariableGUID.IsValid()) && ensure(InParentNode))
+	if(LifetimeData && ensure(PinVariableGUID.IsValid()) && ensure(InParentNode))
 	{
 		int32 UsageCount = InParentNode->GetParentGraph()->GetRootExecNodesThatLeadToNode(InParentNode).Num();
 		UE_LOG(LogCadence, Log, TEXT("RegisterActorUsage: Actor: %s Node: %s Count: %d GUID: %s"), *InActor->GetName(), *InParentNode->GetName(), UsageCount, *PinVariableGUID.ToString());
@@ -45,7 +45,7 @@ void UCadenceActorLifetimeManager::UnregisterActorUsage(AActor* InActor, const F
 {
 	FCadenceActorLifetimeData* LifetimeData = Data.FindByPredicate([InActor](const FCadenceActorLifetimeData& Element) { return Element.Actor == InActor; });
 
-	if(ensure(LifetimeData) && ensure(UserGUID.IsValid()))
+	if(LifetimeData && ensure(UserGUID.IsValid()))
 	{
 		UE_LOG(LogCadence, Log, TEXT("UnregisterActorUsage: Actor: %s GUID: %s"), *InActor->GetName(), *UserGUID.ToString());
 		if(LifetimeData->UsageGUIDs.RemoveSingle(UserGUID) == 0)

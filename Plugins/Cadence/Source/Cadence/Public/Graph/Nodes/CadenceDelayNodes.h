@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CadenceLatentNode.h"
 #include "Graph/CadenceGraphNode.h"
 #include "UObject/Object.h"
 #include "CadenceDelayNodes.generated.h"
@@ -19,19 +20,17 @@ namespace FCadenceDelayConstants
  * 
  */
 UCLASS()
-class CADENCE_API UCadenceDelayNode : public UCadenceGraphNode
+class CADENCE_API UCadenceDelayNode : public UCadenceLatentNode
 {
 	GENERATED_BODY()
 
 public:
-	virtual bool IsLatent() const override { return true; }
 	virtual void CreateInputPins() override;
-	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Delay")); }
 	virtual FText GetNodeCategory() const override { return FCadenceDelayConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceDelayConstants::NodeTitleColor; }
 
-private:
-	TMap<UCadenceGraphRunnerPathway*, float> TimeElapsedMap;
+protected:
+	virtual void CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList) override;
 };

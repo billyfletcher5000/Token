@@ -23,7 +23,7 @@ TObjectPtr<UCadenceGraphNode> UCadenceGraph::CreateNode(TSubclassOf<UCadenceGrap
 	Node->SetFlags(RF_Transactional);	
 	
 	Node->SetParentGraph(this);
-	Node->SetPosition(Location);
+	Node->SetGraphPosition(Location);
 	
 	return Node;
 }

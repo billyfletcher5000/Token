@@ -17,7 +17,7 @@ void UCadenceGraphEditorNode::Construct(TObjectPtr<UCadenceGraphNode> InRuntimeG
 {
 	RuntimeGraphNode = InRuntimeGraphNode;
 
-	const FVector2D Position = RuntimeGraphNode->GetPosition();
+	const FVector2D Position = RuntimeGraphNode->GetGraphPosition();
 	NodePosX = Position.X;
 	NodePosY = Position.Y;
 
@@ -58,7 +58,7 @@ void UCadenceGraphEditorNode::ReconstructConnections()
 
 void UCadenceGraphEditorNode::UpdateRuntimePosition()
 {
-	RuntimeGraphNode->SetPosition(NodePosX, NodePosY);
+	RuntimeGraphNode->SetGraphPosition(NodePosX, NodePosY);
 }
 
 void UCadenceGraphEditorNode::GetNodeContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const
