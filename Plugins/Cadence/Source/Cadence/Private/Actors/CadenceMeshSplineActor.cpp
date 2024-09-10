@@ -19,13 +19,85 @@ ACadenceMeshSplineActor::ACadenceMeshSplineActor()
 void ACadenceMeshSplineActor::SetSplinePoints(const TArray<FVector>& InPoints, ESplineCoordinateSpace::Type InCoordinateSpace)
 {
 	SplineComponent->SetSplinePoints(InPoints, InCoordinateSpace);
-	UpdateMeshComponentPositions();
+	UpdatePivot();
+	UpdateMeshComponentTransforms();
 }
 
 void ACadenceMeshSplineActor::SetSplinePoint(const int32& InPointIndex, const FVector& InPosition, ESplineCoordinateSpace::Type InCoordinateSpace)
 {
 	SplineComponent->SetLocationAtSplinePoint(InPointIndex, InPosition, InCoordinateSpace);
-	UpdateMeshComponentPositions();
+	UpdatePivot();
+	UpdateMeshComponentTransforms();
+}
+
+void ACadenceMeshSplineActor::SetPivotType(const ECadenceSplinePivot& InPivotType)
+{
+	if(PivotType != InPivotType)
+	{
+		PivotType = InPivotType;
+		UpdatePivot();
+		UpdateMeshComponentTransforms();
+	}
+}
+
+void ACadenceMeshSplineActor::SetPivotSpecificPoint(int32 InPivotSpecificPoint)
+{
+	int32 NewIndex = FMath::Clamp(InPivotSpecificPoint, 0, SplineComponent->GetNumberOfSplinePoints() - 1);
+	if(PivotSpecificPointIndex != NewIndex)
+	{
+		PivotSpecificPointIndex = NewIndex;
+		UpdatePivot();
+		UpdateMeshComponentTransforms();
+	}
+}
+
+void ACadenceMeshSplineActor::UpdatePivot()
+{
+	if(PivotType == ECadenceSplinePivot::Manual)
+		return;
+
+	FVector PivotPoint;
+
+	switch (PivotType)
+	{
+		default:
+		case ECadenceSplinePivot::CentreOfPoints:
+			{
+				FVector Aggreggate = FVector::ZeroVector;
+
+				int32 NumPoints = SplineComponent->GetNumberOfSplinePoints();
+				for(int32 CurrentIndex = 0; CurrentIndex < NumPoints; ++CurrentIndex)
+				{
+					Aggreggate += SplineComponent->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
+				}
+
+				PivotPoint = Aggreggate / NumPoints;
+			}
+			break;
+
+		case ECadenceSplinePivot::SpecificPoint:
+			{
+				PivotPoint = SplineComponent->GetLocationAtSplinePoint(PivotSpecificPointIndex, ESplineCoordinateSpace::World);
+			}
+			break;
+	}
+	
+	int32 NumPoints = SplineComponent->GetNumberOfSplinePoints();
+	TArray<FVector> PointWorldPositions;
+	PointWorldPositions.SetNumUninitialized(NumPoints);
+
+	for(int32 CurrentIndex = 0; CurrentIndex < NumPoints; ++CurrentIndex)
+	{
+		PointWorldPositions[CurrentIndex] = SplineComponent->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
+	}
+	
+	SetActorLocation(PivotPoint);
+	
+	for(int32 CurrentIndex = 0; CurrentIndex < NumPoints; ++CurrentIndex)
+	{
+		FVector PointPosition = PointWorldPositions[CurrentIndex];
+		SplineComponent->SetLocationAtSplinePoint(CurrentIndex, PointPosition, ESplineCoordinateSpace::World);
+	}
 }
 
 void ACadenceMeshSplineActor::UpdateMeshComponents(const EComponentCreationMethod& CreationMethod, bool bDestroyPrevious)
@@ -34,7 +106,7 @@ void ACadenceMeshSplineActor::UpdateMeshComponents(const EComponentCreationMetho
 	{
 		for(USplineMeshComponent* MeshComponent : MeshComponents)
 		{
-			MeshComponent->DestroyComponent();
+			MeshComponent->DestroyComponent();			
 		}
 	}
 	
@@ -80,10 +152,10 @@ void ACadenceMeshSplineActor::UpdateMeshComponents(const EComponentCreationMetho
 		SplineMeshComponent->SetStartAndEnd(StartPosition, StartTangent, EndPosition, EndTangent);
 
 		MeshComponents.Add(SplineMeshComponent);
-	}	
+	}
 }
 
-void ACadenceMeshSplineActor::UpdateMeshComponentPositions()
+void ACadenceMeshSplineActor::UpdateMeshComponentTransforms()
 {
 	int32 NumPoints = SplineComponent->GetNumberOfSplinePoints();
 
@@ -107,7 +179,7 @@ void ACadenceMeshSplineActor::UpdateMeshComponentPositions()
 		
 		SplineMeshComponent->SetForwardAxis(ForwardAxis);
 		SplineMeshComponent->SetStartAndEnd(StartPosition, StartTangent, EndPosition, EndTangent);
-	}	
+	}
 }
 
 void ACadenceMeshSplineActor::OnConstruction(const FTransform& Transform)

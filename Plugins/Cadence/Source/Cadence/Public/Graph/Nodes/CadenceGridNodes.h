@@ -6,6 +6,7 @@
 #include "CadenceActorNode.h"
 #include "CadenceLatentNode.h"
 #include "CadenceMath.h"
+#include "Actors/CadenceMeshSplineActor.h"
 
 #include "CadenceGridNodes.generated.h"
 
@@ -41,6 +42,12 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	float LineWidth = 1.0f;
+
+	UPROPERTY(EditAnywhere)
+	ECadenceSplinePivot PivotType = ECadenceSplinePivot::CentreOfPoints;
+	
+	UPROPERTY(EditAnywhere, meta=(EditCondition="PivotType == ECadenceSplinePivot::SpecificPoint", EditConditionHides))
+	int32 PivotSpecificPointIndex = 0;
 };
 
 UCLASS()

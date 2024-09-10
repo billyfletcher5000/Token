@@ -11,12 +11,18 @@ ACadenceBlockGridSplineActor::ACadenceBlockGridSplineActor()
 void ACadenceBlockGridSplineActor::SetGridBlockWidth(float InGridBlockWidth)
 {
 	GridBlockWidth = InGridBlockWidth;
-	UpdateMeshComponents(EComponentCreationMethod::Native, false);
+	UpdateMeshComponentTransforms();
 }
 
 void ACadenceBlockGridSplineActor::UpdateMeshComponents(const EComponentCreationMethod& CreationMethod,	bool bDestroyPrevious)
 {
 	SplineMeshScale = GridBlockWidth * SingleGridUnitScale;
 	Super::UpdateMeshComponents(CreationMethod, bDestroyPrevious);
+}
+
+void ACadenceBlockGridSplineActor::UpdateMeshComponentTransforms()
+{
+	SplineMeshScale = GridBlockWidth * SingleGridUnitScale;
+	Super::UpdateMeshComponentTransforms();
 }
 

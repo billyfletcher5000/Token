@@ -65,6 +65,10 @@ ECadenceNodeExecuteResult UCadenceGridCreateLineNode::Execute(UCadenceContext* I
 	
 	ACadenceMeshSplineActor* MeshSplineActor = SpawnActor<ACadenceMeshSplineActor>(LineMeshClass, InContext, OutputPin, PointAWorldLocation);
 	MeshSplineActor->SetSplinePoints({PointAWorldLocation, PointBWorldLocation}, ESplineCoordinateSpace::World);
+	MeshSplineActor->SetPivotType(PivotType);
+	
+	if(PivotType == ECadenceSplinePivot::SpecificPoint)
+		MeshSplineActor->SetPivotSpecificPoint(PivotSpecificPointIndex);
 	
 	if(ACadenceBlockGridSplineActor* BlockGridSplineActor = Cast<ACadenceBlockGridSplineActor>(MeshSplineActor))
 	{

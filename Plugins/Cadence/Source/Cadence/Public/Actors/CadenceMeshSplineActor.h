@@ -9,6 +9,14 @@
 #include "CadenceMeshSplineActor.generated.h"
 
 
+UENUM()
+enum class ECadenceSplinePivot : uint8
+{
+	CentreOfPoints = 0,
+	SpecificPoint,
+	Manual
+};
+
 UCLASS()
 class CADENCE_API ACadenceMeshSplineActor : public AActor
 {
@@ -21,14 +29,21 @@ public:
 
 	void SetSplinePoints(const TArray<FVector>& InPoints, ESplineCoordinateSpace::Type InCoordinateSpace = ESplineCoordinateSpace::World);
 	void SetSplinePoint(const int32& InPointIndex, const FVector& InPosition, ESplineCoordinateSpace::Type InCoordinateSpace = ESplineCoordinateSpace::World);
+
+	void SetPivotType(const ECadenceSplinePivot& InPivotType);
+	void SetPivotSpecificPoint(int32 InPivotSpecificPoint);
+	ECadenceSplinePivot GetPivotType() const { return PivotType; }
+	int32 GetPivotSpecificPointIndex() const { return PivotSpecificPointIndex; }	
 	
 	// AActor
 	virtual void OnConstruction(const FTransform& Transform) override;
 	// AActor end
 	
+	
 protected:
 	virtual void UpdateMeshComponents(const EComponentCreationMethod& CreationMethod, bool bDestroyPrevious);
-	virtual void UpdateMeshComponentPositions();
+	virtual void UpdateMeshComponentTransforms();
+	virtual void UpdatePivot();
 
 protected:
 	UPROPERTY(VisibleAnywhere)
@@ -57,6 +72,12 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Spline Mesh")
 	TEnumAsByte<ESplineMeshAxis::Type> ForwardAxis = ESplineMeshAxis::X;
+
+	UPROPERTY(EditAnywhere, Category="Spline Mesh")
+	ECadenceSplinePivot PivotType = ECadenceSplinePivot::CentreOfPoints;
+	
+	UPROPERTY(EditAnywhere, meta=(EditCondition="PivotType == ECadenceSplinePivot::SpecificPoint", EditConditionHides), Category="Spline Mesh")
+	int32 PivotSpecificPointIndex = 0;
 
 	UPROPERTY(EditAnywhere, Category="Rendering")
 	bool bVisibleInSceneCaptureOnly = true;

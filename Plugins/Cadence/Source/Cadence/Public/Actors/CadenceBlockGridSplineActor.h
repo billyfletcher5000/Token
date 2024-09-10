@@ -19,6 +19,7 @@ public:
 
 protected:
 	virtual void UpdateMeshComponents(const EComponentCreationMethod& CreationMethod, bool bDestroyPrevious) override;
+	virtual void UpdateMeshComponentTransforms() override;
 
 protected:
 	UPROPERTY(EditAnywhere, Category="Spline Mesh")
