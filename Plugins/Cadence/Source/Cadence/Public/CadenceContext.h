@@ -52,4 +52,7 @@ public:
 
 	UPROPERTY()
 	float DeltaSeconds = 0.0f;
+
+	UPROPERTY()
+	bool bProcessNodesImmediately = true;
 };

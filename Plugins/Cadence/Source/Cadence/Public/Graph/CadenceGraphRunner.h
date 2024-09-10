@@ -31,7 +31,7 @@ protected:
 	friend UCadenceGraphRunnerPathway;
 
 	void NotifyPathwayEnded(UCadenceGraphRunnerPathway* InPathway);
-	void RequestAdditionalPathway(UCadenceGraphNode* InStartNode);
+	void RequestAdditionalPathway(UCadenceGraphNode* InStartNode, const bool& bInExecuteImmediately = false, const float& InDeltaSeconds = 0.0f);
 
 public:
 	UCadenceContext* GetContext();
@@ -60,7 +60,8 @@ public:
 private:
 	UCadenceContext* GetContext();
 
-	ECadenceNodeExecuteResult ExecuteNode(UCadenceGraphNode* InNode, UCadenceContext* InContext);
+	void ExecuteCurrentNode(UCadenceContext* InContext);
+	void SetCurrentNode(UCadenceContext* InContext, UCadenceGraphNode* InNode);
 	void ProcessVariableInputPin(UCadenceContext* InContext, UCadenceGraphNodePin* InPin);
 	void GatherPureNodesContributingToPin(UCadenceGraphNodePin* InPin, TArray<UCadenceGraphNode*>& InNodeStack);
 	void ReleaseInputPinVariables(UCadenceGraphNode* InNode, UCadenceContext* InContext);

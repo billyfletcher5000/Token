@@ -63,11 +63,14 @@ void UCadenceGraphRunner::NotifyPathwayEnded(UCadenceGraphRunnerPathway* InPathw
 		EndedPathways.Add(InPathway);
 }
 
-void UCadenceGraphRunner::RequestAdditionalPathway(UCadenceGraphNode* InStartNode)
+void UCadenceGraphRunner::RequestAdditionalPathway(UCadenceGraphNode* InStartNode, const bool& bInExecuteImmediately, const float& InDeltaSeconds)
 {	
 	UCadenceGraphRunnerPathway* Pathway = NewObject<UCadenceGraphRunnerPathway>(this);
 	Pathway->Init(Context, InStartNode);
 	ActivePathways.Add(Pathway);
+
+	if(bInExecuteImmediately)
+		Pathway->Tick(InDeltaSeconds);
 }
 
 UCadenceContext* UCadenceGraphRunner::GetContext()
@@ -79,7 +82,7 @@ UCadenceContext* UCadenceGraphRunner::GetContext()
 void UCadenceGraphRunnerPathway::Init(UCadenceContext* InContext, UCadenceGraphNode* InStartNode)
 {
 	Context = InContext;
-	CurrentNode = InStartNode;
+	SetCurrentNode(GetContext(), InStartNode);
 }
 
 void UCadenceGraphRunnerPathway::Tick(const float& InDeltaSeconds)
@@ -87,7 +90,23 @@ void UCadenceGraphRunnerPathway::Tick(const float& InDeltaSeconds)
 	UCadenceContext* CurrentContext = GetContext();
 	CurrentContext->DeltaSeconds = InDeltaSeconds;
 
-	ECadenceNodeExecuteResult Result = ExecuteNode(CurrentNode, CurrentContext);
+	ExecuteCurrentNode(CurrentContext);
+}
+
+void UCadenceGraphRunnerPathway::End()
+{
+	Context->Runner->NotifyPathwayEnded(this);
+}
+
+UCadenceContext* UCadenceGraphRunnerPathway::GetContext()
+{
+	Context->Pathway = this;
+	return Context;
+}
+
+void UCadenceGraphRunnerPathway::ExecuteCurrentNode(UCadenceContext* InContext)
+{
+	ECadenceNodeExecuteResult Result = CurrentNode->Execute(InContext);
 	if(Result == ECadenceNodeExecuteResult::Failed)
 	{
 		End();
@@ -110,42 +129,38 @@ void UCadenceGraphRunnerPathway::Tick(const float& InDeltaSeconds)
 			// Process execution logic, spawning more pathways if necessary			
 			if(ProcessedPins == 0)
 			{
-				CurrentNode = ConnectedPin->GetParentNode();
+				SetCurrentNode(InContext, ConnectedPin->GetParentNode());
 			}
 			else
 			{				
-				CurrentContext->Runner->RequestAdditionalPathway(ConnectedPin->GetParentNode());
+				InContext->Runner->RequestAdditionalPathway(ConnectedPin->GetParentNode(), Context->bProcessNodesImmediately, InContext->DeltaSeconds);
 			}
 		}
+
+		if(Context->bProcessNodesImmediately)
+			ExecuteCurrentNode(InContext);
 	}
 }
 
-void UCadenceGraphRunnerPathway::End()
+void UCadenceGraphRunnerPathway::SetCurrentNode(UCadenceContext* InContext, UCadenceGraphNode* InNode)
 {
-	Context->Runner->NotifyPathwayEnded(this);
-}
+	if(CurrentNode != InNode)
+	{
+		if(CurrentNode)
+		{
+			PropagateOutputPinsToInputPins(CurrentNode, InContext);
+			ReleaseInputPinVariables(CurrentNode, InContext);
+		}
+		
+		CurrentNode = InNode;
 
-UCadenceContext* UCadenceGraphRunnerPathway::GetContext()
-{
-	Context->Pathway = this;
-	return Context;
-}
-
-ECadenceNodeExecuteResult UCadenceGraphRunnerPathway::ExecuteNode(UCadenceGraphNode* InNode, UCadenceContext* InContext)
-{
-	TArray<UCadenceGraphNodePin*> InputPins = InNode->GetInputPins();
-	for(UCadenceGraphNodePin* InputPin : InputPins)
-		ProcessVariableInputPin(InContext, InputPin);
-
-	ECadenceNodeExecuteResult Result = InNode->Execute(InContext);
-
-	if(Result == ECadenceNodeExecuteResult::Complete)
-	{		
-		PropagateOutputPinsToInputPins(InNode, InContext);
-		ReleaseInputPinVariables(InNode, InContext);
+		if(CurrentNode != nullptr)
+		{
+			TArray<UCadenceGraphNodePin*> InputPins = CurrentNode->GetInputPins();
+			for(UCadenceGraphNodePin* InputPin : InputPins)
+				ProcessVariableInputPin(InContext, InputPin);
+		}
 	}
-
-	return Result;
 }
 
 void UCadenceGraphRunnerPathway::ProcessVariableInputPin(UCadenceContext* InContext, UCadenceGraphNodePin* InPin)

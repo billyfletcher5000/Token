@@ -12,18 +12,30 @@ void UCadenceActorLifetimeManager::RegisterActor(AActor* InActor, const ECadence
 	if(!ensure(InActor))
 		return;
 
-	FCadenceActorLifetimeData LifetimeData;
-	LifetimeData.Actor = InActor;
-	LifetimeData.Lifetime = InLifetime;
+	FCadenceActorLifetimeData* ExistingData = Data.FindByPredicate([InActor](const FCadenceActorLifetimeData& Element) { return Element.Actor == InActor; });
 
-	// We only ever add the initial creator node's pin once as it's the origin of the actor and not a result of an input that could be needed
-	// multiple times if multiple pathways to the node exist
-	// TODO: Sort out the documentation/readability of all this, it makes sense but I'm not explaining it great
-	LifetimeData.UsageGUIDs.Add(OutputPinVariableGUID);
+	if(!ExistingData)
+	{
+		FCadenceActorLifetimeData LifetimeData;
+		LifetimeData.Actor = InActor;
+		LifetimeData.Lifetime = InLifetime;
+
+		// We only ever add the initial creator node's pin once as it's the origin of the actor and not a result of an input that could be needed
+		// multiple times if multiple pathways to the node exist
+		// TODO: Sort out the documentation/readability of all this, it makes sense but I'm not explaining it great
+		LifetimeData.UsageGUIDs.Add(OutputPinVariableGUID);
 	
-	UE_LOG(LogCadence, Log, TEXT("RegisterActor: Actor: %s GUID: %s"), *InActor->GetName(), *OutputPinVariableGUID.ToString());
+		UE_LOG(LogCadence, Log, TEXT("RegisterActor: Actor: %s GUID: %s"), *InActor->GetName(), *OutputPinVariableGUID.ToString());
 	
-	Data.Add(LifetimeData);
+		Data.Add(LifetimeData);
+	}
+	else
+	{		
+		// We only ever add the initial creator node's pin once as it's the origin of the actor and not a result of an input that could be needed
+		// multiple times if multiple pathways to the node exist
+		// TODO: Sort out the documentation/readability of all this, it makes sense but I'm not explaining it great
+		ExistingData->UsageGUIDs.Add(OutputPinVariableGUID);
+	}
 }
 
 void UCadenceActorLifetimeManager::RegisterActorUsage(AActor* InActor, const FGuid& PinVariableGUID, UCadenceGraphNode* InParentNode)
