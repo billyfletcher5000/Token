@@ -196,6 +196,29 @@ private:
 };
 
 UCLASS()
+class CADENCE_API UCadenceVariableRotator : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinSubCategory() const override { return TEXT("Rotator"); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(1.0f, 0.7f, 0.2f); }
+
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
+	{
+		UCadenceVariableRotator* CastedVariable = Cast<UCadenceVariableRotator>(OtherVariable);
+		Value = CastedVariable->GetValue();
+	}
+	
+	FRotator GetValue() const { return Value; }
+	void SetValue(const FRotator& InValue) { Value = InValue; }
+
+private:
+	UPROPERTY(EditAnywhere)
+	FRotator Value;
+};
+
+UCLASS()
 class CADENCE_API UCadenceVariableUObject : public UCadenceVariable
 {
 	GENERATED_BODY()

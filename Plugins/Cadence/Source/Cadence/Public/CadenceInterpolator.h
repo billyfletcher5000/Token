@@ -53,12 +53,14 @@ template<>
 class TCadenceInterpolator<FRotator, float> : public ICadenceTickableAction
 {
 public:	
+	FRotator GetValue() const { return Value; }
+	
 	virtual bool Tick(const float& InDeltaSeconds) override
 	{
 		Progress += InDeltaSeconds / Duration;
 		if(Progress < 1.0)
 		{
-			UCadenceMath::Ease(Start, End, Progress, bShortestPath, Ease);
+			Value = UCadenceMath::Ease(Start, End, Progress, bShortestPath, Ease);
 			return false;
 		}
 		return true;
@@ -84,6 +86,8 @@ protected:
 	TEnumAsByte<ECadenceEasingFunc::Type> Ease = ECadenceEasingFunc::Linear;
 	float Progress = 0.0f;
 	bool bShortestPath = true;
+
+	FRotator Value;
 };
 
 UCLASS()

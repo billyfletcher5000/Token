@@ -92,8 +92,8 @@ protected:
 	TEnumAsByte<ECadenceEasingFunc::Type> Easing = ECadenceEasingFunc::Linear;
 	
 	UPROPERTY(EditAnywhere, DisplayName="(O) Position")
-	FVector2D EndPosition;
+	FVector2D O_Position;
 	
 	UPROPERTY(EditAnywhere, DisplayName="(O) Duration")
-	float Duration;
+	float O_Duration;
 };

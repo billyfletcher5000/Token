@@ -163,7 +163,7 @@ void UCadenceGridMoveToPointNode::CreateLatentActions(TArray<TScriptInterface<IC
 	UCadenceGraphNodePin* PositionPin = GetInputPin(FCadencePinConstants::Pin_Position);
 	UCadenceGraphNodePin* DurationPin = GetInputPin(FCadencePinConstants::Pin_Duration);
 
-	FVector2D TargetPosition = EndPosition;
+	FVector2D TargetPosition = O_Position;
 	if(PositionPin->HasConnections())
 	{
 		TargetPosition = PositionPin->GetVariable<UCadenceVariableVector2D>()->GetValue();
@@ -171,10 +171,10 @@ void UCadenceGridMoveToPointNode::CreateLatentActions(TArray<TScriptInterface<IC
 
 	FVector TargetWorldPosition = bUseNormalisedPositions ? BlockGridActor->NormalisedPositionToWorldLocation(TargetPosition) : BlockGridActor->GridPositionToWorldLocation(TargetPosition);
 
-	float TargetDuration = Duration;
+	float TargetDuration = O_Duration;
 	if(DurationPin->HasConnections())
 	{
-		TargetDuration = PositionPin->GetVariable<UCadenceVariableFloat>()->GetValue();
+		TargetDuration = DurationPin->GetVariable<UCadenceVariableFloat>()->GetValue();
 	}
 
 	InActionList.Add(UCadenceActorTranslateTickable::Create(Actor, TargetDuration, TargetWorldPosition, Easing));

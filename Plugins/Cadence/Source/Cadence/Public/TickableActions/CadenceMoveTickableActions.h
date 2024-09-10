@@ -29,3 +29,22 @@ private:
 	UPROPERTY()
 	TObjectPtr<UCadenceInterpolatorVector> Interpolator;
 };
+
+UCLASS()
+class CADENCE_API UCadenceActorRotateTickable : public UObject, public ICadenceTickableAction
+{
+	GENERATED_BODY()
+	
+public:
+	static UCadenceActorRotateTickable* Create(AActor* InActor, const float& InDuration, const FRotator& InEndRotation, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
+	static UCadenceActorRotateTickable* Create(AActor* InActor, const float& InDuration, const FRotator& InStartRotation, const FRotator& InEndRotation, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
+
+	virtual bool Tick(const float& InDeltaSeconds) override;
+	
+private:
+	UPROPERTY()
+	TObjectPtr<AActor> Actor;
+
+	UPROPERTY()
+	TObjectPtr<UCadenceInterpolatorRotator> Interpolator;
+};
