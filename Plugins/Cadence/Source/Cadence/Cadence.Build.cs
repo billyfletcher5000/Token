@@ -25,7 +25,7 @@ public class Cadence : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
+				"Core", "MovieScene",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

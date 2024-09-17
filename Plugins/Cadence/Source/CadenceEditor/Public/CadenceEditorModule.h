@@ -32,5 +32,7 @@ public:
 private:
 	TSharedPtr<FSlateStyleSet> StyleSet = nullptr;
 	TSharedPtr<FCadenceGraphEditorPanelPinFactory> PanelPinFactory = nullptr;
-	TSharedPtr<FCadenceGraphEditorNodeFactory> NodeFactory = nullptr;	
+	TSharedPtr<FCadenceGraphEditorNodeFactory> NodeFactory = nullptr;
+	
+	FDelegateHandle CustomTrackEditorHandle;
 };

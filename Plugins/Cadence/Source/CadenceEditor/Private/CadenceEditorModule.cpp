@@ -7,8 +7,11 @@
 #include "CadenceGraphAssetAction.h"
 #include "CadenceGraphEditorPin.h"
 #include "CadenceGraphPropertyCustomization.h"
+#include "CadenceSequencerTrackEditor.h"
+#include "CadenceSequencerTracksStyle.h"
 #include "CadenceVariableInlineWidgetFunctions.h"
 #include "IAssetTools.h"
+#include "ISequencerModule.h"
 #include "ISettingsModule.h"
 #include "Interfaces/IPluginManager.h"
 #include "Styling/SlateStyleRegistry.h"
@@ -64,6 +67,11 @@ void FCadenceEditorModule::StartupModule()
 	PropertyModule.NotifyCustomizationModuleChanged();
 
 	FCadenceVariableInlineWidgetFunctions::RegisterAll(VariableToInlineWidgetFunc);
+	
+	ISequencerModule& SequencerModule = FModuleManager::Get().LoadModuleChecked<ISequencerModule>("Sequencer");
+	CustomTrackEditorHandle = SequencerModule.RegisterTrackEditor(FOnCreateTrackEditor::CreateStatic(&FCadenceSequencerTrackEditor::CreateTrackEditor));
+
+	FCadenceSequencerTracksStyle::Get();
 }
 
 void FCadenceEditorModule::ShutdownModule()
@@ -82,6 +90,11 @@ void FCadenceEditorModule::ShutdownModule()
 	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceNamedVariable::StaticStruct()->GetFName());
 	
 	VariableToInlineWidgetFunc.Empty();
+	
+	if (ISequencerModule* SequencerModule = FModuleManager::Get().GetModulePtr<ISequencerModule>("Sequencer"))
+	{
+		SequencerModule->UnRegisterTrackEditor(CustomTrackEditorHandle);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

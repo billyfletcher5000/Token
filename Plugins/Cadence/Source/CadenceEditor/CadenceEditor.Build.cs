@@ -46,7 +46,11 @@ public class CadenceEditor : ModuleRules
 				"ToolMenus",
 				"GraphEditor",
 				"ApplicationCore",
-				"InputCore"
+				"InputCore",
+				"Sequencer",
+				"SequencerCore",
+				"MovieScene",
+				"MovieSceneTracks",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
