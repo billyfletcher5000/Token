@@ -28,6 +28,8 @@ public:
 
 	VariableInlineWidgetFuncMap& GetMap() { return VariableToInlineWidgetFunc; }
 	VariableInlineWidgetFuncMap VariableToInlineWidgetFunc;
+
+	FSlateStyleSet* GetStyleSet() const { return StyleSet.Get(); }
 	
 private:
 	TSharedPtr<FSlateStyleSet> StyleSet = nullptr;

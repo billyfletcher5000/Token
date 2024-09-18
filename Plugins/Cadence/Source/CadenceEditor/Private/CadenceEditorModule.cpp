@@ -8,7 +8,6 @@
 #include "CadenceGraphEditorPin.h"
 #include "CadenceGraphPropertyCustomization.h"
 #include "CadenceSequencerTrackEditor.h"
-#include "CadenceSequencerTracksStyle.h"
 #include "CadenceVariableInlineWidgetFunctions.h"
 #include "IAssetTools.h"
 #include "ISequencerModule.h"
@@ -48,8 +47,11 @@ void FCadenceEditorModule::StartupModule()
 	// Add Graph Icons
 	FSlateImageBrush* ThumbnailBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/CadenceGraph_Thumbnail_64x"), TEXT(".png")), FVector2D(64.0, 64.0));
 	FSlateImageBrush* IconBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/CadenceGraph_Icon_64x"), TEXT(".png")), FVector2D(64.0, 64.0));
+	FSlateImageBrush* TrackIconBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/Cadence_Icon_16x"), TEXT(".png")), FVector2D(16.0, 16.0));
+	
 	StyleSet->Set(TEXT("ClassThumbnail.CadenceGraph"), ThumbnailBrush);
 	StyleSet->Set(TEXT("ClassIcon.CadenceGraph"), IconBrush);
+	StyleSet->Set(TEXT("ClassIcon.CadenceTrack"), TrackIconBrush);
 
 	// Register Style Set
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet);
@@ -70,8 +72,6 @@ void FCadenceEditorModule::StartupModule()
 	
 	ISequencerModule& SequencerModule = FModuleManager::Get().LoadModuleChecked<ISequencerModule>("Sequencer");
 	CustomTrackEditorHandle = SequencerModule.RegisterTrackEditor(FOnCreateTrackEditor::CreateStatic(&FCadenceSequencerTrackEditor::CreateTrackEditor));
-
-	FCadenceSequencerTracksStyle::Get();
 }
 
 void FCadenceEditorModule::ShutdownModule()

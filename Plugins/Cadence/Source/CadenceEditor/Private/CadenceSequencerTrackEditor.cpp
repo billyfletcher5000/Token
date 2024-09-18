@@ -3,12 +3,13 @@
 
 #include "CadenceSequencerTrackEditor.h"
 
-#include "CadenceSequencerTracksStyle.h"
+#include "CadenceEditorModule.h"
 #include "SequencerSectionPainter.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "MVVM/Views/ViewUtilities.h"
 #include "SequencerTrack/CadenceSequencerSection.h"
 #include "SequencerTrack/CadenceSequencerTrack.h"
+#include "Styling/SlateStyleRegistry.h"
 
 #define LOCTEXT_NAMESPACE "FCadenceSequencerTrackEditor"
 
@@ -152,8 +153,6 @@ TSharedRef<ISequencerSection> FCadenceSequencerTrackEditor::MakeSectionInterface
 
 void FCadenceSequencerTrackEditor::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 {
-	FCadenceSequencerTracksStyle& StyleSet = FCadenceSequencerTracksStyle::Get();
-
 	TArray<FAssetData> TrackTypes = DiscoverCustomTrackTypes();
 
 	for (const FAssetData& Asset : TrackTypes)
@@ -164,12 +163,16 @@ void FCadenceSequencerTrackEditor::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 			continue;
 		}
 
-		StyleSet.RegisterNewTrackType(ThisClass);
+		UCadenceSequencerTrack* TrackCDO = Cast<UCadenceSequencerTrack>(ThisClass->ClassDefaultObject);
+		if(!TrackCDO)
+		{
+			continue;
+		}
 
 		MenuBuilder.AddMenuEntry(
-			FText::FromName(Asset.AssetName),
+			TrackCDO->TrackName,
 			FText(),
-			FSlateIcon(StyleSet.GetStyleSetName(), ThisClass->GetFName()),
+			FSlateIcon(FCadenceEditorModule::StyleSetName, TEXT("ClassIcon.CadenceTrack")),
 			FUIAction(
 				FExecuteAction::CreateSP(this, &FCadenceSequencerTrackEditor::AddNewTrack, Asset)
 			)
@@ -180,6 +183,12 @@ void FCadenceSequencerTrackEditor::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 bool FCadenceSequencerTrackEditor::SupportsType(TSubclassOf<UMovieSceneTrack> Type) const
 {
 	return Type->IsChildOf(UCadenceSequencerTrack::StaticClass());
+}
+
+const FSlateBrush* FCadenceSequencerTrackEditor::GetIconBrush() const
+{
+	const ISlateStyle* SlateStyle = FSlateStyleRegistry::FindSlateStyle(FCadenceEditorModule::StyleSetName);	
+	return SlateStyle->GetBrush("ClassIcon.CadenceTrack");
 }
 
 void FCadenceSequencerTrackEditor::AddNewTrack(FAssetData AssetData)
@@ -202,7 +211,8 @@ void FCadenceSequencerTrackEditor::AddNewTrack(FAssetData AssetData)
 	MovieScene->Modify();
 
 	UCadenceSequencerTrack* CustomTrack = CastChecked<UCadenceSequencerTrack>(MovieScene->AddTrack(ClassToAdd));
-
+	CustomTrack->SetDisplayName(FText::FromString("Cadence Track"));
+	
 	if (GetSequencer().IsValid())
 	{
 		GetSequencer()->OnAddTrack(CustomTrack, FGuid());

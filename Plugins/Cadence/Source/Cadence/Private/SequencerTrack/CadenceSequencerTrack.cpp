@@ -5,6 +5,11 @@
 
 #include "SequencerTrack/CadenceSequencerSection.h"
 
+UCadenceSequencerTrack::UCadenceSequencerTrack()
+{
+	TrackName = FText::FromString("Cadence Track");
+}
+
 bool UCadenceSequencerTrack::SupportsType(TSubclassOf<UMovieSceneSection> SectionClass) const
 {
 	return SectionClass->IsChildOf(UCadenceSequencerSection::StaticClass());

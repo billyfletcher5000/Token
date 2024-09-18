@@ -19,8 +19,12 @@ public:
 	UPROPERTY(Category="Sequencer", EditDefaultsOnly, AssetRegistrySearchable)
 	FSlateBrush Icon;
 
-public:
+	UPROPERTY(Category="Sequencer", EditDefaultsOnly, AssetRegistrySearchable)
+	FText TrackName;
 
+public:
+	UCadenceSequencerTrack();
+	
 	virtual bool SupportsMultipleRows() const override { return true; }
 	virtual EMovieSceneTrackEasingSupportFlags SupportsEasing(FMovieSceneSupportsEasingParams& Params) const override { return EMovieSceneTrackEasingSupportFlags::None; }
 	virtual bool SupportsType(TSubclassOf<UMovieSceneSection> SectionClass) const override;
