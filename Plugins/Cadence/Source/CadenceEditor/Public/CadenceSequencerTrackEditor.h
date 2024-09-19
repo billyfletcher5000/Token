@@ -31,4 +31,6 @@ private:
 	void AddNewObjectBindingTrack(FAssetData AssetData, TArray<FGuid> InObjectBindings);
 	void MakeMenuEntry(FMenuBuilder& MenuBuilder, UCadenceSequencerTrack* Track, TSubclassOf<UCadenceSequencerSection> ClassType);	
 	void CreateNewSection(UCadenceSequencerTrack* Track, TSubclassOf<UCadenceSequencerSection> ClassType);
+
+	FColor GetRandomSectionColor(const int32& InSectionIndex);
 };

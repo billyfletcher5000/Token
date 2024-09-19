@@ -20,7 +20,13 @@ public:
 	
 	UCadenceSequencerSection(const FObjectInitializer& ObjInit);
 
+	FString GetSectionName() const { return SectionName; }
+
 protected:
 	
 	virtual void ImportEntityImpl(UMovieSceneEntitySystemLinker* EntityLinker, const FEntityImportParams& Params, FImportedEntity* OutImportedEntity) override;
+
+protected:
+	UPROPERTY(EditAnywhere)
+	FString SectionName;
 };

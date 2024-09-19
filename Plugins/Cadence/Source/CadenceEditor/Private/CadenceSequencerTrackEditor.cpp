@@ -15,13 +15,14 @@
 
 namespace
 {
-	static TArray<FAssetData> DiscoverCustomTrackTypes()
+	template<typename T>
+	static TArray<FAssetData> DiscoverCustomTypes()
 	{
 		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
 
 		TArray<FAssetData> ValidClasses;
 		{
-			FString DesiredClassName = FString::Printf(TEXT("/Script/CoreUObject.Class'%s'"), *UCadenceSequencerTrack::StaticClass()->GetPathName());
+			FString DesiredClassName = FString::Printf(TEXT("/Script/CoreUObject.Class'%s'"), *T::StaticClass()->GetPathName());
 
 			FARFilter Filter;
 			Filter.TagsAndValues.Add(FBlueprintTags::NativeParentClassPath, MoveTemp(DesiredClassName));
@@ -40,7 +41,7 @@ namespace
 		}
 
 		// Check loaded classes
-		UClass* CustomSequencerTrackClass = UCadenceSequencerTrack::StaticClass();
+		UClass* CustomSequencerTrackClass = T::StaticClass();
 		for (TObjectIterator<UClass> ClassIterator; ClassIterator; ++ClassIterator)
 		{
 			UClass* Class = *ClassIterator;
@@ -97,7 +98,53 @@ struct FCadenceCustomSection : public ISequencerSection, public FGCObject
 
 	virtual int32 OnPaintSection(FSequencerSectionPainter& Painter) const override
 	{
-		return Painter.PaintSectionBackground();
+		int32 LayerIndex = Painter.PaintSectionBackground();
+
+		
+		const UCadenceSequencerSection* SectionObject = CastChecked<UCadenceSequencerSection>(Section);
+
+		FString SectionText = SectionObject->GetSectionName();
+		if (!SectionText.IsEmpty())
+		{
+			FSlateClippingZone ClippingZone(Painter.SectionClippingRect.InsetBy(FMargin(1.0f)));
+
+			
+			const FSlateFontInfo FontInfo = FCoreStyle::GetDefaultFontStyle("Bold", 10, FFontOutlineSettings(1));
+			TSharedRef<FSlateFontCache> FontCache = FSlateApplication::Get().GetRenderer()->GetFontCache();
+
+			float FontHeight = FontCache->GetMaxCharacterHeight(FontInfo, 1.f) + FontCache->GetBaseline(FontInfo, 1.f);		
+			const ESlateDrawEffect DrawEffects = Painter.bParentEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+
+			FVector2D TopLeft = Painter.SectionGeometry.AbsoluteToLocal(Painter.SectionClippingRect.GetTopLeft()) + FVector2D(1.f, -1.f);
+			FMargin ContentPadding(2.0f, 10.0f);
+			
+			Painter.DrawElements.PushClip(ClippingZone);
+			
+			FSlateDrawElement::MakeText(
+				Painter.DrawElements,
+				++LayerIndex,
+				Painter.SectionGeometry.ToPaintGeometry(
+					FVector2D(Painter.SectionGeometry.Size.X, FontHeight),
+					FSlateLayoutTransform(TopLeft + FVector2D(ContentPadding.Left, ContentPadding.Top))
+				),
+				SectionText,
+				FontInfo,
+				DrawEffects,
+				FColor(200, 200, 200, static_cast<uint8>(255 * Painter.GhostAlpha))
+			);
+
+			Painter.DrawElements.PopClip();
+		}
+		/*
+		FSlateDrawElement::MakeText(
+			Painter.DrawElements,
+			LayerIndex,
+			Painter.SectionGeometry.ToPaintGeometry(),
+			TEXT("Blongo"),
+			FontAwesomeFont
+			);
+			*/
+		return LayerIndex;
 	}
 
 	virtual void AddReferencedObjects( FReferenceCollector& Collector ) override
@@ -129,9 +176,11 @@ TSharedPtr<SWidget> FCadenceSequencerTrackEditor::BuildOutlinerEditWidget(const 
 	{
 		FMenuBuilder MenuBuilder(true, nullptr);
 
-		for (TObjectIterator<UClass> It; It; ++It)
-		{
-			UClass* Class = *It;
+		TArray<FAssetData> SectionTypes = DiscoverCustomTypes<UCadenceSequencerSection>();
+
+		for (const FAssetData& SectionAsset : SectionTypes)
+		{			
+			UClass* Class = LoadClassFromAssetData(SectionAsset);
 
 			if (Class->IsChildOf(UCadenceSequencerSection::StaticClass()) &&
 				!Class->HasAnyClassFlags(CLASS_Abstract | CLASS_Deprecated | CLASS_Hidden))
@@ -153,7 +202,7 @@ TSharedRef<ISequencerSection> FCadenceSequencerTrackEditor::MakeSectionInterface
 
 void FCadenceSequencerTrackEditor::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 {
-	TArray<FAssetData> TrackTypes = DiscoverCustomTrackTypes();
+	TArray<FAssetData> TrackTypes = DiscoverCustomTypes<UCadenceSequencerTrack>();
 
 	for (const FAssetData& Asset : TrackTypes)
 	{
@@ -260,6 +309,8 @@ void FCadenceSequencerTrackEditor::MakeMenuEntry(FMenuBuilder& MenuBuilder, UCad
 
 void FCadenceSequencerTrackEditor::CreateNewSection(UCadenceSequencerTrack* Track, TSubclassOf<UCadenceSequencerSection> ClassType)
 {
+	constexpr float SectionDefaultDuration = 5.0f;
+	
 	TSharedPtr<ISequencer> SequencerPin = GetSequencer();
 	UClass*                Class     = ClassType.Get();
 
@@ -273,12 +324,29 @@ void FCadenceSequencerTrackEditor::CreateNewSection(UCadenceSequencerTrack* Trac
 
 		FQualifiedFrameTime CurrentTime = SequencerPin->GetLocalTime();
 
-		const FFrameNumber Duration = (5.f * CurrentTime.Rate).FrameNumber;
+		const FFrameNumber Duration = (SectionDefaultDuration * CurrentTime.Rate).FrameNumber;
 		NewSection->SetRange(TRange<FFrameNumber>(CurrentTime.Time.FrameNumber, CurrentTime.Time.FrameNumber + Duration));
 		NewSection->InitialPlacement(Track->GetAllSections(), CurrentTime.Time.FrameNumber, Duration.Value, Track->SupportsMultipleRows());
+
+		if(NewSection->GetColorTint() == FColor::Transparent)
+		{
+			int32 NumSections = Track->GetAllSections().Num();
+			NewSection->SetColorTint(GetRandomSectionColor(NumSections));
+		}
 
 		Track->AddSection(*NewSection);
 
 		SequencerPin->NotifyMovieSceneDataChanged(EMovieSceneDataChangeType::MovieSceneStructureItemAdded);
 	}
+}
+
+FColor FCadenceSequencerTrackEditor::GetRandomSectionColor(const int32& InSectionIndex)
+{
+	constexpr float SectionHueStride = 20.0f;
+
+	float NumRepeats = FMath::Floor((InSectionIndex * SectionHueStride) / 255.0f);
+	float InitialOffset = NumRepeats > 0.0f ? SectionHueStride / (NumRepeats + 1.0f) : 0.0f;
+
+	int32 Hue = FMath::FloorToInt32((InSectionIndex * SectionHueStride) + InitialOffset);
+	return FLinearColor::MakeFromHSV8(Hue, 255, 255).ToFColor(true);
 }
