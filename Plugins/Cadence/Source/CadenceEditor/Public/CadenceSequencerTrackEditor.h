@@ -32,5 +32,7 @@ private:
 	void MakeMenuEntry(FMenuBuilder& MenuBuilder, UCadenceSequencerTrack* Track, TSubclassOf<UCadenceSequencerSection> ClassType);	
 	void CreateNewSection(UCadenceSequencerTrack* Track, TSubclassOf<UCadenceSequencerSection> ClassType);
 
+	FString GetUniqueSectionName(UCadenceSequencerTrack* Track, const FString& IntendedName);
+
 	FColor GetRandomSectionColor(const int32& InSectionIndex);
 };

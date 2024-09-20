@@ -21,6 +21,7 @@ public:
 	UCadenceSequencerSection(const FObjectInitializer& ObjInit);
 
 	FString GetSectionName() const { return SectionName; }
+	void SetSectionName(const FString& InName) { SectionName = InName; }
 
 protected:
 	
@@ -28,5 +29,5 @@ protected:
 
 protected:
 	UPROPERTY(EditAnywhere)
-	FString SectionName;
+	FString SectionName = "Section";
 };

@@ -322,6 +322,8 @@ void FCadenceSequencerTrackEditor::CreateNewSection(UCadenceSequencerTrack* Trac
 			
 		UCadenceSequencerSection* NewSection = NewObject<UCadenceSequencerSection>(Track, Class, NAME_None, RF_Transactional);
 
+		NewSection->SetSectionName(GetUniqueSectionName(Track, NewSection->GetSectionName()));
+
 		FQualifiedFrameTime CurrentTime = SequencerPin->GetLocalTime();
 
 		const FFrameNumber Duration = (SectionDefaultDuration * CurrentTime.Rate).FrameNumber;
@@ -338,6 +340,54 @@ void FCadenceSequencerTrackEditor::CreateNewSection(UCadenceSequencerTrack* Trac
 
 		SequencerPin->NotifyMovieSceneDataChanged(EMovieSceneDataChangeType::MovieSceneStructureItemAdded);
 	}
+}
+
+FString FCadenceSequencerTrackEditor::GetUniqueSectionName(UCadenceSequencerTrack* Track, const FString& IntendedName)
+{
+	TArray<UCadenceSequencerSection*> PotentiallyConflictedSections;
+
+	bool bAnyDirectConflict = false;
+	for(UMovieSceneSection* MovieSection : Track->GetAllSections())
+	{
+		UCadenceSequencerSection* Section = CastChecked<UCadenceSequencerSection>(MovieSection);
+		FString SectionName = Section->GetSectionName();
+		
+		if(SectionName.Contains(IntendedName))
+		{
+			PotentiallyConflictedSections.Add(Section);
+			
+			if(SectionName.Equals(IntendedName, ESearchCase::IgnoreCase))
+				bAnyDirectConflict = true;
+		}
+	}
+
+	if(!bAnyDirectConflict)
+		return IntendedName;
+
+	int32 SuffixIndex = 2; // Start at 2 so it makes logical sense, e.g. 'Rise', 'Rise 2'
+	constexpr int32 MaxAttempts = 99;
+	while(SuffixIndex <= MaxAttempts)
+	{
+		FString TestName = IntendedName + FString(" ") + FString::FromInt(SuffixIndex);
+
+		bAnyDirectConflict = false;
+		for(UCadenceSequencerSection* Section : PotentiallyConflictedSections)
+		{
+			FString SectionName = Section->GetSectionName();
+			if(SectionName.Equals(TestName, ESearchCase::IgnoreCase))
+			{
+				bAnyDirectConflict = true;
+				break;
+			}
+		}
+
+		if(!bAnyDirectConflict)
+			return TestName;
+
+		SuffixIndex++;
+	}
+
+	return IntendedName + FString(" ") + FGuid::NewGuid().ToString();
 }
 
 FColor FCadenceSequencerTrackEditor::GetRandomSectionColor(const int32& InSectionIndex)
