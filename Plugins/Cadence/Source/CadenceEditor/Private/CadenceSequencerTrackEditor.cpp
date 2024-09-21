@@ -136,15 +136,7 @@ struct FCadenceCustomSection : public ISequencerSection, public FGCObject
 
 			Painter.DrawElements.PopClip();
 		}
-		/*
-		FSlateDrawElement::MakeText(
-			Painter.DrawElements,
-			LayerIndex,
-			Painter.SectionGeometry.ToPaintGeometry(),
-			TEXT("Blongo"),
-			FontAwesomeFont
-			);
-			*/
+		
 		return LayerIndex;
 	}
 	
