@@ -19,3 +19,22 @@ UMovieSceneSection* UCadenceSequencerTrack::CreateNewSection()
 {	
 	return NewObject<UCadenceSequencerSection>(this, NAME_None, RF_Transactional);
 }
+
+bool UCadenceSequencerTrack::HasMultipleSectionsWithName(const FString& InName) const
+{
+	int32 Count = 0;
+
+	for(UMovieSceneSection* MovieSceneSection : GetAllSections())
+	{
+		UCadenceSequencerSection* Section = CastChecked<UCadenceSequencerSection>(MovieSceneSection);
+		FString SectionName = Section->GetSectionName();
+		if(SectionName == InName)
+		{
+			Count++;
+			if(Count >= 2)
+				return true;
+		}
+	}
+
+	return false;
+}

@@ -8,6 +8,18 @@
 #include "UObject/Object.h"
 #include "CadenceSequencerSection.generated.h"
 
+class UCadenceSequencerTrack;
+
+USTRUCT(Blueprintable)
+struct FCadenceSectionName
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere)
+	FString Name = "Section";
+};
+
 /**
  * 
  */
@@ -20,14 +32,21 @@ public:
 	
 	UCadenceSequencerSection(const FObjectInitializer& ObjInit);
 
-	FString GetSectionName() const { return SectionName; }
-	void SetSectionName(const FString& InName) { SectionName = InName; }
+	FString GetSectionName() const { return SectionName.Name; }
+	void SetSectionName(const FString& InName) { SectionName.Name = InName; }
+
+	UCadenceSequencerTrack* GetParentTrack() const { return ParentTrack; }
+	void SetParentTrack(UCadenceSequencerTrack* InParentTrack) { ParentTrack = InParentTrack; }
 
 protected:
 	
 	virtual void ImportEntityImpl(UMovieSceneEntitySystemLinker* EntityLinker, const FEntityImportParams& Params, FImportedEntity* OutImportedEntity) override;
 
-protected:
+public:
 	UPROPERTY(EditAnywhere)
-	FString SectionName = "Section";
+	FCadenceSectionName SectionName;
+
+private:
+	UPROPERTY()
+	TObjectPtr<UCadenceSequencerTrack> ParentTrack;
 };

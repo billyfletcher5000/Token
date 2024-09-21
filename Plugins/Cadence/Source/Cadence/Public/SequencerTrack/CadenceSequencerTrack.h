@@ -36,6 +36,8 @@ public:
 	virtual void RemoveSectionAt(int32 SectionIndex) override { Sections.RemoveAt(SectionIndex); }
 	virtual bool HasSection(const UMovieSceneSection& Section) const override { return Sections.Contains(&Section); }
 	virtual bool IsEmpty() const override { return Sections.Num() == 0; }
+
+	bool HasMultipleSectionsWithName(const FString& InName) const;
 	
 private:
 

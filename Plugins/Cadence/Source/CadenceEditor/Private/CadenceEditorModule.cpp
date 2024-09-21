@@ -7,12 +7,14 @@
 #include "CadenceGraphAssetAction.h"
 #include "CadenceGraphEditorPin.h"
 #include "CadenceGraphPropertyCustomization.h"
+#include "CadenceSequencerSectionNameCustomization.h"
 #include "CadenceSequencerTrackEditor.h"
 #include "CadenceVariableInlineWidgetFunctions.h"
 #include "IAssetTools.h"
 #include "ISequencerModule.h"
 #include "ISettingsModule.h"
 #include "Interfaces/IPluginManager.h"
+#include "SequencerTrack/CadenceSequencerSection.h"
 #include "Styling/SlateStyleRegistry.h"
 
 #define LOCTEXT_NAMESPACE "FCadenceEditorModule"
@@ -64,7 +66,7 @@ void FCadenceEditorModule::StartupModule()
 	PropertyModule.RegisterCustomPropertyTypeLayout(FCadenceGraphUserVariableSet::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceGraphUserVariableSetCustomization::MakeInstance ) );
 	PropertyModule.RegisterCustomPropertyTypeLayout(FCadenceNamedVariable::StaticStruct()->GetFName(),
-		FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceGraphNamedVariableCustomization::MakeInstance ) );
+	FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceGraphNamedVariableCustomization::MakeInstance ) );
 	
 	PropertyModule.NotifyCustomizationModuleChanged();
 

@@ -4,6 +4,7 @@
 #include "CadenceSequencerTrackEditor.h"
 
 #include "CadenceEditorModule.h"
+#include "CadenceSequencerSectionNameCustomization.h"
 #include "SequencerSectionPainter.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "MVVM/Views/ViewUtilities.h"
@@ -146,14 +147,23 @@ struct FCadenceCustomSection : public ISequencerSection, public FGCObject
 			*/
 		return LayerIndex;
 	}
-
+	
 	virtual void AddReferencedObjects( FReferenceCollector& Collector ) override
 	{
 		Collector.AddReferencedObject(Section);
 	}
+	
 	virtual FString GetReferencerName() const override
 	{
 		return TEXT("FCustomSection");
+	}
+
+	virtual void CustomizePropertiesDetailsView(TSharedRef<IDetailsView> DetailsView, const FSequencerSectionPropertyDetailsViewCustomizationParams& InParams) const override
+	{
+		UCadenceSequencerSection* CadenceSection = CastChecked<UCadenceSequencerSection>(Section);
+		
+		DetailsView->RegisterInstancedCustomPropertyTypeLayout(FCadenceSectionName::StaticStruct()->GetFName(),
+			FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceSequencerSectionNameCustomization::MakeInstance, CadenceSection->GetParentTrack() ) );
 	}
 
 	TObjectPtr<UMovieSceneSection> Section;
@@ -322,6 +332,7 @@ void FCadenceSequencerTrackEditor::CreateNewSection(UCadenceSequencerTrack* Trac
 			
 		UCadenceSequencerSection* NewSection = NewObject<UCadenceSequencerSection>(Track, Class, NAME_None, RF_Transactional);
 
+		NewSection->SetParentTrack(Track);
 		NewSection->SetSectionName(GetUniqueSectionName(Track, NewSection->GetSectionName()));
 
 		FQualifiedFrameTime CurrentTime = SequencerPin->GetLocalTime();
