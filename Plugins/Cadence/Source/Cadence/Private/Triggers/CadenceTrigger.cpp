@@ -10,25 +10,26 @@ void UCadenceTriggerRunner::Trigger()
 	OnTriggeredDelegate.Broadcast(this);
 }
 
-void UQuantizedTimeTriggerRunner::Init(UQuantizedTimeTriggerData* InData)
+UCadenceTriggerQuantizedTimeRunner* UCadenceTriggerQuantizedTimeRunner::Create(UCadenceTriggerQuantizedTimeData* InData)
 {
-	Data = InData;
+	UCadenceTriggerQuantizedTimeRunner* Runner = NewObject<UCadenceTriggerQuantizedTimeRunner>();
+	Runner->Data = InData;
+	return Runner;
 }
 
-bool UQuantizedTimeTriggerRunner::Execute(UCadenceContext* InContext)
+bool UCadenceTriggerQuantizedTimeRunner::Tick(const float& InDeltaSeconds)
 {
-	return Super::Execute(InContext);
+	return Super::Tick(InDeltaSeconds);
 }
 
-void USequenceTriggerRunner::Init(USequenceTriggerData* InData)
+UCadenceTriggerSequenceRunner* UCadenceTriggerSequenceRunner::Create(UCadenceTriggerSequenceData* InData)
 {
-	Data = InData;
-	CurrentRunner = nullptr;
-	TriggerIndex = 0;
-	ActuatedCount = 0;
+	UCadenceTriggerSequenceRunner* Runner = NewObject<UCadenceTriggerSequenceRunner>();
+	Runner->Data = InData;
+	return Runner;
 }
 
-bool USequenceTriggerRunner::Execute(UCadenceContext* InContext)
+bool UCadenceTriggerSequenceRunner::Tick(const float& InDeltaSeconds)
 {
 	int32 NumTriggers = Data->TriggerList.Num();
 	
@@ -41,20 +42,23 @@ bool USequenceTriggerRunner::Execute(UCadenceContext* InContext)
 		{
 			ActuatedCount++;
 			if(ActuatedCount >= Data->Count)
+			{
+				Trigger();
 				return true;
+			}
 			
 			TriggerIndex = 0;
 		}
 		
 		CurrentRunner = Data->TriggerList[TriggerIndex]->CreateRunner();
-		CurrentRunner->OnTriggeredDelegate.AddUniqueDynamic(this, &USequenceTriggerRunner::OnCurrentTriggerTriggered);
+		CurrentRunner->OnTriggeredDelegate.AddUniqueDynamic(this, &UCadenceTriggerSequenceRunner::OnCurrentTriggerTriggered);
 	}
 	
 	return false;
 }
 
-void USequenceTriggerRunner::OnCurrentTriggerTriggered(UCadenceTriggerRunner* InTrigger)
+void UCadenceTriggerSequenceRunner::OnCurrentTriggerTriggered(UCadenceTriggerRunner* InTrigger)
 {
-	InTrigger->OnTriggeredDelegate.RemoveDynamic(this, &USequenceTriggerRunner::OnCurrentTriggerTriggered);
+	InTrigger->OnTriggeredDelegate.RemoveDynamic(this, &UCadenceTriggerSequenceRunner::OnCurrentTriggerTriggered);
 	TriggerIndex++;
 }

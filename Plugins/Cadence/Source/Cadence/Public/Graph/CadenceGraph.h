@@ -4,12 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "LevelSequence.h"
 #include "CadenceGraph.generated.h"
 
 class UCadenceVariable;
 class UCadenceGraphNode;
 class UCadenceActorSettings;
-
 
 USTRUCT(BlueprintType)
 struct FCadenceNamedVariable
@@ -31,9 +31,6 @@ public:
 	TArray<FCadenceNamedVariable> Variables;
 };
 
-/**
- * 
- */
 UCLASS(BlueprintType)
 class CADENCE_API UCadenceGraph : public UObject
 {
@@ -52,13 +49,18 @@ public:
 	TArray<TObjectPtr<UCadenceGraphNode>> GetRootExecNodes() const;
 
 	TArray<TObjectPtr<UCadenceGraphNode>> GetRootExecNodesThatLeadToNode(UCadenceGraphNode* InNode) const;
-
+	
+	ULevelSequence* GetSequence() const { return Sequence; }
+	
 private:
 	void GatherRootExecNodes(TArray<TObjectPtr<UCadenceGraphNode>>& InRootNodeList, UCadenceGraphNode* InNode) const;
 
 public:
 	UPROPERTY()
 	TArray<TObjectPtr<UCadenceGraphNode>> Nodes;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<ULevelSequence> Sequence;
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCadenceActorSettings> ActorSettings;

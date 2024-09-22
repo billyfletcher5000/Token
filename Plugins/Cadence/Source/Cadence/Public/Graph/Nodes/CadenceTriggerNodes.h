@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CadenceLatentNode.h"
 #include "Graph/CadenceGraphAddPinInterface.h"
 #include "Graph/CadenceGraphNode.h"
 #include "CadenceTriggerNodes.generated.h"
@@ -13,9 +14,22 @@ namespace FCadenceTriggerConstants
 	static const FLinearColor NodeTitleColor = FLinearColor(0.75f, 0.0f, 0.0f);
 }
 
-/**
- * 
- */
+UCLASS()
+class CADENCE_API UCadenceWaitForTriggerNode : public UCadenceLatentNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateInputPins() override;
+	
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Wait For Trigger")); }
+	virtual FText GetNodeCategory() const override { return FCadenceTriggerConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceTriggerConstants::NodeTitleColor; }
+
+protected:
+	virtual void CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList) override;
+};
+
 UCLASS()
 class CADENCE_API UCadenceTriggerSequenceNode : public UCadenceGraphNode, public ICadenceGraphAddPinInterface
 {

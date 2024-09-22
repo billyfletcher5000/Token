@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TickableActions/ICadenceTickableAction.h"
 
 #include "CadenceTrigger.generated.h"
 
@@ -12,14 +13,13 @@ class UCadenceContext;
  * 
  */
 UCLASS(Abstract)
-class CADENCE_API UCadenceTriggerRunner : public UObject
+class CADENCE_API UCadenceTriggerRunner : public UObject, public ICadenceTickableAction
 {
 	GENERATED_BODY()
-
-public:
-	virtual bool Execute(UCadenceContext* InContext) PURE_VIRTUAL(UCadenceTriggerRunner::Execute, return true;);
 	
-public:
+public:	
+	virtual bool Tick(const float& InDeltaSeconds) override PURE_VIRTUAL(UCadenceTriggerRunner::Tick, return false;);
+	
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTriggered, UCadenceTriggerRunner*, InTrigger);
 	FOnTriggered OnTriggeredDelegate;
 
@@ -34,41 +34,32 @@ class CADENCE_API UCadenceTriggerData : public UObject
 
 public:
 	virtual UCadenceTriggerRunner* CreateRunner() PURE_VIRTUAL(UCadenceTriggerData::CreateRunner, return nullptr;);
-
-protected:
-	template<typename TRunner, typename TData>
-	TRunner* TCreateRunner(TData* InData)
-	{
-		TRunner* Runner = NewObject<TRunner>();
-		Runner->Init(InData);
-		return Runner;
-	}
 };
 
-class UQuantizedTimeTriggerData;
+class UCadenceTriggerQuantizedTimeData;
 
 UCLASS()
-class UQuantizedTimeTriggerRunner : public UCadenceTriggerRunner
+class UCadenceTriggerQuantizedTimeRunner : public UCadenceTriggerRunner
 {
 	GENERATED_BODY()
 
 public:
-	void Init(UQuantizedTimeTriggerData* InData);
-	virtual bool Execute(UCadenceContext* InContext) override;
+	static UCadenceTriggerQuantizedTimeRunner* Create(UCadenceTriggerQuantizedTimeData* InData);
+	virtual bool Tick(const float& InDeltaSeconds) override;
 
 private:
 	UPROPERTY()
-	UQuantizedTimeTriggerData* Data;
+	TObjectPtr<UCadenceTriggerQuantizedTimeData> Data;
 };
 
 UCLASS()
-class CADENCE_API UQuantizedTimeTriggerData : public UCadenceTriggerData
+class CADENCE_API UCadenceTriggerQuantizedTimeData : public UCadenceTriggerData
 {
 	GENERATED_BODY()
 
 public:
-	virtual UCadenceTriggerRunner* CreateRunner() override { return TCreateRunner<UQuantizedTimeTriggerRunner>(this);	}
-
+	virtual UCadenceTriggerRunner* CreateRunner() override { return UCadenceTriggerQuantizedTimeRunner::Create(this);	}
+	
 public:
 	UPROPERTY()
 	EQuartzCommandQuantization TimePeriod;
@@ -77,16 +68,16 @@ public:
 	int32 Count = 1;
 };
 
-class USequenceTriggerData;
+class UCadenceTriggerSequenceData;
 
 UCLASS()
-class USequenceTriggerRunner : public UCadenceTriggerRunner
+class UCadenceTriggerSequenceRunner : public UCadenceTriggerRunner
 {
 	GENERATED_BODY()
 
 public:
-	void Init(USequenceTriggerData* InData);
-	virtual bool Execute(UCadenceContext* InContext) override;
+	static UCadenceTriggerSequenceRunner* Create(UCadenceTriggerSequenceData* InData);
+	virtual bool Tick(const float& InDeltaSeconds) override;
 
 private:
 	UFUNCTION()
@@ -94,7 +85,7 @@ private:
 	
 private:
 	UPROPERTY()
-	USequenceTriggerData* Data;
+	UCadenceTriggerSequenceData* Data;
 
 	UPROPERTY()
 	int32 TriggerIndex = 0;
@@ -107,12 +98,12 @@ private:
 };
 
 UCLASS()
-class CADENCE_API USequenceTriggerData : public UCadenceTriggerData
+class CADENCE_API UCadenceTriggerSequenceData : public UCadenceTriggerData
 {
 	GENERATED_BODY()
 
 public:
-	virtual UCadenceTriggerRunner* CreateRunner() override { return TCreateRunner<USequenceTriggerRunner>(this); }
+	virtual UCadenceTriggerRunner* CreateRunner() override { return UCadenceTriggerSequenceRunner::Create(this); }
 
 public:
 	UPROPERTY()

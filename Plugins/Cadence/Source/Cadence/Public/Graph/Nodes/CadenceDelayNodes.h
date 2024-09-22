@@ -16,9 +16,6 @@ namespace FCadenceDelayConstants
 	static constexpr FLinearColor NodeTitleColor = FLinearColor(0.3f, 0.6f, 0.9f);
 }
 
-/**
- * 
- */
 UCLASS()
 class CADENCE_API UCadenceDelayNode : public UCadenceLatentNode
 {

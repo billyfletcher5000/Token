@@ -6,6 +6,22 @@
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadencePinConstants.h"
 #include "Graph/CadenceVariable.h"
+#include "Triggers/CadenceTrigger.h"
+
+void UCadenceWaitForTriggerNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+	AddInputVariablePin(FCadencePinConstants::Pin_Trigger, UCadenceVariableTrigger::StaticClass());
+}
+
+void UCadenceWaitForTriggerNode::CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList)
+{
+	UCadenceGraphNodePin* InputPin = GetInputPin(FCadencePinConstants::Pin_Trigger);
+	UCadenceVariableTrigger* TriggerVariable = InputPin->GetVariable<UCadenceVariableTrigger>();
+
+	UCadenceTriggerData* TriggerData = TriggerVariable->GetValue();
+	InActionList.Add(TriggerData->CreateRunner());
+}
 
 void UCadenceTriggerSequenceNode::CreateInputPins()
 {
@@ -22,7 +38,31 @@ void UCadenceTriggerSequenceNode::CreateOutputPins()
 
 ECadenceNodeExecuteResult UCadenceTriggerSequenceNode::Execute(UCadenceContext* InContext)
 {
-	return Super::Execute(InContext);
+	UCadenceTriggerSequenceData* SequenceData = NewObject<UCadenceTriggerSequenceData>(this);
+
+	for(UCadenceGraphNodePin* InputPin : InputPins)
+	{
+		if(InputPin->IsExec())
+			continue;
+
+		UCadenceVariableTrigger* InputVariable = InputPin->GetVariable<UCadenceVariableTrigger>();
+		if(InputVariable == nullptr)
+			return ECadenceNodeExecuteResult::Failed;
+		
+		SequenceData->TriggerList.Add(InputVariable->GetValue());
+	}
+
+	if(SequenceData->TriggerList.Num() == 0)
+	{
+		UE_LOG(LogCadence, Warning, TEXT("Sequence trigger does not have any triggers added, so it will not do anything!"));
+		return ECadenceNodeExecuteResult::Failed;
+	}
+
+	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Trigger);
+	UCadenceVariableTrigger* OutputVariable = OutputPin->GetVariable<UCadenceVariableTrigger>();
+	OutputVariable->SetValue(SequenceData);
+	
+	return ECadenceNodeExecuteResult::Complete;
 }
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceTriggerSequenceNode::AddUserInputPin()
@@ -50,5 +90,14 @@ void UCadenceQuantizedTimeTriggerNode::CreateOutputPins()
 
 ECadenceNodeExecuteResult UCadenceQuantizedTimeTriggerNode::Execute(UCadenceContext* InContext)
 {
-	return Super::Execute(InContext);
+	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Trigger);
+	UCadenceVariableTrigger* OutputVariable = OutputPin->GetVariable<UCadenceVariableTrigger>();
+
+	UCadenceTriggerQuantizedTimeData* Data = NewObject<UCadenceTriggerQuantizedTimeData>();
+	Data->TimePeriod = TimePeriod;
+	Data->Count = Count;
+	
+	OutputVariable->SetValue(Data);
+	
+	return ECadenceNodeExecuteResult::Complete;
 }

@@ -6,16 +6,16 @@
 #include "Cadence.h"
 #include "CadenceAsset.h"
 #include "CadenceContext.h"
-#include "CadenceSettings.h"
 #include "Actors/CadenceActorLifetime.h"
 #include "Graph/CadenceGraph.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadenceGraphRunner.h"
-#include "Logging/StructuredLog.h"
+#include "SequencerTrack/CadenceSequencerSection.h"
 
 void UCadenceSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+	
 }
 
 void UCadenceSubsystem::Deinitialize()
@@ -61,6 +61,26 @@ UCadenceGraphRunner* UCadenceSubsystem::ActivateGraph(UCadenceAsset* CadenceAsse
 	return Runner;
 }
 
+void UCadenceSubsystem::Notify_SectionStart(UMovieSceneSequence* Sequence, UCadenceSequencerSection* Section)
+{
+	UE_LOG(LogCadence, Log, TEXT("Section Start: Sequence: %s Section: %s"), *Sequence->GetName(), *Section->GetName());
+}
+
+void UCadenceSubsystem::Notify_SectionEnd(UMovieSceneSequence* Sequence, UCadenceSequencerSection* Section)
+{
+	UE_LOG(LogCadence, Log, TEXT("Section End: Sequence: %s Section: %s"), *Sequence->GetName(), *Section->GetName());
+}
+
+void UCadenceSubsystem::Notify_SequenceStart(UCadenceAsset* CadenceAsset)
+{
+	UE_LOG(LogCadence, Log, TEXT("Sequence Start: %s"), *CadenceAsset->GetName());
+}
+
+void UCadenceSubsystem::Notify_SequenceEnd(UCadenceAsset* CadenceAsset)
+{
+	UE_LOG(LogCadence, Log, TEXT("Sequence End: %s"), *CadenceAsset->GetName());
+}
+
 void UCadenceSubsystem::NotifyGraphComplete(UCadenceGraphRunner* InRunner)
 {
 	EndedRunners.Add(InRunner);
@@ -72,13 +92,10 @@ void UCadenceSubsystem::LogOuterRelationships(UCadenceGraph* Copy, UCadenceGraph
 {
 	UE_LOG(LogCadence, Log, TEXT("Copy Pointer: %p  |  Source Pointer: %p"), (void*)Copy, (void*)Source);
 
-	bool OuterIsCopy = false;
-	bool OuterIsSource = false;
-	
 	for(auto Node : Copy->Nodes)
 	{
-		OuterIsCopy = Node->IsInOuter(Copy);
-		OuterIsSource = Node->IsInOuter(Source);
+		bool OuterIsCopy = Node->IsInOuter(Copy);
+		bool OuterIsSource = Node->IsInOuter(Source);
 		UE_LOG(LogCadence, Log, TEXT("Node: Name: %s Pointer: %p OuterIsCopy: %s OuterIsSource: %s"), *Node->GetName(), (void*)Node, PB(OuterIsCopy), PB(OuterIsSource));
 
 		for(auto InputPin : Node->GetInputPins())

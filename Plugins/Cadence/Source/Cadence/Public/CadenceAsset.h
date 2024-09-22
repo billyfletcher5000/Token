@@ -7,9 +7,7 @@
 #include "CadenceAsset.generated.h"
 
 class UCadenceGraph;
-/**
- * 
- */
+
 UCLASS(BlueprintType)
 class CADENCE_API UCadenceAsset : public UObject
 {
@@ -17,6 +15,7 @@ class CADENCE_API UCadenceAsset : public UObject
 
 public:
 	void CreateGraph();
+	
 	UCadenceGraph* GetGraph() const { return Graph; }
 	void SetGraph(UCadenceGraph* InGraph) { Graph = InGraph; }
 
@@ -29,5 +28,5 @@ public:
 	
 private:
 	UPROPERTY()
-	TObjectPtr<UCadenceGraph> Graph;	
+	TObjectPtr<UCadenceGraph> Graph;
 };

@@ -7,6 +7,8 @@
 #include "UObject/Object.h"
 #include "CadenceSubsystem.generated.h"
 
+class UCadenceSequencerSection;
+class UMovieSceneSequence;
 class UCadenceGraph;
 class UCadenceAsset;
 class UCadenceGraphRunner;
@@ -33,6 +35,18 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UCadenceGraphRunner* ActivateGraph(UCadenceAsset* CadenceAsset);
+
+	UFUNCTION(BlueprintCallable)
+	void Notify_SectionStart(UMovieSceneSequence* Sequence, UCadenceSequencerSection* Section);
+	
+	UFUNCTION(BlueprintCallable)
+	void Notify_SectionEnd(UMovieSceneSequence* Sequence, UCadenceSequencerSection* Section);
+	
+	UFUNCTION(BlueprintCallable)
+	void Notify_SequenceStart(UCadenceAsset* CadenceAsset);
+	
+	UFUNCTION(BlueprintCallable)
+	void Notify_SequenceEnd(UCadenceAsset* CadenceAsset);
 
 protected:
 	friend UCadenceGraphRunner;

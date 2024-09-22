@@ -25,7 +25,9 @@ public class Cadence : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "MovieScene",
+				"Core", 
+				"MovieScene",
+				"LevelSequence",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -39,7 +41,7 @@ public class Cadence : ModuleRules
 				"Slate",
 				"SlateCore",
 				"Niagara",
-				"NiagaraCore"
+				"NiagaraCore",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

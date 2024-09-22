@@ -81,5 +81,8 @@ private:
 	virtual void OnEndUpdateInputs() override { K2_OnEndUpdateInputs(); }
 
 	virtual void OnDestroyed() override;
+
+private:
+	static UMovieSceneSequence* GetMovieSceneSequence(const UE::MovieScene::FInstanceRegistry* InstanceRegistry, const FMovieSceneTrackInstanceInput& InInput);
 };
 
