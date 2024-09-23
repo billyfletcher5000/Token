@@ -4,18 +4,85 @@
 
 #include "CoreMinimal.h"
 #include "Graph/CadenceGraph.h"
+#include "Graph/CadenceGraphRunner.h"
+#include "SequencerTrack/CadenceSequencerSection.h"
 #include "UObject/Object.h"
 #include "CadenceSubsystem.generated.h"
 
+class UCadenceSequencerTrack;
 class UCadenceSequencerSection;
 class UMovieSceneSequence;
 class UCadenceGraph;
 class UCadenceAsset;
 class UCadenceGraphRunner;
+class UQuartzClockHandle;
 
-/**
- * 
- */
+
+USTRUCT()
+struct FCadenceSectionTimingData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString SectionName;
+
+	UPROPERTY()
+	float StartTime;
+
+	UPROPERTY()
+	float EndTime;
+
+	float GetDuration() const { return EndTime - StartTime; }
+};
+
+UCLASS()
+class UCadenceAssetInstance : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	void Init(UCadenceAsset* InAsset);
+	virtual void BeginDestroy() override;
+	
+	void GenerateSectionDurationData(UCadenceSequencerSection* InStartSection);
+
+	UCadenceAsset* GetAsset() const { return Asset; }
+	
+	void SetRunner(UCadenceGraphRunner* InRunner);
+	UCadenceGraphRunner* GetRunner() const { return Runner; }
+
+	void NotifySequenceComplete() { bSequenceComplete = true; }	
+	void NotifyRunnerComplete() { Runner = nullptr; bRunnerComplete = true; }	
+
+	bool IsSequenceComplete() const { return bSequenceComplete; }
+	bool IsRunnerComplete() const { return bRunnerComplete; }
+	bool IsInstanceComplete() const { return bSequenceComplete && bRunnerComplete; }
+	
+private:
+	float GetAlignedTime(float TimeInSeconds, ECadenceSectionEdgeQuantizationType StartEdgeQuantizationType, EQuartzCommandQuantization QuartzCommandQuantization) const;
+	float GetStartFrameSeconds(UMovieSceneSection* Section);
+	float GetEndFrameSeconds(UMovieSceneSection* Section);
+	
+private:
+	UPROPERTY()
+	TObjectPtr<UCadenceAsset> Asset;
+	
+	UPROPERTY()
+	TObjectPtr<UCadenceGraphRunner> Runner;
+
+	UPROPERTY()
+	bool bSequenceComplete = false;
+
+	UPROPERTY()
+	bool bRunnerComplete = false;
+
+	UPROPERTY()
+	TArray<FCadenceSectionTimingData> TimingDataList;
+
+	UPROPERTY()
+	TObjectPtr<UQuartzClockHandle> ClockHandle;
+};
+
 UCLASS()
 class CADENCE_API UCadenceSubsystem : public UTickableWorldSubsystem
 {
@@ -32,9 +99,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	// End UTickableWorldSubsystem
-
-	UFUNCTION(BlueprintCallable)
-	UCadenceGraphRunner* ActivateGraph(UCadenceAsset* CadenceAsset);
+	
 
 	UFUNCTION(BlueprintCallable)
 	void Notify_SectionStart(UMovieSceneSequence* Sequence, UCadenceSequencerSection* Section);
@@ -51,13 +116,19 @@ public:
 protected:
 	friend UCadenceGraphRunner;
 
+	
+	UCadenceAssetInstance* GetOrCreateActiveAssetData(UCadenceAsset* InAsset);
+	UCadenceAssetInstance* GetActiveAssetData(UCadenceAsset* InAsset);
+	UCadenceAssetInstance* GetActiveAssetData(ULevelSequence* InSequence);
+	UCadenceAssetInstance* GetActiveAssetData(UCadenceGraphRunner* InRunner);
+	UCadenceGraphRunner* CreateRunner(UCadenceAsset* CadenceAsset);
 	void NotifyGraphComplete(UCadenceGraphRunner* InRunner);
 
 	static void LogOuterRelationships(UCadenceGraph* Copy, UCadenceGraph* Source);
 
 private:
 	UPROPERTY()
-	TArray<UCadenceGraphRunner*> ActiveRunners;
+	TArray<TObjectPtr<UCadenceAssetInstance>> ActiveAssets;
 
 	UPROPERTY()
 	TArray<UCadenceGraphRunner*> EndedRunners;

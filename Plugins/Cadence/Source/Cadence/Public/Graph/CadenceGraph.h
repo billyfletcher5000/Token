@@ -51,6 +51,8 @@ public:
 	TArray<TObjectPtr<UCadenceGraphNode>> GetRootExecNodesThatLeadToNode(UCadenceGraphNode* InNode) const;
 	
 	ULevelSequence* GetSequence() const { return Sequence; }
+	float GetBPM() const { return BPM; }
+	FQuartzTimeSignature GetTimeSignature() const { return TimeSignature; }
 	
 private:
 	void GatherRootExecNodes(TArray<TObjectPtr<UCadenceGraphNode>>& InRootNodeList, UCadenceGraphNode* InNode) const;
@@ -61,6 +63,12 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<ULevelSequence> Sequence;
+
+	UPROPERTY(EditAnywhere)
+	float BPM = 60.0f;
+	
+	UPROPERTY(EditAnywhere)
+	FQuartzTimeSignature TimeSignature;
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCadenceActorSettings> ActorSettings;

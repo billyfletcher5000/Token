@@ -17,6 +17,7 @@ void ACadenceSequenceActor::PostInitializeComponents()
 		ULevelSequencePlayer* Player = GetSequencePlayer();
 		Player->OnPlay.AddUniqueDynamic(this, &ACadenceSequenceActor::OnPlayerStarted);
 		Player->OnStop.AddUniqueDynamic(this, &ACadenceSequenceActor::OnPlayerStopped);
+		Player->OnFinished.AddUniqueDynamic(this, &ACadenceSequenceActor::OnPlayerStopped);
 	}
 	
 	Super::PostInitializeComponents();

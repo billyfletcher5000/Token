@@ -10,6 +10,15 @@
 
 class UCadenceSequencerTrack;
 
+UENUM(BlueprintType)
+enum class ECadenceSectionEdgeQuantizationType : uint8
+{
+	Nearest = 0,
+	Before,
+	After,
+	NoQuantization
+};
+
 USTRUCT(Blueprintable)
 struct FCadenceSectionName
 {
@@ -46,6 +55,15 @@ public:
 	UPROPERTY(EditAnywhere)
 	FCadenceSectionName SectionName;
 
+	UPROPERTY(EditAnywhere)
+	ECadenceSectionEdgeQuantizationType StartEdgeQuantizationType = ECadenceSectionEdgeQuantizationType::Nearest;
+	UPROPERTY(EditAnywhere)
+	ECadenceSectionEdgeQuantizationType EndEdgeQuantizationType = ECadenceSectionEdgeQuantizationType::Nearest;
+	UPROPERTY(EditAnywhere)
+	EQuartzCommandQuantization StartEdgeQuantizationBoundary = EQuartzCommandQuantization::Bar;
+	UPROPERTY(EditAnywhere)
+	EQuartzCommandQuantization EndEdgeQuantizationBoundary = EQuartzCommandQuantization::Bar;
+	
 private:
 	UPROPERTY()
 	TObjectPtr<UCadenceSequencerTrack> ParentTrack;

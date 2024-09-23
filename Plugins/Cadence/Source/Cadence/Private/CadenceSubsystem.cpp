@@ -6,16 +6,176 @@
 #include "Cadence.h"
 #include "CadenceAsset.h"
 #include "CadenceContext.h"
+#include "MovieScene.h"
 #include "Actors/CadenceActorLifetime.h"
 #include "Graph/CadenceGraph.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadenceGraphRunner.h"
+#include "Quartz/AudioMixerClockHandle.h"
+#include "Quartz/QuartzSubsystem.h"
 #include "SequencerTrack/CadenceSequencerSection.h"
+#include "SequencerTrack/CadenceSequencerTrack.h"
+
+void UCadenceAssetInstance::Init(UCadenceAsset* InAsset)
+{
+	Asset = InAsset;
+}
+
+void UCadenceAssetInstance::BeginDestroy()
+{
+	UObject::BeginDestroy();
+	
+	if(IsValid(ClockHandle))
+	{
+		if(UQuartzSubsystem* QuartzSubsystem = GetWorld()->GetSubsystem<UQuartzSubsystem>())
+		{
+			UQuartzClockHandle* Handle = ClockHandle;
+			QuartzSubsystem->DeleteClockByHandle(this, Handle);
+		}
+	}
+}
+
+void UCadenceAssetInstance::GenerateSectionDurationData(UCadenceSequencerSection* InStartSection)
+{
+	UCadenceGraph* Graph = Asset->GetGraph();
+	
+	UQuartzSubsystem* QuartzSubsystem = GetWorld()->GetSubsystem<UQuartzSubsystem>();
+	FQuartzClockSettings Settings;	
+	Settings.TimeSignature = Graph->GetTimeSignature();
+	UQuartzClockHandle* NewClockHandle = QuartzSubsystem->CreateNewClock(this, FName(Asset->GetName()), Settings);
+
+	FQuartzQuantizationBoundary Boundary;
+	FOnQuartzCommandEventBP EmptyDelegate;
+	
+	
+	NewClockHandle->SetBeatsPerMinute(this, Boundary, EmptyDelegate, NewClockHandle, Graph->GetBPM());
+	NewClockHandle->StartClock(this, NewClockHandle);
+	
+	ClockHandle = NewClockHandle;
+	
+	TimingDataList.Empty();
+
+	ULevelSequence* Sequence = Graph->GetSequence();
+	TArray<UMovieSceneTrack*> Tracks = Sequence->GetMovieScene()->GetTracks();
+
+	float StartOffsetSeconds = GetStartFrameSeconds(InStartSection); 
+	
+	for(UMovieSceneTrack* Track : Tracks)
+	{
+		if(UCadenceSequencerTrack* CadenceTrack = Cast<UCadenceSequencerTrack>(Track))
+		{
+			TArray<UMovieSceneSection*> Sections = CadenceTrack->GetAllSections();
+			
+			for(UMovieSceneSection* Section : Sections)
+			{
+				if(UCadenceSequencerSection* CadenceSection = Cast<UCadenceSequencerSection>(Section))
+				{
+					FCadenceSectionTimingData TimingData;
+					float StartFrameSeconds = GetStartFrameSeconds(Section) - StartOffsetSeconds;
+					float EndFrameSeconds = GetEndFrameSeconds(Section) - StartOffsetSeconds;
+
+					TimingData.SectionName = CadenceSection->GetSectionName();
+					TimingData.StartTime = GetAlignedTime(StartFrameSeconds, CadenceSection->StartEdgeQuantizationType, CadenceSection->StartEdgeQuantizationBoundary);
+					TimingData.EndTime = GetAlignedTime(EndFrameSeconds, CadenceSection->EndEdgeQuantizationType, CadenceSection->EndEdgeQuantizationBoundary);
+
+					TimingDataList.Add(TimingData);
+				}
+			}
+		}
+	}
+}
+
+void UCadenceAssetInstance::SetRunner(UCadenceGraphRunner* InRunner)
+{
+	if(Runner != InRunner)
+	{
+		Runner = InRunner;
+		bRunnerComplete = Runner == nullptr;
+	}	
+}
+
+float UCadenceAssetInstance::GetAlignedTime(float TimeInSeconds, ECadenceSectionEdgeQuantizationType EdgeQuantizationType, EQuartzCommandQuantization QuantizationBoundary) const
+{
+	if(EdgeQuantizationType == ECadenceSectionEdgeQuantizationType::NoQuantization)
+		return TimeInSeconds;
+
+	float QuantizationBoundarySeconds = ClockHandle->GetDurationOfQuantizationTypeInSeconds(this, QuantizationBoundary);
+	
+	float CurrentSeconds = 0.0f;
+	while (CurrentSeconds < TimeInSeconds)
+	{
+		float NextBoundaryPoint = CurrentSeconds + QuantizationBoundarySeconds;
+		if(NextBoundaryPoint == TimeInSeconds)
+			return TimeInSeconds;
+
+		if(NextBoundaryPoint > TimeInSeconds)
+		{
+			if(EdgeQuantizationType == ECadenceSectionEdgeQuantizationType::Before)
+				return CurrentSeconds;
+
+			if(EdgeQuantizationType == ECadenceSectionEdgeQuantizationType::After)
+				return NextBoundaryPoint;
+
+			return (TimeInSeconds - CurrentSeconds) < (NextBoundaryPoint - TimeInSeconds) ? CurrentSeconds : NextBoundaryPoint;
+		}
+		
+		CurrentSeconds = NextBoundaryPoint;
+	}
+
+	return TimeInSeconds;
+}
+
+float UCadenceAssetInstance::GetStartFrameSeconds(UMovieSceneSection* Section)
+{
+	if (!Section)
+	{
+		FFrame::KismetExecutionMessage(TEXT("Cannot call GetStartFrameSeconds on a null section"), ELogVerbosity::Error);
+		return -1.f;
+	}
+
+	if (!Section->HasStartFrame())
+	{
+		FFrame::KismetExecutionMessage(TEXT("Section does not have a start frame"), ELogVerbosity::Error);
+		return -1.f;
+	}
+
+	UMovieScene* MovieScene = Section->GetTypedOuter<UMovieScene>();
+	if (MovieScene)
+	{
+		FFrameRate DisplayRate = MovieScene->GetDisplayRate();
+		return DisplayRate.AsSeconds(ConvertFrameTime(UE::MovieScene::DiscreteInclusiveLower(Section->GetRange()), MovieScene->GetTickResolution(), DisplayRate));
+	}
+
+	return -1.f;
+}
+
+float UCadenceAssetInstance::GetEndFrameSeconds(UMovieSceneSection* Section)
+{
+	if (!Section)
+	{
+		FFrame::KismetExecutionMessage(TEXT("Cannot call GetEndFrameSeconds on a null section"), ELogVerbosity::Error);
+		return -1.f;
+	}
+
+	if (!Section->HasEndFrame())
+	{
+		FFrame::KismetExecutionMessage(TEXT("Section does not have an end frame"), ELogVerbosity::Error);
+		return -1.f;
+	}
+
+	UMovieScene* MovieScene = Section->GetTypedOuter<UMovieScene>();
+	if (MovieScene)
+	{
+		FFrameRate DisplayRate = MovieScene->GetDisplayRate();
+		return DisplayRate.AsSeconds(ConvertFrameTime(UE::MovieScene::DiscreteExclusiveUpper(Section->GetRange()), MovieScene->GetTickResolution(), DisplayRate));
+	}
+
+	return -1.f;	
+}
 
 void UCadenceSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	Super::Initialize(Collection);
-	
+	Super::Initialize(Collection);	
 }
 
 void UCadenceSubsystem::Deinitialize()
@@ -27,11 +187,22 @@ void UCadenceSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	for(UCadenceGraphRunner* Runner : ActiveRunners)
-		Runner->Tick(DeltaTime);
+	for(UCadenceAssetInstance* AssetInstance : ActiveAssets)
+	{
+		UCadenceGraphRunner* Runner = AssetInstance->GetRunner();
+		if(IsValid(Runner))
+			Runner->Tick(DeltaTime);
+	}
 
 	for(UCadenceGraphRunner* Runner : EndedRunners)
-		ActiveRunners.Remove(Runner);
+	{		
+		if(UCadenceAssetInstance* Data = GetActiveAssetData(Runner))
+		{
+			Data->NotifyRunnerComplete();
+			if(Data->IsInstanceComplete())
+				ActiveAssets.Remove(Data);			
+		}
+	}
 
 	EndedRunners.Empty();
 }
@@ -41,7 +212,7 @@ TStatId UCadenceSubsystem::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UCadenceSubsystem, STATGROUP_Tickables);
 }
 
-UCadenceGraphRunner* UCadenceSubsystem::ActivateGraph(UCadenceAsset* CadenceAsset)
+UCadenceGraphRunner* UCadenceSubsystem::CreateRunner(UCadenceAsset* CadenceAsset)
 {	
 	UCadenceGraphRunner* Runner = NewObject<UCadenceGraphRunner>(this);
 	UCadenceContext* Context = NewObject<UCadenceContext>(Runner);
@@ -49,13 +220,11 @@ UCadenceGraphRunner* UCadenceSubsystem::ActivateGraph(UCadenceAsset* CadenceAsse
 	Context->SourceGraph = Graph;
 	Context->Graph = DuplicateObject(Graph, Context, "Graph");
 	Context->Asset = CadenceAsset;
-	Context->ActorLifetimeManager = NewObject<UCadenceActorLifetimeManager>();
+	Context->ActorLifetimeManager = NewObject<UCadenceActorLifetimeManager>(Context);
 
 	LogOuterRelationships(Context->Graph, Graph);
 	
 	Runner->Init(Context);
-
-	ActiveRunners.Add(Runner);
 	Runner->Begin();
 
 	return Runner;
@@ -64,6 +233,15 @@ UCadenceGraphRunner* UCadenceSubsystem::ActivateGraph(UCadenceAsset* CadenceAsse
 void UCadenceSubsystem::Notify_SectionStart(UMovieSceneSequence* Sequence, UCadenceSequencerSection* Section)
 {
 	UE_LOG(LogCadence, Log, TEXT("Section Start: Sequence: %s Section: %s"), *Sequence->GetName(), *Section->GetName());
+
+	ULevelSequence* LevelSequence = Cast<ULevelSequence>(Sequence);
+	UCadenceAssetInstance* Data = GetActiveAssetData(LevelSequence);
+	
+	if(!Data->IsRunnerComplete())
+	{
+		Data->GenerateSectionDurationData(Section);
+		Data->SetRunner(CreateRunner(Data->GetAsset()));
+	}
 }
 
 void UCadenceSubsystem::Notify_SectionEnd(UMovieSceneSequence* Sequence, UCadenceSequencerSection* Section)
@@ -74,11 +252,73 @@ void UCadenceSubsystem::Notify_SectionEnd(UMovieSceneSequence* Sequence, UCadenc
 void UCadenceSubsystem::Notify_SequenceStart(UCadenceAsset* CadenceAsset)
 {
 	UE_LOG(LogCadence, Log, TEXT("Sequence Start: %s"), *CadenceAsset->GetName());
+
+	GetOrCreateActiveAssetData(CadenceAsset);
 }
 
 void UCadenceSubsystem::Notify_SequenceEnd(UCadenceAsset* CadenceAsset)
 {
 	UE_LOG(LogCadence, Log, TEXT("Sequence End: %s"), *CadenceAsset->GetName());
+
+	UCadenceAssetInstance* Data = GetActiveAssetData(CadenceAsset);
+	if(Data)
+	{
+		Data->NotifySequenceComplete();
+		if(Data->IsInstanceComplete())
+			ActiveAssets.Remove(Data);
+	}
+}
+
+UCadenceAssetInstance* UCadenceSubsystem::GetOrCreateActiveAssetData(UCadenceAsset* InAsset)
+{
+	UCadenceAssetInstance* Data = GetActiveAssetData(InAsset);
+	if (Data)
+		return Data;
+
+	UCadenceAssetInstance* AssetInstance = NewObject<UCadenceAssetInstance>(this);
+	AssetInstance->Init(InAsset);
+	ActiveAssets.Add(AssetInstance);
+	
+	return AssetInstance;
+}
+
+UCadenceAssetInstance* UCadenceSubsystem::GetActiveAssetData(UCadenceAsset* InAsset)
+{
+	for(UCadenceAssetInstance* AssetInstance : ActiveAssets)
+	{
+		if(AssetInstance->GetAsset() == InAsset)
+		{
+			return AssetInstance;
+		}
+	}
+	
+	return nullptr;
+}
+
+UCadenceAssetInstance* UCadenceSubsystem::GetActiveAssetData(ULevelSequence* InSequence)
+{
+	for(UCadenceAssetInstance* AssetInstance : ActiveAssets)
+	{
+		if(AssetInstance->GetAsset()->GetGraph()->GetSequence() == InSequence)
+		{			
+			return AssetInstance;
+		}
+	}
+	
+	return nullptr;
+}
+
+UCadenceAssetInstance* UCadenceSubsystem::GetActiveAssetData(UCadenceGraphRunner* InRunner)
+{
+	for(UCadenceAssetInstance* AssetInstance : ActiveAssets)
+	{
+		if(AssetInstance->GetRunner() == InRunner)
+		{			
+			return AssetInstance;
+		}
+	}
+	
+	return nullptr;
 }
 
 void UCadenceSubsystem::NotifyGraphComplete(UCadenceGraphRunner* InRunner)

@@ -42,6 +42,7 @@ public class Cadence : ModuleRules
 				"SlateCore",
 				"Niagara",
 				"NiagaraCore",
+				"AudioMixer",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
