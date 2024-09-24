@@ -45,8 +45,7 @@ void UCadenceAssetInstance::GenerateSectionDurationData(UCadenceSequencerSection
 	UQuartzClockHandle* NewClockHandle = QuartzSubsystem->CreateNewClock(this, FName(Asset->GetName()), Settings);
 
 	FQuartzQuantizationBoundary Boundary;
-	FOnQuartzCommandEventBP EmptyDelegate;
-	
+	FOnQuartzCommandEventBP EmptyDelegate;	
 	
 	NewClockHandle->SetBeatsPerMinute(this, Boundary, EmptyDelegate, NewClockHandle, Graph->GetBPM());
 	NewClockHandle->StartClock(this, NewClockHandle);
@@ -55,33 +54,20 @@ void UCadenceAssetInstance::GenerateSectionDurationData(UCadenceSequencerSection
 	
 	TimingDataList.Empty();
 
-	ULevelSequence* Sequence = Graph->GetSequence();
-	TArray<UMovieSceneTrack*> Tracks = Sequence->GetMovieScene()->GetTracks();
-
-	float StartOffsetSeconds = GetStartFrameSeconds(InStartSection); 
-	
-	for(UMovieSceneTrack* Track : Tracks)
-	{
-		if(UCadenceSequencerTrack* CadenceTrack = Cast<UCadenceSequencerTrack>(Track))
-		{
-			TArray<UMovieSceneSection*> Sections = CadenceTrack->GetAllSections();
+	float StartOffsetSeconds = GetStartFrameSeconds(InStartSection);
+	TArray<UCadenceSequencerSection*> Sections = Graph->GetSections();
 			
-			for(UMovieSceneSection* Section : Sections)
-			{
-				if(UCadenceSequencerSection* CadenceSection = Cast<UCadenceSequencerSection>(Section))
-				{
-					FCadenceSectionTimingData TimingData;
-					float StartFrameSeconds = GetStartFrameSeconds(Section) - StartOffsetSeconds;
-					float EndFrameSeconds = GetEndFrameSeconds(Section) - StartOffsetSeconds;
+	for(UCadenceSequencerSection* Section : Sections)
+	{
+		FCadenceSectionTimingData TimingData;
+		float StartFrameSeconds = GetStartFrameSeconds(Section) - StartOffsetSeconds;
+		float EndFrameSeconds = GetEndFrameSeconds(Section) - StartOffsetSeconds;
 
-					TimingData.SectionName = CadenceSection->GetSectionName();
-					TimingData.StartTime = GetAlignedTime(StartFrameSeconds, CadenceSection->StartEdgeQuantizationType, CadenceSection->StartEdgeQuantizationBoundary);
-					TimingData.EndTime = GetAlignedTime(EndFrameSeconds, CadenceSection->EndEdgeQuantizationType, CadenceSection->EndEdgeQuantizationBoundary);
+		TimingData.SectionName = Section->GetSectionName();
+		TimingData.StartTime = GetAlignedTime(StartFrameSeconds, Section->StartEdgeQuantizationType, Section->StartEdgeQuantizationBoundary);
+		TimingData.EndTime = GetAlignedTime(EndFrameSeconds, Section->EndEdgeQuantizationType, Section->EndEdgeQuantizationBoundary);
 
-					TimingDataList.Add(TimingData);
-				}
-			}
-		}
+		TimingDataList.Add(TimingData);		
 	}
 }
 

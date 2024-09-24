@@ -8,10 +8,12 @@
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorNode.h"
 #include "CadenceGraphSchema.h"
+#include "CadenceSequencerSectionNameCustomization.h"
 #include "EdGraphUtilities.h"
 #include "Framework/Commands/GenericCommands.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "IDetailsView.h"
+#include "SequencerTrack/CadenceSequencerSection.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 
 
@@ -498,6 +500,9 @@ TSharedRef<SWidget> FCadenceGraphNodeDetailsTabFactory::CreateTabBody(const FWor
 	TSharedPtr<IDetailsView> DetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
 	DetailsView->SetObject(nullptr);
 	App->SetSelectedDetailsView(DetailsView);
+
+	DetailsView->RegisterInstancedCustomPropertyTypeLayout(FCadenceSectionName::StaticStruct()->GetFName(),
+	FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceSequencerSectionNameSelectCustomization::MakeInstance, App->GetWorkingGraph() ) );
 
 	return SNew(SVerticalBox)
 				+ SVerticalBox::Slot()

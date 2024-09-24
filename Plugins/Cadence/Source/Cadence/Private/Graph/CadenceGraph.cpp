@@ -4,8 +4,11 @@
 #include "Graph/CadenceGraph.h"
 
 #include "CadenceSettings.h"
+#include "MovieScene.h"
 #include "Graph/CadenceGraphNode.h"
 #include "Graph/CadenceGraphNodePin.h"
+#include "SequencerTrack/CadenceSequencerTrack.h"
+#include "SequencerTrack/CadenceSequencerSection.h"
 
 UCadenceGraph::UCadenceGraph()
 {	
@@ -78,6 +81,46 @@ TArray<TObjectPtr<UCadenceGraphNode>> UCadenceGraph::GetRootExecNodesThatLeadToN
 	GatherRootExecNodes(RootNodes, InNode);
 
 	return RootNodes;
+}
+
+TArray<UCadenceSequencerTrack*> UCadenceGraph::GetTracks() const
+{
+	TArray<UCadenceSequencerTrack*> OutTracks;
+	
+	TArray<UMovieSceneTrack*> Tracks = Sequence->GetMovieScene()->GetTracks();
+	for(UMovieSceneTrack* Track : Tracks)
+	{
+		if(UCadenceSequencerTrack* CadenceTrack = Cast<UCadenceSequencerTrack>(Track))
+		{
+			OutTracks.Add(CadenceTrack);
+		}
+	}
+
+	return OutTracks;
+}
+
+TArray<UCadenceSequencerSection*> UCadenceGraph::GetSections() const
+{
+	TArray<UCadenceSequencerSection*> OutSections;
+	
+	TArray<UMovieSceneTrack*> Tracks = Sequence->GetMovieScene()->GetTracks();
+	for(UMovieSceneTrack* Track : Tracks)
+	{
+		if(UCadenceSequencerTrack* CadenceTrack = Cast<UCadenceSequencerTrack>(Track))
+		{
+			TArray<UMovieSceneSection*> Sections = CadenceTrack->GetAllSections();
+			
+			for(UMovieSceneSection* Section : Sections)
+			{
+				if(UCadenceSequencerSection* CadenceSection = Cast<UCadenceSequencerSection>(Section))
+				{
+					OutSections.Add(CadenceSection);
+				}
+			}
+		}
+	}
+
+	return OutSections;
 }
 
 void UCadenceGraph::GatherRootExecNodes(TArray<TObjectPtr<UCadenceGraphNode>>& InRootNodeList, UCadenceGraphNode* InNode) const

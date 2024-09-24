@@ -6,6 +6,7 @@
 #include "CadenceLatentNode.h"
 #include "Graph/CadenceGraphAddPinInterface.h"
 #include "Graph/CadenceGraphNode.h"
+#include "SequencerTrack/CadenceSequencerSection.h"
 #include "CadenceTriggerNodes.generated.h"
 
 namespace FCadenceTriggerConstants
@@ -73,6 +74,29 @@ public:
 public:
 	UPROPERTY(EditAnywhere)
 	EQuartzCommandQuantization TimePeriod;
+
+	UPROPERTY(EditAnywhere)
+	int32 Count = 1;
+};
+
+UCLASS()
+class CADENCE_API UCadenceSequenceSectionTriggerNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateOutputPins() override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+
+	virtual bool IsPure() const override { return true; }
+
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Sequence Section Trigger")); }
+	virtual FText GetNodeCategory() const override { return FCadenceTriggerConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceTriggerConstants::NodeTitleColor; }
+
+public:
+	UPROPERTY(EditAnywhere)
+	FCadenceSectionName Section;
 
 	UPROPERTY(EditAnywhere)
 	int32 Count = 1;

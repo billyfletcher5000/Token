@@ -7,6 +7,8 @@
 #include "LevelSequence.h"
 #include "CadenceGraph.generated.h"
 
+class UCadenceSequencerTrack;
+class UCadenceSequencerSection;
 class UCadenceVariable;
 class UCadenceGraphNode;
 class UCadenceActorSettings;
@@ -53,6 +55,9 @@ public:
 	ULevelSequence* GetSequence() const { return Sequence; }
 	float GetBPM() const { return BPM; }
 	FQuartzTimeSignature GetTimeSignature() const { return TimeSignature; }
+
+	TArray<UCadenceSequencerTrack*> GetTracks() const;
+	TArray<UCadenceSequencerSection*> GetSections() const; 
 	
 private:
 	void GatherRootExecNodes(TArray<TObjectPtr<UCadenceGraphNode>>& InRootNodeList, UCadenceGraphNode* InNode) const;

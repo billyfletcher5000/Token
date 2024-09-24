@@ -155,7 +155,7 @@ struct FCadenceCustomSection : public ISequencerSection, public FGCObject
 		UCadenceSequencerSection* CadenceSection = CastChecked<UCadenceSequencerSection>(Section);
 		
 		DetailsView->RegisterInstancedCustomPropertyTypeLayout(FCadenceSectionName::StaticStruct()->GetFName(),
-			FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceSequencerSectionNameCustomization::MakeInstance, CadenceSection->GetParentTrack() ) );
+			FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceSequencerSectionNameEditCustomization::MakeInstance, CadenceSection->GetParentTrack() ) );
 	}
 
 	TObjectPtr<UMovieSceneSection> Section;

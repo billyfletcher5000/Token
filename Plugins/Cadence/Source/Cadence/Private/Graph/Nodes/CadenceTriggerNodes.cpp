@@ -101,3 +101,14 @@ ECadenceNodeExecuteResult UCadenceQuantizedTimeTriggerNode::Execute(UCadenceCont
 	
 	return ECadenceNodeExecuteResult::Complete;
 }
+
+void UCadenceSequenceSectionTriggerNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+	AddOutputVariablePin(FCadencePinConstants::Pin_Trigger, UCadenceVariableTrigger::StaticClass());
+}
+
+ECadenceNodeExecuteResult UCadenceSequenceSectionTriggerNode::Execute(UCadenceContext* InContext)
+{
+	return Super::Execute(InContext);
+}
