@@ -7,6 +7,7 @@
 
 #include "CadenceTrigger.generated.h"
 
+class UCadenceAssetInstance;
 class UCadenceContext;
 
 /**
@@ -111,4 +112,57 @@ public:
 
 	UPROPERTY()
 	int32 Count = 1;
+};
+
+class UCadenceTriggerSequenceSectionData;
+
+UCLASS()
+class UCadenceTriggerSequenceSectionRunner : public UCadenceTriggerRunner
+{
+	GENERATED_BODY()
+
+public:
+	static UCadenceTriggerSequenceSectionRunner* Create(UCadenceTriggerSequenceSectionData* InData);
+	virtual void Init() override;
+	virtual bool Tick(const float& InDeltaSeconds) override;
+
+private:
+	UFUNCTION()
+	void OnSectionPhaseComplete(FString InSectionName);
+
+private:
+	UPROPERTY()
+	TObjectPtr<UCadenceTriggerSequenceSectionData> Data;
+
+	UPROPERTY()
+	bool bIsConditionSatisfied = false;
+};
+
+UENUM()
+enum class ECadenceTriggerSequenceSectionPhase : uint8
+{
+	Start = 0,
+	End
+};	
+
+UCLASS()
+class CADENCE_API UCadenceTriggerSequenceSectionData : public UCadenceTriggerData
+{
+	GENERATED_BODY()
+
+public:
+	virtual UCadenceTriggerRunner* CreateRunner() override { return UCadenceTriggerSequenceSectionRunner::Create(this);	}
+	
+public:
+	UPROPERTY()
+	FString SectionName;
+
+	UPROPERTY()
+	ECadenceTriggerSequenceSectionPhase Phase;
+
+	UPROPERTY()
+	int32 Count = 1;
+
+	UPROPERTY()
+	TWeakObjectPtr<UCadenceAssetInstance> AssetInstance;
 };

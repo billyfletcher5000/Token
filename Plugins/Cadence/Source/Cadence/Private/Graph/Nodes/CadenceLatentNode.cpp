@@ -15,6 +15,11 @@ ECadenceNodeExecuteResult UCadenceLatentNode::Execute(UCadenceContext* InContext
 		CreateLatentActions(NewActionList);
 
 		ActionListMap.Add(FCadencePathwayActionListPair::Create(InContext->Pathway, NewActionList));
+
+		for (TScriptInterface<ICadenceTickableAction> CadenceTickableAction : NewActionList)
+		{
+			CadenceTickableAction->Init();
+		}
 	}	
 	
 	ActionListPair = ActionListMap.FindByKey(InContext->Pathway);	

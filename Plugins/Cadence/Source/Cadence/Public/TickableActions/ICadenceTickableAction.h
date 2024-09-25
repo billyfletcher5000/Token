@@ -14,6 +14,7 @@ class CADENCE_API ICadenceTickableAction
 {
 	GENERATED_BODY()
 	
-public:	
+public:
+	virtual void Init() {}
 	virtual bool Tick(const float& InDeltaSeconds) = 0;
 };

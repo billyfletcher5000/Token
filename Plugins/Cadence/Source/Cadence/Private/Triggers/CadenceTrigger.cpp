@@ -3,7 +3,9 @@
 
 #include "Triggers/CadenceTrigger.h"
 
+#include "Cadence.h"
 #include "CadenceContext.h"
+#include "CadenceSubsystem.h"
 
 void UCadenceTriggerRunner::Trigger()
 {
@@ -61,4 +63,41 @@ void UCadenceTriggerSequenceRunner::OnCurrentTriggerTriggered(UCadenceTriggerRun
 {
 	InTrigger->OnTriggeredDelegate.RemoveDynamic(this, &UCadenceTriggerSequenceRunner::OnCurrentTriggerTriggered);
 	TriggerIndex++;
+}
+
+UCadenceTriggerSequenceSectionRunner* UCadenceTriggerSequenceSectionRunner::Create(UCadenceTriggerSequenceSectionData* InData)
+{	
+	UCadenceTriggerSequenceSectionRunner* Runner = NewObject<UCadenceTriggerSequenceSectionRunner>();
+	Runner->Data = InData;
+	return Runner;
+}
+
+void UCadenceTriggerSequenceSectionRunner::Init()
+{
+	Super::Init();
+
+	switch(Data->Phase)
+	{
+	case ECadenceTriggerSequenceSectionPhase::Start:
+		Data->AssetInstance->OnSectionStarted.AddUObject(this, &UCadenceTriggerSequenceSectionRunner::OnSectionPhaseComplete);
+		break;
+
+	case ECadenceTriggerSequenceSectionPhase::End:
+		Data->AssetInstance->OnSectionEnded.AddUObject(this, &UCadenceTriggerSequenceSectionRunner::OnSectionPhaseComplete);
+		break;
+
+	default:
+		UE_LOG(LogCadence, Error, TEXT("Unrecognised sequence section trigger phase!"));
+	}	
+}
+
+bool UCadenceTriggerSequenceSectionRunner::Tick(const float& InDeltaSeconds)
+{
+	return bIsConditionSatisfied;
+}
+
+void UCadenceTriggerSequenceSectionRunner::OnSectionPhaseComplete(FString InSectionName)
+{
+	if(!bIsConditionSatisfied && InSectionName == Data->SectionName)
+		bIsConditionSatisfied = true;
 }

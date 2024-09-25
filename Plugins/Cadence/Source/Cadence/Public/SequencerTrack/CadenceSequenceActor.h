@@ -7,6 +7,8 @@
 #include "Runtime/LevelSequence/Public/LevelSequenceActor.h"
 #include "CadenceSequenceActor.generated.h"
 
+class UMovieSceneSequencePlayer;
+
 /**
  * 
  */
@@ -28,4 +30,6 @@ private:
 
 	UFUNCTION()
 	void OnPlayerStopped();
+	
+	void OnPlayerUpdated(const UMovieSceneSequencePlayer& Player, FFrameTime CurrentTime, FFrameTime PreviousTime);
 };

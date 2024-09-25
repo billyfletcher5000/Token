@@ -3,8 +3,10 @@
 
 #include "SequencerTrack/CadenceSequenceActor.h"
 
+#include "Cadence.h"
 #include "CadenceSubsystem.h"
 #include "Runtime/LevelSequence/Public/LevelSequencePlayer.h"
+#include "MovieSceneSequencePlayer.h"
 
 
 void ACadenceSequenceActor::PostInitializeComponents()
@@ -18,6 +20,7 @@ void ACadenceSequenceActor::PostInitializeComponents()
 		Player->OnPlay.AddUniqueDynamic(this, &ACadenceSequenceActor::OnPlayerStarted);
 		Player->OnStop.AddUniqueDynamic(this, &ACadenceSequenceActor::OnPlayerStopped);
 		Player->OnFinished.AddUniqueDynamic(this, &ACadenceSequenceActor::OnPlayerStopped);
+		Player->OnSequenceUpdated().AddUObject(this, &ACadenceSequenceActor::OnPlayerUpdated);
 	}
 	
 	Super::PostInitializeComponents();
@@ -38,5 +41,14 @@ void ACadenceSequenceActor::OnPlayerStopped()
 	if(ensure(Subsystem))
 	{
 		Subsystem->Notify_SequenceEnd(CadenceGraph);
+	}
+}
+
+void ACadenceSequenceActor::OnPlayerUpdated(const UMovieSceneSequencePlayer& Player, FFrameTime CurrentTime, FFrameTime PreviousTime)
+{
+	UCadenceSubsystem* Subsystem = GetWorld()->GetSubsystem<UCadenceSubsystem>();
+	if(ensure(Subsystem))
+	{
+		Subsystem->Notify_SequenceUpdated(CadenceGraph, CurrentTime, PreviousTime);
 	}
 }

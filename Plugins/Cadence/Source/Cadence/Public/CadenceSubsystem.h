@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Graph/CadenceGraph.h"
 #include "Graph/CadenceGraphRunner.h"
+#include "Graph/Nodes/CadenceDurationNodes.h"
 #include "SequencerTrack/CadenceSequencerSection.h"
 #include "UObject/Object.h"
 #include "CadenceSubsystem.generated.h"
@@ -17,6 +18,8 @@ class UCadenceAsset;
 class UCadenceGraphRunner;
 class UQuartzClockHandle;
 
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FCadenceSectionDelegate, FString InSectionName);
 
 USTRUCT()
 struct FCadenceSectionTimingData
@@ -32,6 +35,12 @@ struct FCadenceSectionTimingData
 	UPROPERTY()
 	float EndTime;
 
+	UPROPERTY()
+	bool bHasStarted = false;
+
+	UPROPERTY()
+	bool bHasEnded = false;
+
 	float GetDuration() const { return EndTime - StartTime; }
 };
 
@@ -45,25 +54,30 @@ public:
 	virtual void BeginDestroy() override;
 	
 	void GenerateSectionDurationData(UCadenceSequencerSection* InStartSection);
+	float GetSectionDuration(const FString& SectionName);
 
 	UCadenceAsset* GetAsset() const { return Asset; }
 	
 	void SetRunner(UCadenceGraphRunner* InRunner);
 	UCadenceGraphRunner* GetRunner() const { return Runner; }
 
+	void NotifySequenceUpdated(FFrameTime InCurrentTime);
 	void NotifySequenceComplete() { bSequenceComplete = true; }	
-	void NotifyRunnerComplete() { Runner = nullptr; bRunnerComplete = true; }	
+	void NotifyRunnerComplete() { Runner = nullptr; bRunnerComplete = true; }
 
 	bool IsSequenceComplete() const { return bSequenceComplete; }
 	bool IsRunnerComplete() const { return bRunnerComplete; }
 	bool IsInstanceComplete() const { return bSequenceComplete && bRunnerComplete; }
+
+	FCadenceSectionDelegate OnSectionStarted;
+	FCadenceSectionDelegate OnSectionEnded;
 	
 private:
 	float GetAlignedTime(float TimeInSeconds, ECadenceSectionEdgeQuantizationType StartEdgeQuantizationType, EQuartzCommandQuantization QuartzCommandQuantization) const;
 	float GetStartFrameSeconds(UMovieSceneSection* Section);
 	float GetEndFrameSeconds(UMovieSceneSection* Section);
 	
-private:
+private:	
 	UPROPERTY()
 	TObjectPtr<UCadenceAsset> Asset;
 	
@@ -113,6 +127,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Notify_SequenceEnd(UCadenceAsset* CadenceAsset);
 
+	void Notify_SequenceUpdated(UCadenceAsset* CadenceAsset, FFrameTime CurrentTime, FFrameTime PreviousTime);
+
 protected:
 	friend UCadenceGraphRunner;
 
@@ -121,7 +137,7 @@ protected:
 	UCadenceAssetInstance* GetActiveAssetData(UCadenceAsset* InAsset);
 	UCadenceAssetInstance* GetActiveAssetData(ULevelSequence* InSequence);
 	UCadenceAssetInstance* GetActiveAssetData(UCadenceGraphRunner* InRunner);
-	UCadenceGraphRunner* CreateRunner(UCadenceAsset* CadenceAsset);
+	UCadenceGraphRunner* CreateRunner(UCadenceAssetInstance* AssetInstance);
 	void NotifyGraphComplete(UCadenceGraphRunner* InRunner);
 
 	static void LogOuterRelationships(UCadenceGraph* Copy, UCadenceGraph* Source);

@@ -14,7 +14,6 @@
 #include "Quartz/AudioMixerClockHandle.h"
 #include "Quartz/QuartzSubsystem.h"
 #include "SequencerTrack/CadenceSequencerSection.h"
-#include "SequencerTrack/CadenceSequencerTrack.h"
 
 void UCadenceAssetInstance::Init(UCadenceAsset* InAsset)
 {
@@ -71,13 +70,44 @@ void UCadenceAssetInstance::GenerateSectionDurationData(UCadenceSequencerSection
 	}
 }
 
+float UCadenceAssetInstance::GetSectionDuration(const FString& SectionName)
+{
+	for(FCadenceSectionTimingData& Data : TimingDataList)
+	{
+		if(Data.SectionName == SectionName)
+			return Data.GetDuration();
+	}
+
+	UE_LOG(LogCadence, Warning, TEXT("Cannot retrieve section duration for unrecognised section name: %s"), *SectionName);
+	return 0.0f;
+}
+
 void UCadenceAssetInstance::SetRunner(UCadenceGraphRunner* InRunner)
 {
 	if(Runner != InRunner)
 	{
 		Runner = InRunner;
 		bRunnerComplete = Runner == nullptr;
+		Runner->GetContext()->AssetInstance = this; //TODO: Restructure this
 	}	
+}
+
+void UCadenceAssetInstance::NotifySequenceUpdated(FFrameTime InCurrentTime)
+{
+	float Time = InCurrentTime.AsDecimal();
+	for(FCadenceSectionTimingData& Data : TimingDataList)
+	{
+		if(!Data.bHasStarted && Time > Data.StartTime)
+		{
+			Data.bHasStarted = true;
+			OnSectionStarted.Broadcast(Data.SectionName);
+		}
+		else if(!Data.bHasEnded && Time > Data.EndTime)
+		{
+			Data.bHasEnded = true;
+			OnSectionEnded.Broadcast(Data.SectionName);
+		}
+	}
 }
 
 float UCadenceAssetInstance::GetAlignedTime(float TimeInSeconds, ECadenceSectionEdgeQuantizationType EdgeQuantizationType, EQuartzCommandQuantization QuantizationBoundary) const
@@ -198,14 +228,15 @@ TStatId UCadenceSubsystem::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UCadenceSubsystem, STATGROUP_Tickables);
 }
 
-UCadenceGraphRunner* UCadenceSubsystem::CreateRunner(UCadenceAsset* CadenceAsset)
+UCadenceGraphRunner* UCadenceSubsystem::CreateRunner(UCadenceAssetInstance* AssetInstance)
 {	
 	UCadenceGraphRunner* Runner = NewObject<UCadenceGraphRunner>(this);
 	UCadenceContext* Context = NewObject<UCadenceContext>(Runner);
-	TObjectPtr<UCadenceGraph> Graph = CadenceAsset->GetGraph();
+	TObjectPtr<UCadenceGraph> Graph = AssetInstance->GetAsset()->GetGraph();
 	Context->SourceGraph = Graph;
 	Context->Graph = DuplicateObject(Graph, Context, "Graph");
-	Context->Asset = CadenceAsset;
+	Context->Asset = AssetInstance->GetAsset();
+	Context->AssetInstance = AssetInstance;
 	Context->ActorLifetimeManager = NewObject<UCadenceActorLifetimeManager>(Context);
 
 	LogOuterRelationships(Context->Graph, Graph);
@@ -223,10 +254,10 @@ void UCadenceSubsystem::Notify_SectionStart(UMovieSceneSequence* Sequence, UCade
 	ULevelSequence* LevelSequence = Cast<ULevelSequence>(Sequence);
 	UCadenceAssetInstance* Data = GetActiveAssetData(LevelSequence);
 	
-	if(!Data->IsRunnerComplete())
+	if(!Data->IsRunnerComplete() && Data->GetRunner() == nullptr)
 	{
 		Data->GenerateSectionDurationData(Section);
-		Data->SetRunner(CreateRunner(Data->GetAsset()));
+		Data->SetRunner(CreateRunner(Data));
 	}
 }
 
@@ -252,6 +283,15 @@ void UCadenceSubsystem::Notify_SequenceEnd(UCadenceAsset* CadenceAsset)
 		Data->NotifySequenceComplete();
 		if(Data->IsInstanceComplete())
 			ActiveAssets.Remove(Data);
+	}
+}
+
+void UCadenceSubsystem::Notify_SequenceUpdated(UCadenceAsset* CadenceAsset, FFrameTime CurrentTime,	FFrameTime PreviousTime)
+{
+	UCadenceAssetInstance* Data = GetActiveAssetData(CadenceAsset);
+	if(Data)
+	{
+		Data->NotifySequenceUpdated(CurrentTime);
 	}
 }
 

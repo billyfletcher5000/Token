@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Graph/CadenceGraphNode.h"
+#include "SequencerTrack/CadenceSequencerSection.h"
 #include "CadenceDurationNodes.generated.h"
+
+struct FCadenceSectionName;
 
 namespace FCadenceDurationConstants
 {
@@ -12,9 +15,6 @@ namespace FCadenceDurationConstants
 	static constexpr FLinearColor NodeTitleColor = FLinearColor(1.0f, 0.25f, 0.0f);
 }
 
-/**
- * 
- */
 UCLASS()
 class CADENCE_API UCadenceQuantizedDurationNode : public UCadenceGraphNode
 {
@@ -33,4 +33,24 @@ public:
 public:
 	UPROPERTY(EditAnywhere)
 	EQuartzCommandQuantization TimePeriod;
+};
+
+UCLASS()
+class CADENCE_API UCadenceSequenceSectionDurationNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateOutputPins() override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+
+	virtual bool IsPure() const override { return true; }
+
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Sequence Section Duration")); }
+	virtual FText GetNodeCategory() const override { return FCadenceDurationConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceDurationConstants::NodeTitleColor; }
+
+public:
+	UPROPERTY(EditAnywhere)
+	FCadenceSectionName Section;
 };

@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "CadenceContext.generated.h"
 
+class UCadenceAssetInstance;
 class UCadenceGraphNode;
 class UCadenceActorLifetimeManager;
 class UCadenceAsset;
@@ -34,6 +35,9 @@ public:
 
 	UPROPERTY()
 	TObjectPtr<UCadenceAsset> Asset;
+
+	UPROPERTY()
+	TObjectPtr<UCadenceAssetInstance> AssetInstance;
 
 	UPROPERTY()
 	TObjectPtr<UCadenceGraph> SourceGraph;

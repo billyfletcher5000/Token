@@ -3,6 +3,7 @@
 
 #include "Graph/Nodes/CadenceTriggerNodes.h"
 
+#include "CadenceSubsystem.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadencePinConstants.h"
 #include "Graph/CadenceVariable.h"
@@ -110,5 +111,15 @@ void UCadenceSequenceSectionTriggerNode::CreateOutputPins()
 
 ECadenceNodeExecuteResult UCadenceSequenceSectionTriggerNode::Execute(UCadenceContext* InContext)
 {
-	return Super::Execute(InContext);
+	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Trigger);
+	UCadenceVariableTrigger* OutputVariable = OutputPin->GetVariable<UCadenceVariableTrigger>();
+
+	UCadenceTriggerSequenceSectionData* Data = NewObject<UCadenceTriggerSequenceSectionData>();
+	Data->AssetInstance = InContext->AssetInstance;
+	Data->SectionName = Section.Name;
+	Data->Count = Count;
+	
+	OutputVariable->SetValue(Data);
+	
+	return ECadenceNodeExecuteResult::Complete;
 }
