@@ -7,6 +7,7 @@
 #include "Graph/CadenceGraph.h"
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorNode.h"
+#include "CadenceGraphEditorRerouteNode.h"
 #include "CadenceGraphSchema.h"
 #include "CadenceSequencerSectionNameCustomization.h"
 #include "EdGraphUtilities.h"
@@ -43,7 +44,7 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 	if(!WorkingGraphEditor)
 	{
 		UEdGraph* CreatedGraph = FBlueprintEditorUtils::CreateNewGraph(WorkingAsset, NAME_None, UCadenceGraphEditor::StaticClass(), UCadenceGraphSchema::StaticClass());	
-		WorkingGraphEditor = Cast<UCadenceGraphEditor>(CreatedGraph);		
+		WorkingGraphEditor = Cast<UCadenceGraphEditor>(CreatedGraph);
 	} 
 	
 	ensure(WorkingGraphEditor);
@@ -151,10 +152,22 @@ void FCadenceGraphApplication::ReconstructEditorGraph()
 	// Create nodes first
 	for(UCadenceGraphNode* RuntimeNode : RuntimeNodes)
 	{
-		FGraphNodeCreator<UCadenceGraphEditorNode> NodeCreator(*WorkingGraphEditor);
-        UCadenceGraphEditorNode* Node = NodeCreator.CreateNode(false);
-        Node->Construct(RuntimeNode);
-        NodeCreator.Finalize();
+		UCadenceGraphEditorNode* Node = nullptr;
+		
+		if(RuntimeNode->IsReroute())
+		{			
+			FGraphNodeCreator<UCadenceGraphEditorRerouteNode> NodeCreator(*WorkingGraphEditor);
+			Node = NodeCreator.CreateNode(false);
+			Node->Construct(RuntimeNode);
+			NodeCreator.Finalize();
+		}
+		else
+		{
+			FGraphNodeCreator<UCadenceGraphEditorNode> NodeCreator(*WorkingGraphEditor);
+			Node = NodeCreator.CreateNode(false);
+			Node->Construct(RuntimeNode);
+			NodeCreator.Finalize();
+		}		
         
         WorkingGraphEditor->AddNode(Node, true, true);
 	}

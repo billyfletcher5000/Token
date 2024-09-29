@@ -283,6 +283,8 @@ void UCadenceGraphSchema::OnPinConnectionDoubleCicked(UEdGraphPin* PinA, UEdGrap
 	UCadenceGraphEditorNode* InputEditorNode = Cast<UCadenceGraphEditorNode>(InputEdPin->GetOwningNode());
 	UCadenceGraphEditorNode* OutputEditorNode = Cast<UCadenceGraphEditorNode>(OutputEdPin->GetOwningNode());
 
+	UCadenceGraphEditor* EditorGraph = Cast<UCadenceGraphEditor>(InputEditorNode->GetGraph());
+
 	UCadenceGraphNode* InputRuntimeNode = InputEditorNode->GetRuntimeGraphNode();
 	UCadenceGraphNode* OutputRuntimeNode = OutputEditorNode->GetRuntimeGraphNode();
 
@@ -307,12 +309,18 @@ void UCadenceGraphSchema::OnPinConnectionDoubleCicked(UEdGraphPin* PinA, UEdGrap
 		return;
 	}
 
+	
+	RuntimeGraph->Modify();
+	RuntimeGraph->AddNode(RerouteNode);
+
 	BreakSinglePinLink(PinA, PinB);
 	
 	FGraphNodeCreator<UCadenceGraphEditorRerouteNode> NodeCreator(*InputEditorNode->GetGraph());
 	UCadenceGraphEditorRerouteNode* Node = NodeCreator.CreateNode(true);
 	Node->Construct(RerouteNode);
 	NodeCreator.Finalize();
+
+	EditorGraph->AddNode(Node, true, true);	
 
 	UEdGraphPin* RerouteInputEdPin = Node->GetInputPinByName(RerouteNode->GetRerouteInputPin()->GetPinName());
 	UEdGraphPin* RerouteOutputEdPin = Node->GetOutputPinByName(RerouteNode->GetRerouteOutputPin()->GetPinName());

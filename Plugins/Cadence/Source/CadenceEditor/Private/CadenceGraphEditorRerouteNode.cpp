@@ -8,14 +8,6 @@
 
 void UCadenceGraphEditorRerouteNode::AllocateDefaultPins()
 {
-	/*
-	const FName InputPinName(TEXT("InputPin"));
-	const FName OutputPinName(TEXT("OutputPin"));
-
-	UEdGraphPin* MyInputPin = CreatePin(EGPD_Input, UCadenceGraphSchema::PC_Wildcard, InputPinName);
-	MyInputPin->bDefaultValueIsIgnored = true;
-
-	CreatePin(EGPD_Output, UCadenceGraphSchema::PC_Wildcard, OutputPinName);*/
 }
 
 FText UCadenceGraphEditorRerouteNode::GetTooltipText() const
