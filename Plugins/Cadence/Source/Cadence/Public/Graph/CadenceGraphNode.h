@@ -36,6 +36,7 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const { return FLinearColor::Blue; }
 	
 	virtual bool IsPure() const { return false; }
+	virtual bool IsReroute() const { return false; }
 	virtual bool IsLatent() const { return false; }
 	virtual bool HasInputExecPin() const { return true; }
 	virtual bool HasOutputExecPin() const { return true; }
@@ -82,6 +83,9 @@ protected:
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
 	virtual bool RemoveInputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
 	virtual bool RemoveOutputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
+	virtual void RemoveAllInputPins();
+	virtual void RemoveAllOutputPins();
+	virtual void RemoveAllPins();
 
 private:
 	static TObjectPtr<UCadenceGraphNodePin> GetPinFromArray(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName);

@@ -173,11 +173,34 @@ bool UCadenceGraphNode::RemoveOutputPin(const TObjectPtr<UCadenceGraphNodePin>& 
 {
 	if(OutputPins.Contains(InPin))
 	{
+		InPin->ClearConnections();
 		OutputPins.Remove(InPin);
 		return true;
 	}
 
 	return false;
+}
+
+void UCadenceGraphNode::RemoveAllInputPins()
+{
+	for (UCadenceGraphNodePin* Pin : InputPins)
+		Pin->ClearConnections();
+
+	InputPins.Empty();
+}
+
+void UCadenceGraphNode::RemoveAllOutputPins()
+{
+	for (UCadenceGraphNodePin* Pin : OutputPins)
+		Pin->ClearConnections();
+
+	OutputPins.Empty();
+}
+
+void UCadenceGraphNode::RemoveAllPins()
+{
+	RemoveAllInputPins();
+	RemoveAllOutputPins();
 }
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetPinFromArray(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName)

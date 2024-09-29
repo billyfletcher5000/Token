@@ -6,15 +6,19 @@
 #include "Graph/CadenceGraph.h"
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorNode.h"
+#include "CadenceGraphEditorRerouteNode.h"
+#include "CadenceGraphPropertyCustomization.h"
 #include "Graph/CadenceGraphNode.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "CadenceGraphSchemaActions.h"
 #include "Graph/CadencePinConstants.h"
 #include "Graph/Nodes/CadenceUserVariableNodes.h"
 #include "Graph/CadenceVariable.h"
+#include "Graph/Nodes/CadenceRerouteNodes.h"
 
 const FName UCadenceGraphSchema::PC_Exec = TEXT("exec");
 const FName UCadenceGraphSchema::PC_Variable = TEXT("variable");
+const FName UCadenceGraphSchema::PC_Wildcard = TEXT("wildcard");
 
 UCadenceGraphSchema::UCadenceGraphSchema()
 {
@@ -85,13 +89,22 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 	if (!A || !B)
 		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Null pins!"));
 
+	if (A == B)
+		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Cannot connect a pin to itself!"));
+
+	if (A->GetOwningNode() == B->GetOwningNode())
+		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Cannot connect a node to itself!"));
+
 	if (A->Direction == B->Direction)
 		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Inputs can only connect to outputs!"));
 
-	if (A->PinType.PinCategory != B->PinType.PinCategory)
+	const FName PinACategory = A->PinType.PinCategory;
+	const FName PinBCategory = B->PinType.PinCategory;
+	
+	if (PinACategory != PinBCategory)
 		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Pins must be of same type or convertible!"));
 
-	if (A->PinType.PinCategory == PC_Variable)
+	if (PinACategory == PC_Variable || PinBCategory == PC_Variable)
 	{
 		const UCadenceGraphEditorNode* CadenceEditorNodeA = Cast<UCadenceGraphEditorNode>(A->GetOwningNode());
 		const UCadenceGraphEditorNode* CadenceEditorNodeB = Cast<UCadenceGraphEditorNode>(B->GetOwningNode());
@@ -102,17 +115,9 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 		UCadenceGraphNodePin* RuntimePinA = A->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeA->GetInputPin(A->PinName) : RuntimeNodeA->GetOutputPin(A->PinName);
 		UCadenceGraphNodePin* RuntimePinB = B->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeB->GetInputPin(B->PinName) : RuntimeNodeB->GetOutputPin(B->PinName);
 
-		if(RuntimePinA->GetVariableClass() != RuntimePinB->GetVariableClass())
+		if(RuntimePinA && RuntimePinB && RuntimePinA->GetVariableClass() != RuntimePinB->GetVariableClass())
 		{
 			return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Pins must be of same type or convertible!"));
-		}
-		else if(A->Direction == EGPD_Input)				
-		{
-			return FPinConnectionResponse(CONNECT_RESPONSE_BREAK_OTHERS_A, TEXT("Connection allowed!"));
-		}
-		else
-		{			
-			return FPinConnectionResponse(CONNECT_RESPONSE_BREAK_OTHERS_B, TEXT("Connection allowed!"));
 		}
 	}
 	
@@ -122,6 +127,9 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) const
 {
 	FPinConnectionResponse Response = CanCreateConnection(A, B);
+
+	if(Response.Response == CONNECT_RESPONSE_DISALLOW)
+		return false;
 
 	UCadenceGraphEditorNode* EditorNodeA = Cast<UCadenceGraphEditorNode>(A->GetOwningNode());
 	UCadenceGraphEditorNode* EditorNodeB = Cast<UCadenceGraphEditorNode>(B->GetOwningNode());
@@ -135,9 +143,29 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 
 	ensure(RuntimeNodeA);
 	ensure(RuntimeNodeB);
-	
+
 	UCadenceGraphNodePin* RuntimePinA = A->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeA->GetInputPin(A->PinName) : RuntimeNodeA->GetOutputPin(A->PinName);
 	UCadenceGraphNodePin* RuntimePinB = B->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeB->GetInputPin(B->PinName) : RuntimeNodeB->GetOutputPin(B->PinName);
+	
+	if(UCadenceSimpleRerouteNode* RerouteNode = Cast<UCadenceSimpleRerouteNode>(RuntimeNodeA))
+	{		
+		if(RuntimePinB->IsExec())
+			RerouteNode->SetAsExecReroute();
+		else
+			RerouteNode->SetVariableType(RuntimePinB->GetVariableClass());
+
+		RuntimePinA = A->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeA->GetInputPin(A->PinName) : RuntimeNodeA->GetOutputPin(A->PinName);
+	}
+
+	if(UCadenceSimpleRerouteNode* RerouteNode = Cast<UCadenceSimpleRerouteNode>(RuntimeNodeB))
+	{		
+		if(RuntimePinA->IsExec())
+			RerouteNode->SetAsExecReroute();
+		else
+			RerouteNode->SetVariableType(RuntimePinA->GetVariableClass());
+
+		RuntimePinB = B->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeB->GetInputPin(B->PinName) : RuntimeNodeB->GetOutputPin(B->PinName);
+	}	
 
 	ensure(RuntimePinA);
 	ensure(RuntimePinB);
@@ -199,6 +227,9 @@ void UCadenceGraphSchema::BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNodeN
 
 		ensure(RuntimePin);
 		RuntimePin->ClearConnections();
+		
+		if(UCadenceSimpleRerouteNode* RerouteNode = Cast<UCadenceSimpleRerouteNode>(RuntimePin->GetParentNode()))
+			RerouteNode->CheckRerouteTypeValid();
 	}
 	
 	Super::BreakPinLinks(TargetPin, bSendsNodeNotifcation);
@@ -227,9 +258,67 @@ void UCadenceGraphSchema::BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin
 
 		RuntimeSourcePin->DisconnectPin(RuntimeTargetPin);
 		RuntimeTargetPin->DisconnectPin(RuntimeSourcePin);
+
+		if(UCadenceSimpleRerouteNode* RerouteNode = Cast<UCadenceSimpleRerouteNode>(RuntimeSourcePin->GetParentNode()))
+			RerouteNode->CheckRerouteTypeValid();
+
+		if(UCadenceSimpleRerouteNode* RerouteNode = Cast<UCadenceSimpleRerouteNode>(RuntimeTargetPin->GetParentNode()))
+			RerouteNode->CheckRerouteTypeValid();
 	}
 	
 	Super::BreakSinglePinLink(SourcePin, TargetPin);
+}
+
+void UCadenceGraphSchema::OnPinConnectionDoubleCicked(UEdGraphPin* PinA, UEdGraphPin* PinB, const FVector2D& GraphPosition) const
+{	
+	const FScopedTransaction Transaction(FText::FromString("Create Reroute Node"));
+
+	//@TODO: This constant is duplicated from inside of SGraphNodeKnot
+	const FVector2D NodeSpacerSize(42.0f, 24.0f);
+	const FVector2D KnotTopLeft = GraphPosition - (NodeSpacerSize * 0.5f);
+
+	UEdGraphPin* InputEdPin = PinA->Direction == EEdGraphPinDirection::EGPD_Output ? PinA : PinB;
+	UEdGraphPin* OutputEdPin = PinA->Direction == EEdGraphPinDirection::EGPD_Input ? PinA : PinB;
+
+	UCadenceGraphEditorNode* InputEditorNode = Cast<UCadenceGraphEditorNode>(InputEdPin->GetOwningNode());
+	UCadenceGraphEditorNode* OutputEditorNode = Cast<UCadenceGraphEditorNode>(OutputEdPin->GetOwningNode());
+
+	UCadenceGraphNode* InputRuntimeNode = InputEditorNode->GetRuntimeGraphNode();
+	UCadenceGraphNode* OutputRuntimeNode = OutputEditorNode->GetRuntimeGraphNode();
+
+	UCadenceGraphNodePin* InputRuntimePin = InputRuntimeNode->GetOutputPin(InputEdPin->PinName);
+	UCadenceGraphNodePin* OutputRuntimePin = OutputRuntimeNode->GetInputPin(OutputEdPin->PinName);
+	
+	UCadenceGraph* RuntimeGraph = InputRuntimeNode->GetParentGraph();
+
+	UCadenceSimpleRerouteNode* RerouteNode = Cast<UCadenceSimpleRerouteNode>(RuntimeGraph->CreateNode(UCadenceSimpleRerouteNode::StaticClass(), KnotTopLeft));
+	if(InputRuntimePin->IsExec() && OutputRuntimePin->IsExec())
+	{
+		RerouteNode->SetAsExecReroute();
+	}
+	else if(InputRuntimePin->GetVariableClass() == OutputRuntimePin->GetVariableClass())
+	{
+		RerouteNode->SetVariableType(InputRuntimePin->GetVariableClass());
+	}
+	else
+	{
+		UE_LOG(LogCadenceEditor, Error, TEXT("Attempt to create reroute node using an already invalid connection!"));
+		RuntimeGraph->RemoveNode(RerouteNode);
+		return;
+	}
+
+	BreakSinglePinLink(PinA, PinB);
+	
+	FGraphNodeCreator<UCadenceGraphEditorRerouteNode> NodeCreator(*InputEditorNode->GetGraph());
+	UCadenceGraphEditorRerouteNode* Node = NodeCreator.CreateNode(true);
+	Node->Construct(RerouteNode);
+	NodeCreator.Finalize();
+
+	UEdGraphPin* RerouteInputEdPin = Node->GetInputPinByName(RerouteNode->GetRerouteInputPin()->GetPinName());
+	UEdGraphPin* RerouteOutputEdPin = Node->GetOutputPinByName(RerouteNode->GetRerouteOutputPin()->GetPinName());
+	
+	TryCreateConnection(InputEdPin, RerouteInputEdPin);
+	TryCreateConnection(RerouteOutputEdPin, OutputEdPin);		
 }
 
 FLinearColor UCadenceGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType) const
@@ -237,10 +326,10 @@ FLinearColor UCadenceGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType
 	if (PinType.PinCategory == PC_Exec)
 		return FLinearColor::Gray;
 	
-	if(SubCategoryToColor.Contains(PinType.PinSubCategory))
+	if (SubCategoryToColor.Contains(PinType.PinSubCategory))
 		return SubCategoryToColor[PinType.PinSubCategory];
 	
-	return FLinearColor::Blue;
+	return FLinearColor::Gray;
 }
 
 FText UCadenceGraphSchema::GetPinDisplayName(const UEdGraphPin* Pin) const

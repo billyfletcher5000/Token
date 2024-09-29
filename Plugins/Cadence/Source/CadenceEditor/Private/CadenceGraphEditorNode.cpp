@@ -11,6 +11,7 @@
 #include "CadenceGraphSchema.h"
 #include "CadenceGraphUtility.h"
 #include "GraphEditorSettings.h"
+#include "SGraphNodeKnot.h"
 #include "Framework/Commands/GenericCommands.h"
 
 void UCadenceGraphEditorNode::Construct(TObjectPtr<UCadenceGraphNode> InRuntimeGraphNode)
