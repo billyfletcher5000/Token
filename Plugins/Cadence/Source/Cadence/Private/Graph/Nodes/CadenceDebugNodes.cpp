@@ -17,7 +17,7 @@ void UCadenceDebugIntNode::CreateInputPins()
 
 ECadenceNodeExecuteResult UCadenceDebugIntNode::Execute(UCadenceContext* InContext)
 {
-	TObjectPtr<UCadenceGraphNodePin> Pin = GetInputPin(FCadencePinConstants::Pin_Float);
+	TObjectPtr<UCadenceGraphNodePin> Pin = GetInputPin(FCadencePinConstants::Pin_Int);
 	ensure(Pin);
 
 	UCadenceVariableInt* Variable = Pin->GetVariable<UCadenceVariableInt>();

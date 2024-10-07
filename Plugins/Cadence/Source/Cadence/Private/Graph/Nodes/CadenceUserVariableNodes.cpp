@@ -53,7 +53,7 @@ ECadenceNodeExecuteResult UCadenceUserVariableSetterNode::Execute(UCadenceContex
 	if(ensure(ConnectedInputPins.Num() == 1))
 	{
 		UCadenceVariable* InVariable = ConnectedInputPins[0]->GetVariable();
-		UE_LOG(LogCadence, Log, TEXT("PropagateOutputPinsToInputPins Pre-CopyValue: %s - %s"), *GetName(), *ConnectedInputPins[0]->GetGUID().ToString());
+		UE_LOG(LogCadence, Log, TEXT("UCadenceUserVariableSetterNode::Execute Pre-CopyValue: %s - %s"), *GetDebugName(), *ConnectedInputPins[0]->GetGUID().ToString());
 		InContext->ParentNode = this;
 		SourceVariable->CopyValueFrom(InVariable, InContext);
 	}

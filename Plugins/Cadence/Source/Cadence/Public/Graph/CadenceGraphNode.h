@@ -69,7 +69,8 @@ public:
 	void SetGraphPosition(const double& X, const double& Y) { GraphPosition.X = X; GraphPosition.Y = Y; }
 
 	FGuid GetGUID() const { return GUID; }
-
+	FString GetDebugName() const { return DebugName; }
+	
 #if WITH_EDITOR
 	virtual bool CanBeAutoCreated() const { return true; }
 #endif
@@ -104,6 +105,9 @@ public:
 	FVector2D GraphPosition;
 
 private:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, NonPIEDuplicateTransient, TextExportTransient, NonTransactional)
 	FGuid GUID;
+
+	UPROPERTY(EditAnywhere)
+	FString DebugName;
 };

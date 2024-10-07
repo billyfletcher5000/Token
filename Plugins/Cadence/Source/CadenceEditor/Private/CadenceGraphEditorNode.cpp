@@ -13,6 +13,7 @@
 #include "GraphEditorSettings.h"
 #include "SGraphNodeKnot.h"
 #include "Framework/Commands/GenericCommands.h"
+#include "Graph/CadencePinConstants.h"
 
 void UCadenceGraphEditorNode::Construct(TObjectPtr<UCadenceGraphNode> InRuntimeGraphNode)
 {
@@ -192,7 +193,11 @@ void UCadenceGraphEditorNode::CreatePinInternal(const EEdGraphPinDirection& InDi
 			InPin->GetPinName()
 		);
 
-	if(!InPin->IsExec())
+	if(InPin->GetPinName() == FCadencePinConstants::Pin_Wildcard)
+	{
+		InputPin->PinType.PinSubCategory = FCadencePinConstants::Pin_Wildcard;
+	}
+	else if(!InPin->IsExec())
 	{
 		UCadenceVariable* VariableDefault = InPin->GetVariableClass()->GetDefaultObject<UCadenceVariable>();
 		InputPin->PinType.PinSubCategory = VariableDefault->GetPinSubCategory();

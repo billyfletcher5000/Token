@@ -4,35 +4,49 @@
 
 #include "CoreMinimal.h"
 #include "Graph/CadenceGraphNode.h"
+#include "Graph/CadenceGraphNodePin.h"
 #include "UObject/Object.h"
 #include "CadenceRerouteNodes.generated.h"
 
 class UCadenceVariable;
 
-UCLASS()
-class CADENCE_API UCadenceSimpleRerouteNode : public UCadenceGraphNode
+UCLASS(Abstract)
+class CADENCE_API UCadenceRerouteNodeBase : public UCadenceGraphNode
 {
 	GENERATED_BODY()
 
 public:
 	virtual bool IsPure() const override { return !bIsExecReroute; }
 	virtual bool IsReroute() const override { return true; }
-	
-	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext);
+
+	// Reroute nodes should never execute
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override final { return ECadenceNodeExecuteResult::Failed; }
 
 	virtual void SetAsExecReroute();
 	virtual void SetVariableType(const TSubclassOf<UCadenceVariable>& InVariableType);
-	void Clear();
-	void CheckRerouteTypeValid();
+	virtual void Clear();
+	virtual void CheckRerouteTypeValid();
+
 	virtual TSubclassOf<UCadenceVariable> GetVariableType() const { return VariableType; }
 
-	UCadenceGraphNodePin* GetRerouteInputPin() const;
-	UCadenceGraphNodePin* GetRerouteOutputPin() const;
+	virtual UCadenceGraphNodePin* GetRerouteInputPin() const;
+	virtual UCadenceGraphNodePin* GetRerouteOutputPin() const;
+	UCadenceGraphNode* GetRerouteInputNode() const;
+	TArray<UCadenceGraphNodePin*> GetRerouteOutputNodeConnectedInputPins() const;
 
+private:	
+	void GetRerouteOutputNodeConnectedInputPins(TArray<UCadenceGraphNodePin*>& InResult) const;
+	
 protected:
 	UPROPERTY()
 	bool bIsExecReroute = false;
 	
 	UPROPERTY()
 	TSubclassOf<UCadenceVariable> VariableType = nullptr;
+};
+
+UCLASS()
+class CADENCE_API UCadenceSimpleRerouteNode : public UCadenceRerouteNodeBase
+{	
+	GENERATED_BODY()
 };

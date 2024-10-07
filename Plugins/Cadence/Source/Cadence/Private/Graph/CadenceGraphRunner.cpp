@@ -9,6 +9,7 @@
 #include "Graph/CadenceGraphNodePin.h"
 #include "CadenceSubsystem.h"
 #include "Graph/CadenceVariable.h"
+#include "Graph/Nodes/CadenceRerouteNodes.h"
 
 void UCadenceGraphRunner::Init(UCadenceContext* InContext)
 {
@@ -195,9 +196,21 @@ void UCadenceGraphRunnerPathway::GatherPureNodesContributingToPin(UCadenceGraphN
 	
 	UCadenceGraphNodePin* ConnectedOutputPin = ConnectedOutputPins[0];
 	UCadenceGraphNode* ConnectedNode = ConnectedOutputPin->GetParentNode();
+	if(ConnectedNode->IsReroute())
+	{
+		UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceSimpleRerouteNode>(ConnectedNode);
+		ensure(RerouteNode);
+
+		ConnectedNode = RerouteNode->GetRerouteInputNode();
+
+		if(ConnectedNode == nullptr)
+			return;
+	}	
+	
 	if(ConnectedNode->IsPure())
 	{
-		InNodeStack.Add(ConnectedNode);
+		if(!ConnectedNode->IsReroute())
+			InNodeStack.Add(ConnectedNode);
 
 		TArray<UCadenceGraphNodePin*> InputPins = ConnectedNode->InputPins;
 		for(UCadenceGraphNodePin* InputPin : InputPins)
@@ -219,7 +232,7 @@ void UCadenceGraphRunnerPathway::ReleaseInputPinVariables(UCadenceGraphNode* InN
 		UCadenceVariable* Variable = InputPin->GetVariable();
 		if(ensure(Variable))
 		{
-			UE_LOG(LogCadence, Log, TEXT("ReleaseInputPinVariables Pre-Unregister: %s - %s"), *InNode->GetName(), *InputPin->GetGUID().ToString());
+			UE_LOG(LogCadence, Log, TEXT("ReleaseInputPinVariables Pre-Unregister: %s - %s"), *InNode->GetDebugName(), *InputPin->GetGUID().ToString());
 			Variable->OnParentNodeReleased(InContext);
 		}
 	}
@@ -233,15 +246,35 @@ void UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins(UCadenceGraphNod
 		if(OutputPin->IsExec())
 			continue;
 		
+		TArray<UCadenceGraphNodePin*> InputPinsToPropagateTo;		
 		TArray<UCadenceGraphNodePin*> ConnectedInputPins = OutputPin->GetConnectedPins();
+		
 		for (UCadenceGraphNodePin* ConnectedPin : ConnectedInputPins)
-		{			
-			UE_LOG(LogCadence, Log, TEXT("PropagateOutputPinsToInputPins Pre-CopyValue: %s - %s"), *InNode->GetName(), *ConnectedPin->GetGUID().ToString());
-			InContext->ParentNode = ConnectedPin->GetParentNode();
-			ConnectedPin->GetVariable()->CopyValueFrom(OutputPin->GetVariable(), InContext);			
+		{
+			UCadenceGraphNode* ParentNode = ConnectedPin->GetParentNode();
+			UCadenceGraphNode* Node = ConnectedPin->GetParentNode();
+			
+			if(Node->IsReroute())
+			{
+				UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(Node);
+				ensure(RerouteNode);
+				InputPinsToPropagateTo.Append(RerouteNode->GetRerouteOutputNodeConnectedInputPins());
+			}
+			else
+			{
+				InputPinsToPropagateTo.Add(ConnectedPin);
+			}			
 		}
 
-		UE_LOG(LogCadence, Log, TEXT("PropagateOutputPinsToInputPins Pre-Unregister: %s - %s"), *InNode->GetName(), *OutputPin->GetGUID().ToString());
+		for (UCadenceGraphNodePin* InputPin : InputPinsToPropagateTo)
+		{			
+			UE_LOG(LogCadence, Log, TEXT("UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins Pre-CopyValue: %s - %s"), *InNode->GetDebugName(), *InputPin->GetGUID().ToString());
+			UCadenceGraphNode* Node = InputPin->GetParentNode();
+			InContext->ParentNode = Node;
+			InputPin->GetVariable()->CopyValueFrom(OutputPin->GetVariable(), InContext);
+		}
+
+		UE_LOG(LogCadence, Log, TEXT("UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins Pre-Unregister: %s - %s"), *InNode->GetDebugName(), *OutputPin->GetGUID().ToString());
 		OutputPin->GetVariable()->OnParentNodeReleased(InContext);
 	}
 }
@@ -252,21 +285,40 @@ void UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins(UCadenceGraphNod
 	for (UCadenceGraphNodePin* OutputPin : OutputPins)
 	{
 		if(OutputPin->IsExec())
-			continue;
+			continue;		
 		
+		TArray<UCadenceGraphNodePin*> InputPinsToPropagateTo;		
 		TArray<UCadenceGraphNodePin*> ConnectedInputPins = OutputPin->GetConnectedPins();
+		
 		for (UCadenceGraphNodePin* ConnectedPin : ConnectedInputPins)
 		{
 			UCadenceGraphNode* ParentNode = ConnectedPin->GetParentNode();
 			if(InEndNode == ParentNode || InAllowedNodes.Contains(ParentNode))
 			{
-				UE_LOG(LogCadence, Log, TEXT("PropagateOutputPinsToInputPins Pre-CopyValue: %s - %s"), *InNode->GetName(), *ConnectedPin->GetGUID().ToString());
-				InContext->ParentNode = ConnectedPin->GetParentNode();
-				ConnectedPin->GetVariable()->CopyValueFrom(OutputPin->GetVariable(), InContext);
+				UCadenceGraphNode* Node = ConnectedPin->GetParentNode();
+				
+				if(Node->IsReroute())
+				{
+					UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(Node);
+					ensure(RerouteNode);
+					InputPinsToPropagateTo.Append(RerouteNode->GetRerouteOutputNodeConnectedInputPins());
+				}
+				else
+				{
+					InputPinsToPropagateTo.Add(ConnectedPin);
+				}
 			}
 		}
 
-		UE_LOG(LogCadence, Log, TEXT("PropagateOutputPinsToInputPins Pre-Unregister: %s - %s"), *InNode->GetName(), *OutputPin->GetGUID().ToString());
+		for (UCadenceGraphNodePin* InputPin : InputPinsToPropagateTo)
+		{			
+			UE_LOG(LogCadence, Log, TEXT("UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins Pre-CopyValue: %s - %s"), *InNode->GetDebugName(), *InputPin->GetGUID().ToString());
+			UCadenceGraphNode* Node = InputPin->GetParentNode();
+			InContext->ParentNode = Node;
+			InputPin->GetVariable()->CopyValueFrom(OutputPin->GetVariable(), InContext);
+		}
+
+		UE_LOG(LogCadence, Log, TEXT("UCadenceGraphRunnerPathway::PropagateOutputPinsToInputPins Pre-Unregister: %s - %s"), *InNode->GetDebugName(), *OutputPin->GetGUID().ToString());
 		OutputPin->GetVariable()->OnParentNodeReleased(InContext);
-	}
+	}	
 }

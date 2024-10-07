@@ -6,30 +6,34 @@
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadencePinConstants.h"
 #include "Graph/CadenceVariable.h"
-
-ECadenceNodeExecuteResult UCadenceSimpleRerouteNode::Execute(UCadenceContext* InContext)
+/*
+ECadenceNodeExecuteResult UCadenceRerouteNodeBase::Execute(UCadenceContext* InContext)
 {
 	if(!bIsExecReroute && VariableType != nullptr)
 	{
 		UCadenceGraphNodePin* InputPin = GetRerouteInputPin();
 		UCadenceGraphNodePin* OutputPin = GetRerouteOutputPin();
-
-		OutputPin->GetVariable()->CopyValueFrom(InputPin->GetVariable());
-	}	
+		
+		UE_LOG(LogCadence, Log, TEXT("UCadenceSimpleRerouteNode::Execute Pre-CopyValue: %s - %s"), *GetDebugName(), *InputPin->GetGUID().ToString());
+		InContext->ParentNode = this;
+		OutputPin->GetVariable()->CopyValueFrom(InputPin->GetVariable(), InContext);
+	}
 	
 	return ECadenceNodeExecuteResult::Complete;
-}
+}*/
 
-void UCadenceSimpleRerouteNode::SetAsExecReroute()
+void UCadenceRerouteNodeBase::SetAsExecReroute()
 {
 	if(!bIsExecReroute)
 	{
 		bIsExecReroute = true;
 		RemoveAllPins();
+		AddInputExecPin(FCadencePinConstants::Pin_Default_Exec);
+		AddOutputExecPin(FCadencePinConstants::Pin_Default_Then);
 	}
 }
 
-void UCadenceSimpleRerouteNode::SetVariableType(const TSubclassOf<UCadenceVariable>& InVariableType)
+void UCadenceRerouteNodeBase::SetVariableType(const TSubclassOf<UCadenceVariable>& InVariableType)
 {
 	if(VariableType != InVariableType)
 	{
@@ -40,7 +44,7 @@ void UCadenceSimpleRerouteNode::SetVariableType(const TSubclassOf<UCadenceVariab
 	}
 }
 
-void UCadenceSimpleRerouteNode::Clear()
+void UCadenceRerouteNodeBase::Clear()
 {
 	if(VariableType != nullptr)
 	{
@@ -51,7 +55,7 @@ void UCadenceSimpleRerouteNode::Clear()
 	RemoveAllPins();
 }
 
-void UCadenceSimpleRerouteNode::CheckRerouteTypeValid()
+void UCadenceRerouteNodeBase::CheckRerouteTypeValid()
 {
 	if(bIsExecReroute || VariableType != nullptr)
 	{
@@ -60,12 +64,64 @@ void UCadenceSimpleRerouteNode::CheckRerouteTypeValid()
 	}
 }
 
-UCadenceGraphNodePin* UCadenceSimpleRerouteNode::GetRerouteInputPin() const
+UCadenceGraphNodePin* UCadenceRerouteNodeBase::GetRerouteInputPin() const
 {	
 	return GetInputPin(FCadencePinConstants::Pin_Wildcard);
 }
 
-UCadenceGraphNodePin* UCadenceSimpleRerouteNode::GetRerouteOutputPin() const
+UCadenceGraphNodePin* UCadenceRerouteNodeBase::GetRerouteOutputPin() const
 {
 	return GetOutputPin(FCadencePinConstants::Pin_Wildcard);
+}
+
+UCadenceGraphNode* UCadenceRerouteNodeBase::GetRerouteInputNode() const
+{
+	if(const UCadenceGraphNodePin* Pin = GetRerouteInputPin())
+	{
+		auto& ConnectedPins = Pin->GetConnectedPins();
+		if(ConnectedPins.Num() > 0)
+		{
+			UCadenceGraphNode* ConnectedNode = ConnectedPins[0]->GetParentNode();
+			if(ConnectedNode->IsReroute())
+			{
+				const UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(ConnectedNode);
+				ensure(RerouteNode);
+				return RerouteNode->GetRerouteInputNode();
+			}
+
+			return ConnectedNode;
+		}
+	}
+	
+	return nullptr;
+}
+
+TArray<UCadenceGraphNodePin*> UCadenceRerouteNodeBase::GetRerouteOutputNodeConnectedInputPins() const
+{
+	TArray<UCadenceGraphNodePin*> Result;
+
+	GetRerouteOutputNodeConnectedInputPins(Result);
+
+	return Result;
+}
+
+void UCadenceRerouteNodeBase::GetRerouteOutputNodeConnectedInputPins(TArray<UCadenceGraphNodePin*>& InResult) const
+{
+	UCadenceGraphNodePin* OutputPin = GetRerouteOutputPin();
+
+	auto& ConnectedInputPins = OutputPin->GetConnectedPins();
+	for (UCadenceGraphNodePin* ConnectedInputPin : ConnectedInputPins)
+	{
+		UCadenceGraphNode* ConnectedNode = ConnectedInputPin->GetParentNode();
+		if(ConnectedNode->IsReroute())
+		{
+			const UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(ConnectedNode);
+			ensure(RerouteNode);
+			RerouteNode->GetRerouteOutputNodeConnectedInputPins(InResult);
+		}
+		else
+		{
+			InResult.Add(ConnectedInputPin);
+		}
+	}
 }

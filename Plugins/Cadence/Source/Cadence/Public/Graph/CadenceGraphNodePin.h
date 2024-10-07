@@ -35,7 +35,13 @@ public:
 	
 	void GenerateGUID();
 	void SetGUID(const FGuid& InGUID) { GUID = InGUID; }
-	FGuid GetGUID() const { return GUID; }
+	FGuid GetGUID()
+	{
+		if(!GUID.IsValid())
+			GenerateGUID();
+		
+		return GUID;
+	}
 
 	bool IsExec() const { return bIsExec; }
 	void SetIsExec(const bool& InIsExec) { bIsExec = InIsExec; }
@@ -59,7 +65,7 @@ private:
 	UPROPERTY()
 	FName PinName;
 	
-	UPROPERTY()
+	UPROPERTY(NonPIEDuplicateTransient, TextExportTransient, NonTransactional)
 	FGuid GUID;
 
 	UPROPERTY()

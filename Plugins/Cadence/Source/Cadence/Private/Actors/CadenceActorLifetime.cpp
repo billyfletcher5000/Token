@@ -45,7 +45,7 @@ void UCadenceActorLifetimeManager::RegisterActorUsage(AActor* InActor, const FGu
 	if(LifetimeData && ensure(PinVariableGUID.IsValid()) && ensure(InParentNode))
 	{
 		int32 UsageCount = InParentNode->GetParentGraph()->GetRootExecNodesThatLeadToNode(InParentNode).Num();
-		UE_LOG(LogCadence, Log, TEXT("RegisterActorUsage: Actor: %s Node: %s Count: %d GUID: %s"), *InActor->GetName(), *InParentNode->GetName(), UsageCount, *PinVariableGUID.ToString());
+		UE_LOG(LogCadence, Log, TEXT("RegisterActorUsage: Actor: %s Node: %s Count: %d GUID: %s"), *InActor->GetName(), *InParentNode->GetDebugName(), UsageCount, *PinVariableGUID.ToString());
 		for(int32 UsageIndex = 0; UsageIndex < UsageCount; ++UsageIndex)
 		{
 			LifetimeData->UsageGUIDs.Add(PinVariableGUID);

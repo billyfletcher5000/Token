@@ -7,6 +7,7 @@
 #include "CadenceContext.h"
 #include "Actors/CadenceActorLifetime.h"
 #include "UObject/Object.h"
+#include "CadenceGraphNode.h"
 #include "CadenceVariable.generated.h"
 
 class UCadenceTriggerData;
@@ -309,7 +310,7 @@ public:
 		if(InContext)
 		{
 			FGuid TempGUID = GetGUID();
-			UE_LOG(LogCadence, Log, TEXT("CopyValueFrom Register: %s - This - %s - Other - %s"), *GetName(), *TempGUID.ToString(), *OtherVariable->GetGUID().ToString());
+			UE_LOG(LogCadence, Log, TEXT("CopyValueFrom Register: %s - This - %s - Other - %s - Node - %s"), *GetName(), *TempGUID.ToString(), *OtherVariable->GetGUID().ToString(), *InContext->ParentNode->GetName());
 			InContext->ActorLifetimeManager->RegisterActorUsage(Value, TempGUID, InContext->ParentNode);
 		}
 	}

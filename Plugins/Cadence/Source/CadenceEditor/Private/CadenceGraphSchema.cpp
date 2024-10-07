@@ -147,7 +147,7 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 	UCadenceGraphNodePin* RuntimePinA = A->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeA->GetInputPin(A->PinName) : RuntimeNodeA->GetOutputPin(A->PinName);
 	UCadenceGraphNodePin* RuntimePinB = B->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeB->GetInputPin(B->PinName) : RuntimeNodeB->GetOutputPin(B->PinName);
 	
-	if(UCadenceSimpleRerouteNode* RerouteNode = Cast<UCadenceSimpleRerouteNode>(RuntimeNodeA))
+	if(UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(RuntimeNodeA))
 	{		
 		if(RuntimePinB->IsExec())
 			RerouteNode->SetAsExecReroute();
@@ -157,7 +157,7 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 		RuntimePinA = A->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeA->GetInputPin(A->PinName) : RuntimeNodeA->GetOutputPin(A->PinName);
 	}
 
-	if(UCadenceSimpleRerouteNode* RerouteNode = Cast<UCadenceSimpleRerouteNode>(RuntimeNodeB))
+	if(UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(RuntimeNodeB))
 	{		
 		if(RuntimePinA->IsExec())
 			RerouteNode->SetAsExecReroute();
@@ -228,7 +228,7 @@ void UCadenceGraphSchema::BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNodeN
 		ensure(RuntimePin);
 		RuntimePin->ClearConnections();
 		
-		if(UCadenceSimpleRerouteNode* RerouteNode = Cast<UCadenceSimpleRerouteNode>(RuntimePin->GetParentNode()))
+		if(UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(RuntimePin->GetParentNode()))
 			RerouteNode->CheckRerouteTypeValid();
 	}
 	
@@ -259,10 +259,10 @@ void UCadenceGraphSchema::BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin
 		RuntimeSourcePin->DisconnectPin(RuntimeTargetPin);
 		RuntimeTargetPin->DisconnectPin(RuntimeSourcePin);
 
-		if(UCadenceSimpleRerouteNode* RerouteNode = Cast<UCadenceSimpleRerouteNode>(RuntimeSourcePin->GetParentNode()))
+		if(UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(RuntimeSourcePin->GetParentNode()))
 			RerouteNode->CheckRerouteTypeValid();
 
-		if(UCadenceSimpleRerouteNode* RerouteNode = Cast<UCadenceSimpleRerouteNode>(RuntimeTargetPin->GetParentNode()))
+		if(UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(RuntimeTargetPin->GetParentNode()))
 			RerouteNode->CheckRerouteTypeValid();
 	}
 	
@@ -293,7 +293,7 @@ void UCadenceGraphSchema::OnPinConnectionDoubleCicked(UEdGraphPin* PinA, UEdGrap
 	
 	UCadenceGraph* RuntimeGraph = InputRuntimeNode->GetParentGraph();
 
-	UCadenceSimpleRerouteNode* RerouteNode = Cast<UCadenceSimpleRerouteNode>(RuntimeGraph->CreateNode(UCadenceSimpleRerouteNode::StaticClass(), KnotTopLeft));
+	UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(RuntimeGraph->CreateNode(UCadenceRerouteNodeBase::StaticClass(), KnotTopLeft));
 	if(InputRuntimePin->IsExec() && OutputRuntimePin->IsExec())
 	{
 		RerouteNode->SetAsExecReroute();
@@ -333,6 +333,9 @@ FLinearColor UCadenceGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType
 {
 	if (PinType.PinCategory == PC_Exec)
 		return FLinearColor::Gray;
+
+	if (PinType.PinSubCategory == FCadencePinConstants::Pin_Wildcard)
+		return FLinearColor(0.5f, 0.5f, 0.5f);
 	
 	if (SubCategoryToColor.Contains(PinType.PinSubCategory))
 		return SubCategoryToColor[PinType.PinSubCategory];

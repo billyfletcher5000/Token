@@ -11,6 +11,7 @@
 void UCadenceGraphNode::GenerateGUID()
 {
 	GUID = FGuid::NewGuid();
+	DebugName = GetName();
 }
 
 void UCadenceGraphNode::DestroyNode()
