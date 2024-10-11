@@ -36,6 +36,13 @@ void UCadenceGraphRunner::Tick(const float& InDeltaSeconds)
 		Pathway->Tick(InDeltaSeconds);
 	}
 
+	for(UCadenceGraphRunnerPathway* AddedPathway : AddedPathways)
+	{
+		ActivePathways.Add(AddedPathway);
+	}
+
+	AddedPathways.Empty();
+	
 	for(UCadenceGraphRunnerPathway* EndedPathway : EndedPathways)
 	{
 		ActivePathways.Remove(EndedPathway);
@@ -68,7 +75,7 @@ void UCadenceGraphRunner::RequestAdditionalPathway(UCadenceGraphNode* InStartNod
 {	
 	UCadenceGraphRunnerPathway* Pathway = NewObject<UCadenceGraphRunnerPathway>(this);
 	Pathway->Init(Context, InStartNode);
-	ActivePathways.Add(Pathway);
+	AddedPathways.Add(Pathway);
 
 	if(bInExecuteImmediately)
 		Pathway->Tick(InDeltaSeconds);
@@ -123,18 +130,33 @@ void UCadenceGraphRunnerPathway::ExecuteCurrentNode(UCadenceContext* InContext)
 			End();
 			return;
 		}
+
+		TArray<UCadenceGraphNodePin*> NextNodePins;
 		
-		uint32 ProcessedPins = 0;
 		for(UCadenceGraphNodePin* ConnectedPin : ConnectedPins)
-		{			
-			// Process execution logic, spawning more pathways if necessary			
-			if(ProcessedPins == 0)
+		{
+			UCadenceGraphNode* Node = ConnectedPin->GetParentNode();
+			if(Node->IsReroute())
 			{
-				SetCurrentNode(InContext, ConnectedPin->GetParentNode());
+				UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(Node);
+				NextNodePins.Append(RerouteNode->GetRerouteOutputNodeConnectedInputPins());
+			}
+			else
+			{
+				NextNodePins.Add(ConnectedPin);
+			}
+		}
+		
+		for(int32 NodeIndex = 0; NodeIndex < NextNodePins.Num(); ++NodeIndex)
+		{
+			// Process execution logic, spawning more pathways if necessary			
+			if(NodeIndex == 0)
+			{
+				SetCurrentNode(InContext, NextNodePins[0]->GetParentNode());
 			}
 			else
 			{				
-				InContext->Runner->RequestAdditionalPathway(ConnectedPin->GetParentNode(), Context->bProcessNodesImmediately, InContext->DeltaSeconds);
+				InContext->Runner->RequestAdditionalPathway(NextNodePins[NodeIndex]->GetParentNode(), Context->bProcessNodesImmediately, InContext->DeltaSeconds);
 			}
 		}
 

@@ -44,6 +44,9 @@ private:
 	TArray<UCadenceGraphRunnerPathway*> ActivePathways;
 
 	UPROPERTY()
+	TArray<UCadenceGraphRunnerPathway*> AddedPathways;
+
+	UPROPERTY()
 	TArray<UCadenceGraphRunnerPathway*> EndedPathways;
 };
 

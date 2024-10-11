@@ -6,21 +6,6 @@
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadencePinConstants.h"
 #include "Graph/CadenceVariable.h"
-/*
-ECadenceNodeExecuteResult UCadenceRerouteNodeBase::Execute(UCadenceContext* InContext)
-{
-	if(!bIsExecReroute && VariableType != nullptr)
-	{
-		UCadenceGraphNodePin* InputPin = GetRerouteInputPin();
-		UCadenceGraphNodePin* OutputPin = GetRerouteOutputPin();
-		
-		UE_LOG(LogCadence, Log, TEXT("UCadenceSimpleRerouteNode::Execute Pre-CopyValue: %s - %s"), *GetDebugName(), *InputPin->GetGUID().ToString());
-		InContext->ParentNode = this;
-		OutputPin->GetVariable()->CopyValueFrom(InputPin->GetVariable(), InContext);
-	}
-	
-	return ECadenceNodeExecuteResult::Complete;
-}*/
 
 void UCadenceRerouteNodeBase::SetAsExecReroute()
 {
@@ -66,12 +51,12 @@ void UCadenceRerouteNodeBase::CheckRerouteTypeValid()
 
 UCadenceGraphNodePin* UCadenceRerouteNodeBase::GetRerouteInputPin() const
 {	
-	return GetInputPin(FCadencePinConstants::Pin_Wildcard);
+	return GetInputPin(bIsExecReroute ? FCadencePinConstants::Pin_Default_Exec : FCadencePinConstants::Pin_Wildcard);
 }
 
 UCadenceGraphNodePin* UCadenceRerouteNodeBase::GetRerouteOutputPin() const
 {
-	return GetOutputPin(FCadencePinConstants::Pin_Wildcard);
+	return GetOutputPin(bIsExecReroute ? FCadencePinConstants::Pin_Default_Then : FCadencePinConstants::Pin_Wildcard);
 }
 
 UCadenceGraphNode* UCadenceRerouteNodeBase::GetRerouteInputNode() const

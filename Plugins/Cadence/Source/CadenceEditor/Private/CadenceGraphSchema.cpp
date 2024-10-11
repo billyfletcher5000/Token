@@ -293,7 +293,7 @@ void UCadenceGraphSchema::OnPinConnectionDoubleCicked(UEdGraphPin* PinA, UEdGrap
 	
 	UCadenceGraph* RuntimeGraph = InputRuntimeNode->GetParentGraph();
 
-	UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(RuntimeGraph->CreateNode(UCadenceRerouteNodeBase::StaticClass(), KnotTopLeft));
+	UCadenceSimpleRerouteNode* RerouteNode = Cast<UCadenceSimpleRerouteNode>(RuntimeGraph->CreateNode(UCadenceSimpleRerouteNode::StaticClass(), KnotTopLeft));
 	if(InputRuntimePin->IsExec() && OutputRuntimePin->IsExec())
 	{
 		RerouteNode->SetAsExecReroute();
