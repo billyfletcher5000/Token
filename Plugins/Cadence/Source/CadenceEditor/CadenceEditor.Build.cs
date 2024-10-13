@@ -41,6 +41,7 @@ public class CadenceEditor : ModuleRules
 				"Cadence",
 				"AssetTools",
 				"UnrealEd",
+				"EditorSubsystem",
 				"PropertyEditor",
 				"Projects",
 				"ToolMenus",

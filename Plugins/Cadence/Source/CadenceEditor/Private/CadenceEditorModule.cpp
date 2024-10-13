@@ -50,10 +50,12 @@ void FCadenceEditorModule::StartupModule()
 	FSlateImageBrush* ThumbnailBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/CadenceGraph_Thumbnail_64x"), TEXT(".png")), FVector2D(64.0, 64.0));
 	FSlateImageBrush* IconBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/CadenceGraph_Icon_64x"), TEXT(".png")), FVector2D(64.0, 64.0));
 	FSlateImageBrush* TrackIconBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/Cadence_Icon_16x"), TEXT(".png")), FVector2D(16.0, 16.0));
+	FSlateImageBrush* GridPreviewBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/CadenceGraph_GridPreview_Grid_128x"), TEXT(".png")), FVector2D(128.0, 128.0));
 	
 	StyleSet->Set(TEXT("ClassThumbnail.CadenceGraph"), ThumbnailBrush);
 	StyleSet->Set(TEXT("ClassIcon.CadenceGraph"), IconBrush);
 	StyleSet->Set(TEXT("ClassIcon.CadenceTrack"), TrackIconBrush);
+	StyleSet->Set(TEXT("NodePreview.CadenceGrid"), GridPreviewBrush);	
 
 	// Register Style Set
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet);

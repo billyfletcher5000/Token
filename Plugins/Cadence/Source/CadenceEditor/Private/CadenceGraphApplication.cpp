@@ -6,6 +6,7 @@
 #include "CadenceAsset.h"
 #include "Graph/CadenceGraph.h"
 #include "CadenceGraphEditor.h"
+#include "CadenceGraphEditorGridNode.h"
 #include "CadenceGraphEditorNode.h"
 #include "CadenceGraphEditorRerouteNode.h"
 #include "CadenceGraphSchema.h"
@@ -14,6 +15,7 @@
 #include "Framework/Commands/GenericCommands.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "IDetailsView.h"
+#include "Graph/Nodes/CadenceGridNodes.h"
 #include "SequencerTrack/CadenceSequencerSection.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 
@@ -157,6 +159,13 @@ void FCadenceGraphApplication::ReconstructEditorGraph()
 		if(RuntimeNode->IsReroute())
 		{			
 			FGraphNodeCreator<UCadenceGraphEditorRerouteNode> NodeCreator(*WorkingGraphEditor);
+			Node = NodeCreator.CreateNode(false);
+			Node->Construct(RuntimeNode);
+			NodeCreator.Finalize();
+		}
+		else if(RuntimeNode->GetClass()->ImplementsInterface(UCadenceGraphGridCommandProvider::StaticClass()))
+		{
+			FGraphNodeCreator<UCadenceGraphEditorGridNode> NodeCreator(*WorkingGraphEditor);
 			Node = NodeCreator.CreateNode(false);
 			Node->Construct(RuntimeNode);
 			NodeCreator.Finalize();

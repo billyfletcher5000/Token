@@ -5,8 +5,10 @@
 
 #include "Graph/CadenceGraph.h"
 #include "CadenceGraphEditor.h"
+#include "CadenceGraphEditorGridNode.h"
 #include "CadenceGraphEditorNode.h"
 #include "Graph/CadenceGraphNodePin.h"
+#include "Graph/Nodes/CadenceGridNodes.h"
 #include "Graph/Nodes/CadenceUserVariableNodes.h"
 
 UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode)
@@ -20,11 +22,23 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 	RuntimeGraph->Modify();
 	UCadenceGraphNode* RuntimeNode = CreateCadenceGraphNode(RuntimeGraph, Location);	
 	RuntimeGraph->AddNode(RuntimeNode);
-	
-	FGraphNodeCreator<UCadenceGraphEditorNode> NodeCreator(*ParentGraph);
-	UCadenceGraphEditorNode* Node = NodeCreator.CreateNode(bSelectNewNode);
-	Node->Construct(RuntimeNode);
-	NodeCreator.Finalize();
+		
+	UCadenceGraphEditorNode* Node = nullptr;
+
+	if(RuntimeNode->GetClass()->ImplementsInterface(UCadenceGraphGridCommandProvider::StaticClass()))
+	{
+		FGraphNodeCreator<UCadenceGraphEditorGridNode> NodeCreator(*ParentGraph);
+		Node = NodeCreator.CreateNode(false);
+		Node->Construct(RuntimeNode);
+		NodeCreator.Finalize();
+	}
+	else
+	{
+		FGraphNodeCreator<UCadenceGraphEditorNode> NodeCreator(*ParentGraph);
+		Node = NodeCreator.CreateNode(false);
+		Node->Construct(RuntimeNode);
+		NodeCreator.Finalize();
+	}
 
 	if (FromPin)
 	{

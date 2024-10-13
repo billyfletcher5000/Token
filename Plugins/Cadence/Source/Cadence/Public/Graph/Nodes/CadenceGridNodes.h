@@ -22,8 +22,28 @@ namespace FCadenceGridNodeConstants
 	static const FName PointProxyBOutputPinName = TEXT("PointProxy B");
 }
 
+#if WITH_EDITOR
+struct FCadenceGridPreviewDrawCommand;
+#endif
+
+UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
+class CADENCE_API UCadenceGraphGridCommandProvider : public UInterface
+{
+	GENERATED_BODY()
+};
+
+class CADENCE_API ICadenceGraphGridCommandProvider
+{
+	GENERATED_BODY()
+
+public:
+#if WITH_EDITOR
+	virtual void GetPreviewDrawCommands(TArray<FCadenceGridPreviewDrawCommand>& InDrawCommandList) {}
+#endif
+};
+
 UCLASS()
-class CADENCE_API UCadenceGridCreateLineNode : public UCadenceActorNode
+class CADENCE_API UCadenceGridCreateLineNode : public UCadenceActorNode, public ICadenceGraphGridCommandProvider
 {
 	GENERATED_BODY()
 
@@ -35,6 +55,10 @@ public:
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Create Grid Line")); }
 	virtual FText GetNodeCategory() const override { return FCadenceGridNodeConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceGridNodeConstants::NodeTitleColor; }
+
+	// ICadenceGraphGridCommandProvider
+	virtual void GetPreviewDrawCommands(TArray<FCadenceGridPreviewDrawCommand>& InDrawCommandList) override;
+	// ~ICadenceGraphGridCommandProvider
 
 protected:
 	UPROPERTY(EditAnywhere)

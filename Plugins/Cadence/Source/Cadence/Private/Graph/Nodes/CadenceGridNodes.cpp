@@ -99,6 +99,11 @@ ECadenceNodeExecuteResult UCadenceGridCreateLineNode::Execute(UCadenceContext* I
 	return ECadenceNodeExecuteResult::Complete;
 }
 
+void UCadenceGridCreateLineNode::GetPreviewDrawCommands(TArray<FCadenceGridPreviewDrawCommand>& InDrawCommandList)
+{
+	ICadenceGraphGridCommandProvider::GetPreviewDrawCommands(InDrawCommandList);
+}
+
 void UCadenceGridGetGridNode::CreateOutputPins()
 {
 	Super::CreateOutputPins();
