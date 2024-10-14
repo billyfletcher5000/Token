@@ -7,7 +7,7 @@
 
 #include "CadenceGraphEditorGridNode.generated.h"
 
-struct FCadenceGridPreviewDrawCommand;
+class UCadenceGridPreviewDrawCommand;
 
 UCLASS()
 class CADENCEEDITOR_API UCadenceGraphEditorGridNode : public UCadenceGraphEditorNode
@@ -17,7 +17,7 @@ class CADENCEEDITOR_API UCadenceGraphEditorGridNode : public UCadenceGraphEditor
 public:
 	virtual TSharedPtr<SGraphNode> CreateVisualWidget() override;
 
-	void GetPreviewDrawCommands(TArray<FCadenceGridPreviewDrawCommand>& InDrawCommandList);
+	void GetPreviewDrawCommands(TArray<UCadenceGridPreviewDrawCommand*>& InDrawCommandList);
 
 	virtual bool CanDisplayGridPreview() const { return true; } 
 	bool IsGridPreviewExpanded() const { return bIsGridPreviewExpanded; }

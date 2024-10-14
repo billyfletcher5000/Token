@@ -25,7 +25,8 @@ public class CadenceEditor : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
+				"Core", 
+				"Cadence",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -38,7 +39,6 @@ public class CadenceEditor : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"Cadence",
 				"AssetTools",
 				"UnrealEd",
 				"EditorSubsystem",

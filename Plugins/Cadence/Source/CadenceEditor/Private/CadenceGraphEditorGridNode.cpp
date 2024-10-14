@@ -10,13 +10,14 @@
 #include "SGraphPin.h"
 #include "Graph/Nodes/CadenceGridNodes.h"
 #include "Graph/Nodes/GridPreview/CadenceGridPreviewDrawCommand.h"
+#include "Styling/SlateStyleRegistry.h"
 
 TSharedPtr<SGraphNode> UCadenceGraphEditorGridNode::CreateVisualWidget()
 {
 	return SNew(SCadenceGraphGridNode, this);
 }
 
-void UCadenceGraphEditorGridNode::GetPreviewDrawCommands(TArray<FCadenceGridPreviewDrawCommand>& InDrawCommandList)
+void UCadenceGraphEditorGridNode::GetPreviewDrawCommands(TArray<UCadenceGridPreviewDrawCommand*>& InDrawCommandList)
 {
 	ICadenceGraphGridCommandProvider* Provider = Cast<ICadenceGraphGridCommandProvider>(GetRuntimeGraphNode());
 	if(ensure(Provider))
@@ -144,7 +145,7 @@ TSharedRef<SWidget> SCadenceGraphGridNode::CreatePreviewWidget()
 
 		// TODO: This is passed by reference under the idea that nodes can rely on previous nodes to communicate movement etc in the future
 		// TODO: but is pretty placeholder and probably not the best way to go about it.
-		TArray<FCadenceGridPreviewDrawCommand> DrawCommands; 
+		TArray<UCadenceGridPreviewDrawCommand*> DrawCommands; 
 		GridNode->GetPreviewDrawCommands(DrawCommands);
 
 		if(DrawCommands.Num() > 0)
@@ -158,9 +159,9 @@ TSharedRef<SWidget> SCadenceGraphGridNode::CreatePreviewWidget()
 			UCadenceGridNodePreviewSubsystem* PreviewSubsystem = GEditor->GetEditorSubsystem<UCadenceGridNodePreviewSubsystem>();
 			ensure(PreviewSubsystem);
 			
-			for (FCadenceGridPreviewDrawCommand& Command : DrawCommands)
+			for (UCadenceGridPreviewDrawCommand* Command : DrawCommands)
 			{
-				UCadenceGraphGridPreviewCommandDecorator* Decorator = PreviewSubsystem->GetDecoratorForCommandType(Command.StaticStruct());
+				UCadenceGraphGridPreviewCommandDecorator* Decorator = PreviewSubsystem->GetDecoratorForCommandType(Command->GetClass());
 				ensure(Decorator);
 
 				Overlay->AddSlot() [
@@ -201,9 +202,9 @@ TSharedRef<SWidget> SCadenceGraphGridNode::CreatePreviewWidget()
 
 TSharedRef<SWidget> SCadenceGraphGridNode::CreateGridBaseWidget()
 {
-	FCadenceEditorModule* Module = FModuleManager::Get().GetModulePtr<FCadenceEditorModule>("CadenceEditor");
+	const ISlateStyle* SlateStyle = FSlateStyleRegistry::FindSlateStyle(FCadenceEditorModule::StyleSetName);
 	return SNew(SImage)
-		.Image(Module->GetStyleSet()->GetBrush("NodePreview.CadenceGrid"));	
+		.Image(SlateStyle->GetBrush("NodePreview.CadenceGrid"));	
 }
 
 void SCadenceGraphGridNode::OnPreviewExpandedChanged(ECheckBoxState InCheckBoxState)

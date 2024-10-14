@@ -23,7 +23,7 @@ namespace FCadenceGridNodeConstants
 }
 
 #if WITH_EDITOR
-struct FCadenceGridPreviewDrawCommand;
+class UCadenceGridPreviewDrawCommand;
 #endif
 
 UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
@@ -38,7 +38,7 @@ class CADENCE_API ICadenceGraphGridCommandProvider
 
 public:
 #if WITH_EDITOR
-	virtual void GetPreviewDrawCommands(TArray<FCadenceGridPreviewDrawCommand>& InDrawCommandList) {}
+	virtual void GetPreviewDrawCommands(TArray<UCadenceGridPreviewDrawCommand*>& InDrawCommandList) {}
 #endif
 };
 
@@ -56,11 +56,19 @@ public:
 	virtual FText GetNodeCategory() const override { return FCadenceGridNodeConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceGridNodeConstants::NodeTitleColor; }
 
+#if WITH_EDITOR
 	// ICadenceGraphGridCommandProvider
-	virtual void GetPreviewDrawCommands(TArray<FCadenceGridPreviewDrawCommand>& InDrawCommandList) override;
+	virtual void GetPreviewDrawCommands(TArray<UCadenceGridPreviewDrawCommand*>& InDrawCommandList) override;
 	// ~ICadenceGraphGridCommandProvider
+#endif
 
-protected:
+protected:	
+	UPROPERTY(EditAnywhere, DisplayName="(O) Point A")
+	FVector2D O_PointA = FVector2D(0,0);
+
+	UPROPERTY(EditAnywhere, DisplayName="(O) Point B")
+	FVector2D O_PointB = FVector2D(1,1);
+	
 	UPROPERTY(EditAnywhere)
 	bool bUseNormalisedPositions = true;
 
@@ -96,7 +104,7 @@ protected:
 };
 
 UCLASS()
-class CADENCE_API UCadenceGridMoveToPointNode : public UCadenceLatentNode
+class CADENCE_API UCadenceGridMoveToPointNode : public UCadenceLatentNode, public ICadenceGraphGridCommandProvider
 {
 	GENERATED_BODY()
 
@@ -108,6 +116,10 @@ public:
 	virtual FText GetNodeCategory() const override { return FCadenceGridNodeConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceGridNodeConstants::NodeTitleColor; }
 
+	// ICadenceGraphGridCommandProvider
+	virtual void GetPreviewDrawCommands(TArray<UCadenceGridPreviewDrawCommand*>& InDrawCommandList) override;
+	// ~ICadenceGraphGridCommandProvider
+	
 protected:
 	UPROPERTY(EditAnywhere)
 	bool bUseNormalisedPositions = true;

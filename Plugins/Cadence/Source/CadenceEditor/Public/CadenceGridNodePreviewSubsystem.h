@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "EditorSubsystem.h"
+#include "Graph/Nodes/GridPreview/CadenceGridPreviewDrawCommand.h"
 #include "CadenceGridNodePreviewSubsystem.generated.h"
 
 class UCadenceGraphGridPreviewCommandDecorator;
@@ -19,9 +20,9 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	UCadenceGraphGridPreviewCommandDecorator* GetDecoratorForCommandType(UScriptStruct* InCommandType) const;
+	UCadenceGraphGridPreviewCommandDecorator* GetDecoratorForCommandType(const TSubclassOf<UCadenceGridPreviewDrawCommand>& InCommandType) const;
 
 private:
 	UPROPERTY()
-	TMap<TObjectPtr<UScriptStruct>, TObjectPtr<UCadenceGraphGridPreviewCommandDecorator>> CommandTypeToDecorator;
+	TMap<TSubclassOf<UCadenceGridPreviewDrawCommand>, TObjectPtr<UCadenceGraphGridPreviewCommandDecorator>> CommandTypeToDecorator;
 };

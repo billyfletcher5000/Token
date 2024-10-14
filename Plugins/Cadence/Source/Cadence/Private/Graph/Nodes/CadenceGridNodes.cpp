@@ -15,6 +15,7 @@
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadencePinConstants.h"
 #include "Graph/CadenceVariable.h"
+#include "Graph/Nodes/GridPreview/CadenceGridPreviewDrawCommand.h"
 #include "TickableActions/CadenceMoveTickableActions.h"
 
 
@@ -51,12 +52,24 @@ ECadenceNodeExecuteResult UCadenceGridCreateLineNode::Execute(UCadenceContext* I
 
 	UCadenceGraphNodePin* PointAInputPin = GetInputPin(FCadenceGridNodeConstants::PointAInputPinName);
 	UCadenceGraphNodePin* PointBInputPin = GetInputPin(FCadenceGridNodeConstants::PointBInputPinName);
+
+	FVector2D PointAPosition = O_PointA;
+	FVector2D PointBPosition = O_PointB;
+
+	if(PointAInputPin->HasConnections())
+	{
+		UCadenceVariableVector2D* PointAVariable = PointAInputPin->GetVariable<UCadenceVariableVector2D>();
+		PointAPosition = PointAVariable->GetValue();
+	}
+
+	if(PointBInputPin->HasConnections())
+	{
+		UCadenceVariableVector2D* PointBVariable = PointBInputPin->GetVariable<UCadenceVariableVector2D>();
+		PointBPosition = PointBVariable->GetValue();
+	}
 	
-	UCadenceVariableVector2D* PointAVariable = PointAInputPin->GetVariable<UCadenceVariableVector2D>();
-	UCadenceVariableVector2D* PointBVariable = PointBInputPin->GetVariable<UCadenceVariableVector2D>();
-	
-	FVector PointAWorldLocation = bUseNormalisedPositions ? BlockGridActor->NormalisedPositionToWorldLocation(PointAVariable->GetValue()): BlockGridActor->GridPositionToWorldLocation(PointAVariable->GetValue());
-	FVector PointBWorldLocation = bUseNormalisedPositions ? BlockGridActor->NormalisedPositionToWorldLocation(PointBVariable->GetValue()): BlockGridActor->GridPositionToWorldLocation(PointBVariable->GetValue());
+	FVector PointAWorldLocation = bUseNormalisedPositions ? BlockGridActor->NormalisedPositionToWorldLocation(PointAPosition): BlockGridActor->GridPositionToWorldLocation(PointAPosition);
+	FVector PointBWorldLocation = bUseNormalisedPositions ? BlockGridActor->NormalisedPositionToWorldLocation(PointBPosition): BlockGridActor->GridPositionToWorldLocation(PointBPosition);
 
 	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Actor);
 	UCadenceVariableActor* OutputVariable = OutputPin->GetVariable<UCadenceVariableActor>();
@@ -99,10 +112,18 @@ ECadenceNodeExecuteResult UCadenceGridCreateLineNode::Execute(UCadenceContext* I
 	return ECadenceNodeExecuteResult::Complete;
 }
 
-void UCadenceGridCreateLineNode::GetPreviewDrawCommands(TArray<FCadenceGridPreviewDrawCommand>& InDrawCommandList)
-{
-	ICadenceGraphGridCommandProvider::GetPreviewDrawCommands(InDrawCommandList);
+#if WITH_EDITOR
+void UCadenceGridCreateLineNode::GetPreviewDrawCommands(TArray<UCadenceGridPreviewDrawCommand*>& InDrawCommandList)
+{	
+	UCadenceGridPreviewDrawLineCommand* LineCommand = NewObject<UCadenceGridPreviewDrawLineCommand>(GetTransientPackage());
+	
+	// TODO: Traverse pins at edit time to get these values from input pins if connected
+	LineCommand->PositionStart = O_PointA;
+	LineCommand->PositionEnd = O_PointB;
+
+	InDrawCommandList.Add(LineCommand);
 }
+#endif
 
 void UCadenceGridGetGridNode::CreateOutputPins()
 {
@@ -184,3 +205,13 @@ void UCadenceGridMoveToPointNode::CreateLatentActions(TArray<TScriptInterface<IC
 
 	InActionList.Add(UCadenceActorTranslateTickable::Create(Actor, TargetDuration, TargetWorldPosition, Easing));
 }
+
+#if WITH_EDITOR
+void UCadenceGridMoveToPointNode::GetPreviewDrawCommands(TArray<UCadenceGridPreviewDrawCommand*>& InDrawCommandList)
+{
+	UCadenceGridPreviewDrawPointCommand* PointCommand = NewObject<UCadenceGridPreviewDrawPointCommand>(GetTransientPackage());
+	PointCommand->Position = O_Position;
+
+	InDrawCommandList.Add(PointCommand);
+}
+#endif

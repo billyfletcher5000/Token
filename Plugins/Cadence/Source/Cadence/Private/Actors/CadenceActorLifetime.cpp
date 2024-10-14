@@ -44,7 +44,7 @@ void UCadenceActorLifetimeManager::RegisterActorUsage(AActor* InActor, const FGu
 
 	if(LifetimeData && ensure(PinVariableGUID.IsValid()) && ensure(InParentNode))
 	{
-		int32 UsageCount = InParentNode->GetParentGraph()->GetRootExecNodesThatLeadToNode(InParentNode).Num();
+		int32 UsageCount = FMath::Max(InParentNode->GetParentGraph()->GetRootExecNodesThatLeadToNode(InParentNode).Num(), 1);		
 		UE_LOG(LogCadence, Log, TEXT("RegisterActorUsage: Actor: %s Node: %s Count: %d GUID: %s"), *InActor->GetName(), *InParentNode->GetDebugName(), UsageCount, *PinVariableGUID.ToString());
 		for(int32 UsageIndex = 0; UsageIndex < UsageCount; ++UsageIndex)
 		{
@@ -62,6 +62,7 @@ void UCadenceActorLifetimeManager::UnregisterActorUsage(AActor* InActor, const F
 		UE_LOG(LogCadence, Log, TEXT("UnregisterActorUsage: Actor: %s GUID: %s"), *InActor->GetName(), *UserGUID.ToString());
 		if(LifetimeData->UsageGUIDs.RemoveSingle(UserGUID) == 0)
 		{
+			//TODO: Fix getter/setters to appropriately persist their GUIDs somehow? It seems to cause this error firing in some way
 			UE_LOG(LogCadence, Error, TEXT("Cannot remove GUID that isn't in list!"));
 		}
 

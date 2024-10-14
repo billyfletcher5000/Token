@@ -8,31 +8,33 @@
 
 #if WITH_EDITOR
 
-USTRUCT()
-struct CADENCE_API FCadenceGridPreviewDrawCommand
+UCLASS(Abstract)
+class CADENCE_API UCadenceGridPreviewDrawCommand : public UObject
 {
 	GENERATED_BODY()
-	
+
+public:
 	FLinearColor Color = FLinearColor::Blue;
 };
 
-USTRUCT()
-struct CADENCE_API FCadenceGridPreviewDrawPointCommand : public FCadenceGridPreviewDrawCommand
+UCLASS()
+class CADENCE_API UCadenceGridPreviewDrawPointCommand : public UCadenceGridPreviewDrawCommand
 {
 	GENERATED_BODY()
-	
+public:
 	// Position in relative/0-1 space
 	FVector2D Position;
 
-	// Size in pixels
+	// Size
 	float Size = 3.0f;
 };
 
-USTRUCT()
-struct CADENCE_API FCadenceGridPreviewDrawLineCommand : public FCadenceGridPreviewDrawCommand
+UCLASS()
+class CADENCE_API UCadenceGridPreviewDrawLineCommand : public UCadenceGridPreviewDrawCommand
 {
 	GENERATED_BODY()
-	
+
+public:	
 	// Position in relative/0-1 space
 	FVector2D PositionStart;
 
@@ -43,8 +45,8 @@ struct CADENCE_API FCadenceGridPreviewDrawLineCommand : public FCadenceGridPrevi
 	float Thickness = 2.0f;
 };
 
-USTRUCT()
-struct CADENCE_API FCadenceGridPreviewDrawBoxCommand : public FCadenceGridPreviewDrawCommand
+UCLASS()
+class CADENCE_API UCadenceGridPreviewDrawBoxCommand : public UCadenceGridPreviewDrawCommand
 {
 	GENERATED_BODY()
 
@@ -62,8 +64,8 @@ struct CADENCE_API FCadenceGridPreviewDrawBoxCommand : public FCadenceGridPrevie
 	bool bIsFilled = true;
 };
 
-USTRUCT()
-struct CADENCE_API FCadenceGridPreviewDrawCircleCommand : public FCadenceGridPreviewDrawCommand
+UCLASS()
+class CADENCE_API UCadenceGridPreviewDrawCircleCommand : public UCadenceGridPreviewDrawCommand
 {
 	GENERATED_BODY()
 	

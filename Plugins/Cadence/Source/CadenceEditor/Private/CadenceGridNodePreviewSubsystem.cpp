@@ -27,7 +27,7 @@ void UCadenceGridNodePreviewSubsystem::Initialize(FSubsystemCollectionBase& Coll
 	{
 		UCadenceGraphGridPreviewCommandDecorator* CDO = DecoratorClass->GetDefaultObject<UCadenceGraphGridPreviewCommandDecorator>();
 
-		UScriptStruct* TargetCommandType = CDO->GetTargetCommandType();
+		TSubclassOf<UCadenceGridPreviewDrawCommand> TargetCommandType = CDO->GetTargetCommandType();
 
 		if(CommandTypeToDecorator.Contains(TargetCommandType))
 		{
@@ -35,7 +35,7 @@ void UCadenceGridNodePreviewSubsystem::Initialize(FSubsystemCollectionBase& Coll
 		}
 		else
 		{
-			CommandTypeToDecorator[TargetCommandType] = CDO;
+			CommandTypeToDecorator.Add(TargetCommandType, NewObject<UCadenceGraphGridPreviewCommandDecorator>(this, DecoratorClass));
 		}
 	}
 }
@@ -47,7 +47,7 @@ void UCadenceGridNodePreviewSubsystem::Deinitialize()
 	CommandTypeToDecorator.Empty();
 }
 
-UCadenceGraphGridPreviewCommandDecorator* UCadenceGridNodePreviewSubsystem::GetDecoratorForCommandType(UScriptStruct* InCommandType) const
+UCadenceGraphGridPreviewCommandDecorator* UCadenceGridNodePreviewSubsystem::GetDecoratorForCommandType(const TSubclassOf<UCadenceGridPreviewDrawCommand>& InCommandType) const
 {
 	if(CommandTypeToDecorator.Contains(InCommandType))
 		return CommandTypeToDecorator[InCommandType];
