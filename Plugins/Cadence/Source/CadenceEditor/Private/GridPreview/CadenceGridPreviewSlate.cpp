@@ -33,7 +33,10 @@ int32 SCadenceGridPreviewLine::OnPaint(const FPaintArgs& Args, const FGeometry& 
 	const FLinearColor FinalColorAndOpacity(InWidgetStyle.GetColorAndOpacityTint() * ColorAndOpacityAttribute.Get().GetColor(InWidgetStyle));
 	TArray<FVector2D> Points = PointsAttribute.Get();
 	for(auto& Point : Points)
+	{
+		Point.Y = 1.0 - Point.Y; // Y axis is opposite direction in grid
 		Point *= AllottedGeometry.GetLocalSize();
+	}
 	
 	FSlateDrawElement::MakeLines(OutDrawElements,
 								 LayerId,

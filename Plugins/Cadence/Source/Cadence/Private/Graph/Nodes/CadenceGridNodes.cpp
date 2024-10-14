@@ -120,6 +120,7 @@ void UCadenceGridCreateLineNode::GetPreviewDrawCommands(TArray<UCadenceGridPrevi
 	// TODO: Traverse pins at edit time to get these values from input pins if connected
 	LineCommand->PositionStart = O_PointA;
 	LineCommand->PositionEnd = O_PointB;
+	LineCommand->Thickness = LineWidth;
 
 	InDrawCommandList.Add(LineCommand);
 }
