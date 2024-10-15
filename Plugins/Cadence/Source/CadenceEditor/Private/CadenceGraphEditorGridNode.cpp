@@ -113,7 +113,7 @@ void SCadenceGraphGridNode::SetDefaultTitleAreaWidget(TSharedRef<SOverlay> Defau
 		[
 			SNew(SCheckBox)
 			.OnCheckStateChanged( this, &SCadenceGraphGridNode::OnPreviewExpandedChanged )
-			.IsChecked( GridNode->IsGridPreviewExpanded() )
+			.IsChecked( GridNode->IsGridPreviewExpanded() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked )
 			.Cursor(EMouseCursor::Default)
 			.Style(FAppStyle::Get(), "Graph.Node.AdvancedView")
 			[
@@ -128,6 +128,14 @@ void SCadenceGraphGridNode::SetDefaultTitleAreaWidget(TSharedRef<SOverlay> Defau
 			]
 		];
 	}
+}
+
+void SCadenceGraphGridNode::OnAdvancedViewChanged(const ECheckBoxState NewCheckedState)
+{
+	SGraphNode::OnAdvancedViewChanged(NewCheckedState);
+
+	// Update the graph node so that the preview is recreated to update its position
+	UpdateGraphNode();
 }
 
 TSharedRef<SWidget> SCadenceGraphGridNode::CreatePreviewWidget()
@@ -209,8 +217,12 @@ TSharedRef<SWidget> SCadenceGraphGridNode::CreateGridBaseWidget()
 
 void SCadenceGraphGridNode::OnPreviewExpandedChanged(ECheckBoxState InCheckBoxState)
 {
-	GridNode->SetGridPreviewExpanded(InCheckBoxState == ECheckBoxState::Checked);
-	UpdateGraphNode();
+	bool bIsExpanded = InCheckBoxState == ECheckBoxState::Checked;
+	if(GridNode->IsGridPreviewExpanded() != bIsExpanded)
+	{
+		GridNode->SetGridPreviewExpanded(bIsExpanded);
+		UpdateGraphNode();
+	}
 }
 
 const FSlateBrush* SCadenceGraphGridNode::GetGridPreviewArrow()

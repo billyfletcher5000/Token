@@ -41,12 +41,13 @@ public:
 protected:
 	virtual void CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox) override;
 	virtual void SetDefaultTitleAreaWidget(TSharedRef<SOverlay> DefaultTitleAreaWidget) override;
+	virtual void OnAdvancedViewChanged(ECheckBoxState NewCheckedState) override;
 
 	TSharedRef<SWidget> CreatePreviewWidget();
 	TSharedRef<SWidget> CreateGridBaseWidget();
 	void OnPreviewExpandedChanged(ECheckBoxState InCheckBoxState);	
 	const FSlateBrush* GetGridPreviewArrow();
-	FText GetPreviewOverlayText() const;
+	FText GetPreviewOverlayText() const;	
 
 private:
 	UCadenceGraphEditorGridNode* GridNode = nullptr;

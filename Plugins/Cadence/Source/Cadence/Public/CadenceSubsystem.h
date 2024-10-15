@@ -30,10 +30,10 @@ struct FCadenceSectionTimingData
 	FString SectionName;
 
 	UPROPERTY()
-	float StartTime;
+	float StartTime = 0.0f;
 
 	UPROPERTY()
-	float EndTime;
+	float EndTime = 0.0f;
 
 	UPROPERTY()
 	bool bHasStarted = false;

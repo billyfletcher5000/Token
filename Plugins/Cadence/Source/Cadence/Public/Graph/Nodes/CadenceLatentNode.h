@@ -34,7 +34,7 @@ struct FCadencePathwayActionListPair
 	}
 	
 	UPROPERTY()
-	UCadenceGraphRunnerPathway* Pathway;
+	UCadenceGraphRunnerPathway* Pathway = nullptr;
 
 	UPROPERTY()
 	TArray<TScriptInterface<ICadenceTickableAction>> ActionList;

@@ -65,8 +65,8 @@ void SCadenceGridPreviewPoint::PrivateRegisterAttributes(FSlateAttributeInitiali
 	SLATE_ADD_MEMBER_ATTRIBUTE_DEFINITION_WITH_NAME(AttributeInitializer, "Radius", RadiusAttribute, EInvalidateWidgetReason::Paint);
 }
 
-SCadenceGridPreviewPoint::SCadenceGridPreviewPoint()
-	: PositionAttribute(*this)
+SCadenceGridPreviewPoint::SCadenceGridPreviewPoint()  
+	: PositionAttribute(*this, FVector2f(0.5f, 0.5f))
 	, ImageAttribute(*this)
 	, ColorAndOpacityAttribute(*this)
 	, RadiusAttribute(*this)

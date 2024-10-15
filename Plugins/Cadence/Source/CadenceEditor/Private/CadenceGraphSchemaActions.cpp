@@ -69,7 +69,6 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 	}
 
 	ParentGraph->Modify();
-	ParentGraph->AddNode(Node, true, true);	
 	
 	return Node;
 }

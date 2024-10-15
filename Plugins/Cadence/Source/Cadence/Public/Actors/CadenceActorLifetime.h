@@ -27,7 +27,7 @@ struct CADENCE_API FCadenceActorLifetimeData
 	TWeakObjectPtr<AActor> Actor;
 
 	UPROPERTY()
-	ECadenceActorLifetime Lifetime;
+	ECadenceActorLifetime Lifetime = ECadenceActorLifetime::Automatic;
 
 	UPROPERTY()
 	TArray<FGuid> UsageGUIDs;
