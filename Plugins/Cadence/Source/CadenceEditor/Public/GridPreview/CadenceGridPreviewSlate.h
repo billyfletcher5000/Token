@@ -38,3 +38,39 @@ private:
 	TSlateAttribute<FSlateColor> ColorAndOpacityAttribute;
 	TSlateAttribute<float> ThicknessAttribute;
 };
+
+class CADENCEEDITOR_API SCadenceGridPreviewPoint : public SLeafWidget
+{
+	SLATE_DECLARE_WIDGET(SCadenceGridPreviewPoint, SLeafWidget)
+public:	
+	SLATE_BEGIN_ARGS( SCadenceGridPreviewPoint )
+		: _Position(FVector2D(0.5f, 0.5f))
+		, _Image(FCoreStyle::Get().GetDefaultBrush())
+		, _ColorAndOpacity( FLinearColor::White )
+		, _Radius(1.0f)
+	{}
+		
+		SLATE_ATTRIBUTE(FVector2f, Position)
+		SLATE_ATTRIBUTE(const FSlateBrush*, Image)
+		SLATE_ATTRIBUTE(FSlateColor, ColorAndOpacity)
+		SLATE_ATTRIBUTE(float, Radius)
+	SLATE_END_ARGS()
+
+	SCadenceGridPreviewPoint();
+	
+	void Construct( const FArguments& InArgs );
+	
+	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
+			FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle,
+			bool bParentEnabled) const override;
+
+
+protected:
+	virtual FVector2D ComputeDesiredSize(float) const override;
+	
+private:
+	TSlateAttribute<FVector2f> PositionAttribute;
+	TSlateAttribute<const FSlateBrush*> ImageAttribute;
+	TSlateAttribute<FSlateColor> ColorAndOpacityAttribute;
+	TSlateAttribute<float> RadiusAttribute;
+};

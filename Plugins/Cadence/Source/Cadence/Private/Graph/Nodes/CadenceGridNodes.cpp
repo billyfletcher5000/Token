@@ -121,8 +121,40 @@ void UCadenceGridCreateLineNode::GetPreviewDrawCommands(TArray<UCadenceGridPrevi
 	LineCommand->PositionStart = O_PointA;
 	LineCommand->PositionEnd = O_PointB;
 	LineCommand->Thickness = LineWidth;
+	LineCommand->Color = FLinearColor::Blue;
 
 	InDrawCommandList.Add(LineCommand);
+
+	UCadenceGridPreviewDrawPointCommand* PointCommand = NewObject<UCadenceGridPreviewDrawPointCommand>(GetTransientPackage());
+	PointCommand->Position = O_PointA;
+	PointCommand->Color = FLinearColor::Red;
+
+	InDrawCommandList.Add(PointCommand);
+
+	PointCommand = NewObject<UCadenceGridPreviewDrawPointCommand>(GetTransientPackage());
+	PointCommand->Position = O_PointB;
+	PointCommand->Color = FLinearColor::Green;
+	
+	InDrawCommandList.Add(PointCommand);
+
+	FVector2D PivotPosition;
+	switch (PivotType)
+	{
+		case ECadenceSplinePivot::Manual:
+		case ECadenceSplinePivot::CentreOfPoints:
+			PivotPosition = FMath::Lerp(O_PointA, O_PointB, 0.5f);
+			break;
+
+		case ECadenceSplinePivot::SpecificPoint:
+			PivotPosition = PivotSpecificPointIndex == 1 ? O_PointB : O_PointA;
+			break;
+	}
+	
+	PointCommand = NewObject<UCadenceGridPreviewDrawPointCommand>(GetTransientPackage());
+	PointCommand->Position = PivotPosition;
+	PointCommand->Color = FLinearColor::Yellow;	
+
+	InDrawCommandList.Add(PointCommand);
 }
 #endif
 
@@ -212,6 +244,7 @@ void UCadenceGridMoveToPointNode::GetPreviewDrawCommands(TArray<UCadenceGridPrev
 {
 	UCadenceGridPreviewDrawPointCommand* PointCommand = NewObject<UCadenceGridPreviewDrawPointCommand>(GetTransientPackage());
 	PointCommand->Position = O_Position;
+	PointCommand->Color = FLinearColor::Red;
 
 	InDrawCommandList.Add(PointCommand);
 }

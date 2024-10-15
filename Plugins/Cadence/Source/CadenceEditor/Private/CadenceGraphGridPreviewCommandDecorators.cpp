@@ -17,12 +17,14 @@ TSubclassOf<UCadenceGridPreviewDrawCommand> UCadenceGraphGridPreviewPointCommand
 TSharedRef<SWidget> UCadenceGraphGridPreviewPointCommandDecorator::CreateVisualDisplay(UCadenceGridPreviewDrawCommand* InDrawCommand, const FCadenceGridPreviewDrawSettings& InSettings)
 {
 	const UCadenceGridPreviewDrawPointCommand* DrawPointCommand = Cast<UCadenceGridPreviewDrawPointCommand>(InDrawCommand);
-	TArray<FVector2D> Points = {DrawPointCommand->Position};
 	
-	return SNew(SCadenceGridPreviewLine)
-			.Points(Points)
-			.Thickness(DrawPointCommand->Size)
-			.ColorAndOpacity(FLinearColor::Red);
+	const ISlateStyle* SlateStyle = FSlateStyleRegistry::FindSlateStyle(FCadenceEditorModule::StyleSetName);
+		
+	return SNew(SCadenceGridPreviewPoint)
+			.Position(DrawPointCommand->Position)
+			.Image(SlateStyle->GetBrush("NodePreview.GridPoint"))
+			.Radius(DrawPointCommand->Size)
+			.ColorAndOpacity(DrawPointCommand->Color);
 }
 
 TSubclassOf<UCadenceGridPreviewDrawCommand> UCadenceGraphGridPreviewLineCommandDecorator::GetTargetCommandType() const
@@ -39,5 +41,5 @@ TSharedRef<SWidget> UCadenceGraphGridPreviewLineCommandDecorator::CreateVisualDi
 	return SNew(SCadenceGridPreviewLine)
 			.Points(Points)
 			.Thickness(DrawLineCommand->Thickness)
-			.ColorAndOpacity(FLinearColor::Blue);
+			.ColorAndOpacity(DrawLineCommand->Color);
 }
