@@ -3,6 +3,7 @@
 
 #include "CadenceGraphSchema.h"
 
+#include "CadenceEditorCommon.h"
 #include "Graph/CadenceGraph.h"
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorNode.h"
@@ -126,6 +127,7 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 
 bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) const
 {
+	const FScopedTransaction Transaction(*FCadenceEditorCommon::ContextIdentifier, FText::FromString(TEXT("Try Create Connection")), nullptr);
 	FPinConnectionResponse Response = CanCreateConnection(A, B);
 
 	if(Response.Response == CONNECT_RESPONSE_DISALLOW)
@@ -207,8 +209,10 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 
 void UCadenceGraphSchema::BreakNodeLinks(UEdGraphNode& TargetNode) const
 {
+	const FScopedTransaction Transaction(*FCadenceEditorCommon::ContextIdentifier, FText::FromString(TEXT("Break Node Links")), nullptr);
 	if(UCadenceGraphEditorNode* CadenceGraphEditorNode = Cast<UCadenceGraphEditorNode>(&TargetNode); CadenceGraphEditorNode != nullptr)
 	{
+		CadenceGraphEditorNode->GetRuntimeGraphNode()->Modify();
 		CadenceGraphEditorNode->GetRuntimeGraphNode()->ClearConnections();
 	}
 	
@@ -217,6 +221,8 @@ void UCadenceGraphSchema::BreakNodeLinks(UEdGraphNode& TargetNode) const
 
 void UCadenceGraphSchema::BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNodeNotifcation) const
 {
+	const FScopedTransaction Transaction(*FCadenceEditorCommon::ContextIdentifier, FText::FromString(TEXT("Break Pin Links")), nullptr);
+	
 	if(UCadenceGraphEditorNode* CadenceGraphEditorNode = Cast<UCadenceGraphEditorNode>(TargetPin.GetOwningNode()); CadenceGraphEditorNode != nullptr)
 	{
 		UCadenceGraphNodePin* RuntimePin = nullptr;
@@ -226,17 +232,23 @@ void UCadenceGraphSchema::BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNodeN
 			RuntimePin = CadenceGraphEditorNode->GetRuntimeGraphNode()->GetOutputPin(TargetPin.PinName);
 
 		ensure(RuntimePin);
+		RuntimePin->Modify();
 		RuntimePin->ClearConnections();
 		
 		if(UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(RuntimePin->GetParentNode()))
+		{
+			RerouteNode->Modify();
 			RerouteNode->CheckRerouteTypeValid();
+		}
 	}
 	
 	Super::BreakPinLinks(TargetPin, bSendsNodeNotifcation);
 }
 
 void UCadenceGraphSchema::BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin* TargetPin) const
-{
+{	
+	const FScopedTransaction Transaction(*FCadenceEditorCommon::ContextIdentifier, FText::FromString(TEXT("Break Single Pin Link")), nullptr);
+	
 	UCadenceGraphEditorNode* SourceEditorNode = Cast<UCadenceGraphEditorNode>(SourcePin->GetOwningNode());
 	UCadenceGraphEditorNode* TargetEditorNode = Cast<UCadenceGraphEditorNode>(TargetPin->GetOwningNode());
 	if(SourceEditorNode != nullptr && TargetEditorNode != nullptr)
@@ -271,7 +283,7 @@ void UCadenceGraphSchema::BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin
 
 void UCadenceGraphSchema::OnPinConnectionDoubleCicked(UEdGraphPin* PinA, UEdGraphPin* PinB, const FVector2D& GraphPosition) const
 {	
-	const FScopedTransaction Transaction(FText::FromString("Create Reroute Node"));
+	const FScopedTransaction Transaction(*FCadenceEditorCommon::ContextIdentifier, FText::FromString("Create Reroute Node"), nullptr);
 
 	//@TODO: This constant is duplicated from inside of SGraphNodeKnot
 	const FVector2D NodeSpacerSize(42.0f, 24.0f);
