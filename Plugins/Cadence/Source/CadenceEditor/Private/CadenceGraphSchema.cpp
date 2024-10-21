@@ -19,6 +19,7 @@
 
 const FName UCadenceGraphSchema::PC_Exec = TEXT("exec");
 const FName UCadenceGraphSchema::PC_Variable = TEXT("variable");
+const FName UCadenceGraphSchema::PC_Int = TEXT("int");
 const FName UCadenceGraphSchema::PC_Wildcard = TEXT("wildcard");
 
 UCadenceGraphSchema::UCadenceGraphSchema()
@@ -105,7 +106,7 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 	if (PinACategory != PinBCategory)
 		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Pins must be of same type or convertible!"));
 
-	if (PinACategory == PC_Variable || PinBCategory == PC_Variable)
+	if (IsVariablePinCategory(PinACategory) || IsVariablePinCategory(PinBCategory))
 	{
 		const UCadenceGraphEditorNode* CadenceEditorNodeA = Cast<UCadenceGraphEditorNode>(A->GetOwningNode());
 		const UCadenceGraphEditorNode* CadenceEditorNodeB = Cast<UCadenceGraphEditorNode>(B->GetOwningNode());
@@ -341,18 +342,32 @@ void UCadenceGraphSchema::OnPinConnectionDoubleCicked(UEdGraphPin* PinA, UEdGrap
 	TryCreateConnection(RerouteOutputEdPin, OutputEdPin);		
 }
 
+void UCadenceGraphSchema::TrySetDefaultValue(UEdGraphPin& Pin, const FString& NewDefaultValue, bool bMarkAsModified) const
+{
+	Super::TrySetDefaultValue(Pin, NewDefaultValue, bMarkAsModified);
+
+	UCadenceGraphEditorNode* ParentEditorNode = Cast<UCadenceGraphEditorNode>(Pin.GetOwningNode());
+	check(ParentEditorNode);
+
+	UCadenceGraphNode* ParentNode = ParentEditorNode->GetRuntimeGraphNode();
+	UCadenceGraphNodePin* RuntimePin = Pin.Direction == EEdGraphPinDirection::EGPD_Input ? ParentNode->GetInputPin(Pin.PinName) : ParentNode->GetOutputPin(Pin.PinName);
+
+	check(RuntimePin);
+	UCadenceVariable* Variable = RuntimePin->GetVariable();
+	
+	if(Variable && Variable->SupportsDefault())
+	{
+		Variable->Modify();
+		Variable->SetFromString(NewDefaultValue);
+	}
+}
+
 FLinearColor UCadenceGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType) const
 {
-	if (PinType.PinCategory == PC_Exec)
-		return FLinearColor::Gray;
-
-	if (PinType.PinSubCategory == FCadencePinConstants::Pin_Wildcard)
-		return FLinearColor(0.5f, 0.5f, 0.5f);
+	if (PinCategoryToColor.Contains(PinType.PinCategory))
+		return PinCategoryToColor[PinType.PinCategory];
 	
-	if (SubCategoryToColor.Contains(PinType.PinSubCategory))
-		return SubCategoryToColor[PinType.PinSubCategory];
-	
-	return FLinearColor::Gray;
+	return FLinearColor::White;
 }
 
 FText UCadenceGraphSchema::GetPinDisplayName(const UEdGraphPin* Pin) const
@@ -364,6 +379,11 @@ FText UCadenceGraphSchema::GetPinDisplayName(const UEdGraphPin* Pin) const
 	}
 		
 	return Super::GetPinDisplayName(Pin);
+}
+
+bool UCadenceGraphSchema::IsVariablePinCategory(const FName& InPinCategory)
+{
+	return InPinCategory != PC_Exec;
 }
 
 void UCadenceGraphSchema::GenerateColorMap()
@@ -381,9 +401,13 @@ void UCadenceGraphSchema::GenerateColorMap()
 		}
 	}
 
+	PinCategoryToColor.Add(FCadencePinCategoryConstants::PC_Exec, FLinearColor::Gray);
+	PinCategoryToColor.Add(FCadencePinCategoryConstants::PC_Wildcard, FLinearColor(0.5f, 0.5f, 0.5f));
+
 	for(TObjectPtr<UClass> CadenceVariableType : ValidCadenceVariableTypes)
 	{
 		UCadenceVariable* VariableDefault = CadenceVariableType->GetDefaultObject<UCadenceVariable>();
-		SubCategoryToColor.Add(VariableDefault->GetPinSubCategory(), VariableDefault->GetPinColor());
+		if(!PinCategoryToColor.Contains(VariableDefault->GetPinCategory()))
+			PinCategoryToColor.Add(VariableDefault->GetPinCategory(), VariableDefault->GetPinColor());
 	}
 }

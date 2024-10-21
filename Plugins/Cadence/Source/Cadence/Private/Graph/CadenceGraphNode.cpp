@@ -50,7 +50,7 @@ void UCadenceGraphNode::ClearConnections()
 		Pin->ClearConnections();
 
 	for(UCadenceGraphNodePin* Pin : OutputPins)
-    		Pin->ClearConnections();
+		Pin->ClearConnections();
 }
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetExecPin() const

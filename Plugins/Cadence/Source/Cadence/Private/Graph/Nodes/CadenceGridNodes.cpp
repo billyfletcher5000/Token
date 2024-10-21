@@ -19,6 +19,144 @@
 #include "TickableActions/CadenceMoveTickableActions.h"
 
 
+#if WITH_EDITOR
+enum class ECadenceGetBestValueResult
+{
+	Undefined = 0,
+	Success,
+	Failed_NoConnectedPinsToInputs,
+	Failed_VariableIsNotTVar,
+	Failed_NodeDoesNotSupportPropagation,
+	Failed_MultipleConnectedPins,
+	Failed_UnconnectedPinWithoutAutoCreateVariable,
+	Failed_UnconnectedPinWithoutOptionalValue
+};
+
+class CadenceGridNodeUtility
+{
+public:
+	template<typename TVal, typename TVar>
+	static ECadenceGetBestValueResult GetBestValue(UCadenceGraphNodePin* InPin, TVal& OutResult)
+	{
+		auto ConnectedPins = InPin->GetConnectedPins();
+		if(ConnectedPins.Num() == 0)
+		{
+			UCadenceVariable* Var = InPin->GetVariable();
+			if(Var == nullptr)
+				return ECadenceGetBestValueResult::Failed_UnconnectedPinWithoutAutoCreateVariable;					
+				
+			if(!Var->SupportsDefault())
+				return ECadenceGetBestValueResult::Failed_UnconnectedPinWithoutOptionalValue;
+
+			TVar* CastedVar = Cast<TVar>(Var);
+			if(Var == nullptr)
+				return ECadenceGetBestValueResult::Failed_VariableIsNotTVar;
+
+			OutResult = CastedVar->GetOptionalValue();
+			return ECadenceGetBestValueResult::Success;
+		}
+
+		TArray<UCadenceGraphNode> NodesToProcess;
+
+		// First check that all pins can actually be used
+		for(UCadenceGraphNodePin* OutputPin : ConnectedPins)
+		{
+			UCadenceGraphNode* Node = OutputPin->GetParentNode();
+			ECadenceGetBestValueResult NodeResult = IsNodeAppropriateForPropagation(Node);
+			if(NodeResult != ECadenceGetBestValueResult::Success)
+			{
+				return NodeResult;
+			}
+		}
+
+		// Then process them
+		for(UCadenceGraphNodePin* OutputPin : ConnectedPins)
+		{
+			UCadenceGraphNode* Node = OutputPin->GetParentNode();
+			ECadenceGetBestValueResult NodeResult = IsNodeAppropriateForPropagation(Node);
+			if(NodeResult != ECadenceGetBestValueResult::Success)
+			{
+				return NodeResult;
+			}
+		}
+		
+		return ECadenceGetBestValueResult::Success;
+	}
+
+private:
+	
+	template<typename TVal, typename TVar>
+	static ECadenceGetBestValueResult GetBestValueRecursive(UCadenceGraphNodePin* InPin, TVal& OutResult, bool InCheckForNodePropagationSupport = true)
+	{
+		auto ConnectedPins = InPin->GetConnectedPins();
+		if(ConnectedPins.Num() == 0)
+		{
+			UCadenceVariable* Var = InPin->GetVariable();
+			if(Var == nullptr)
+				return ECadenceGetBestValueResult::Failed_UnconnectedPinWithoutAutoCreateVariable;					
+				
+			if(!Var->SupportsDefault())
+				return ECadenceGetBestValueResult::Failed_UnconnectedPinWithoutOptionalValue;
+
+			TVar* CastedVar = Cast<TVar>(Var);
+			if(Var == nullptr)
+				return ECadenceGetBestValueResult::Failed_VariableIsNotTVar;
+
+			OutResult = CastedVar->GetOptionalValue();
+			return ECadenceGetBestValueResult::Success;
+		}
+
+		TArray<UCadenceGraphNode> NodesToProcess;
+		
+		for(UCadenceGraphNodePin* OutputPin : ConnectedPins)
+		{
+			UCadenceGraphNode* Node = OutputPin->GetParentNode();
+			ECadenceGetBestValueResult NodeResult = IsNodeAppropriateForPropagation(Node);
+			if(NodeResult != ECadenceGetBestValueResult::Success)
+			{
+				return NodeResult;
+			}
+		}
+		
+		return ECadenceGetBestValueResult::Success;
+	}
+
+	static ECadenceGetBestValueResult IsNodeAppropriateForPropagation(UCadenceGraphNode* InNode, bool InCheckForNodePropagationSupport = true)
+	{
+		if(InCheckForNodePropagationSupport && !InNode->DoesSupportEditorValuePropagation())
+			return ECadenceGetBestValueResult::Failed_NodeDoesNotSupportPropagation;
+
+		auto InputPins = InNode->GetInputPins();
+		for(auto InputPin : InputPins)
+		{
+			auto ConnectedPins = InputPin->GetConnectedPins();
+			int32 NumPins = ConnectedPins.Num();
+			if(NumPins > 1)
+				return ECadenceGetBestValueResult::Failed_MultipleConnectedPins;
+
+			if(NumPins == 0)
+			{
+				UCadenceVariable* Var = InputPin->GetVariable();
+				if(Var == nullptr)
+					return ECadenceGetBestValueResult::Failed_UnconnectedPinWithoutAutoCreateVariable;					
+				
+				if(!Var->SupportsDefault())
+					return ECadenceGetBestValueResult::Failed_UnconnectedPinWithoutOptionalValue;				
+			}
+			else
+			{
+				ECadenceGetBestValueResult NextNodeResult = IsNodeAppropriateForPropagation(ConnectedPins[0]->GetParentNode());
+				if(NextNodeResult != ECadenceGetBestValueResult::Success)
+					return NextNodeResult;
+			}
+		}
+
+		return ECadenceGetBestValueResult::Success;
+	}
+};
+
+#endif
+
 void UCadenceGridCreateLineNode::CreateInputPins()
 {
 	Super::CreateInputPins();
@@ -116,7 +254,7 @@ ECadenceNodeExecuteResult UCadenceGridCreateLineNode::Execute(UCadenceContext* I
 void UCadenceGridCreateLineNode::GetPreviewDrawCommands(TArray<UCadenceGridPreviewDrawCommand*>& InDrawCommandList)
 {	
 	UCadenceGridPreviewDrawLineCommand* LineCommand = NewObject<UCadenceGridPreviewDrawLineCommand>(GetTransientPackage());
-	
+
 	// TODO: Traverse pins at edit time to get these values from input pins if connected
 	LineCommand->PositionStart = O_PointA;
 	LineCommand->PositionEnd = O_PointB;
@@ -249,3 +387,4 @@ void UCadenceGridMoveToPointNode::GetPreviewDrawCommands(TArray<UCadenceGridPrev
 	InDrawCommandList.Add(PointCommand);
 }
 #endif
+

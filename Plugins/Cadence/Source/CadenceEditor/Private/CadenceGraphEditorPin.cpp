@@ -2,21 +2,41 @@
 
 #include "CadenceGraphEditorPin.h"
 
-#include "CadenceGraphSchema.h"
 #include "EdGraph/EdGraphPin.h"
+#include "Graph/CadencePinConstants.h"
+
+#include "KismetPins/SGraphPinBool.h"
+#include "KismetPins/SGraphPinEnum.h"
 #include "KismetPins/SGraphPinExec.h"
+#include "KismetPins/SGraphPinInteger.h"
+#include "KismetPins/SGraphPinVector.h"
+#include "KismetPins/SGraphPinVector2D.h"
 
 TSharedPtr<SGraphPin> FCadenceGraphEditorPanelPinFactory::CreatePin(UEdGraphPin* InPin) const
 {
-	if (InPin->PinType.PinCategory == UCadenceGraphSchema::PC_Exec)
-	{
-		return SNew(SGraphPinExec, InPin);
-	}
-	
-	if (InPin->PinType.PinCategory == UCadenceGraphSchema::PC_Variable)
-	{
-		return SNew(SCadenceGraphPin, InPin);
-	}
+	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Exec)	
+		return SNew(SGraphPinExec, InPin);	
 
-	return nullptr;
+	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Integer)	
+		return SNew(SGraphPinInteger, InPin);
+
+	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Float)	
+		return SNew(SGraphPinNum<float>, InPin);
+
+	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Double)	
+		return SNew(SGraphPinNum<double>, InPin);
+
+	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Boolean)	
+		return SNew(SGraphPinBool, InPin);
+
+	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Vector)	
+		return SNew(SGraphPinVector<double>, InPin);
+
+	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Vector2)	
+		return SNew(SGraphPinVector2D<double>, InPin);
+
+	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Enum)
+		return SNew(SGraphPinEnum, InPin);
+
+	return SNew(SCadenceGraphPin, InPin);
 }

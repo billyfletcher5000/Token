@@ -47,7 +47,7 @@ public:
 	void SetIsExec(const bool& InIsExec) { bIsExec = InIsExec; }
 	
 	TSubclassOf<UCadenceVariable> GetVariableClass() const { return VariableClass; }
-	void SetVariableClass(TSubclassOf<UCadenceVariable> InVariableClass) { VariableClass = InVariableClass; }
+	void SetVariableClass(const TSubclassOf<UCadenceVariable>& InVariableClass) { VariableClass = InVariableClass; }
 
 	template<typename T = UCadenceVariable>
 	T* GetVariable(bool AutoCreate = true);
@@ -80,7 +80,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UCadenceVariable> Variable;
 
-	UCadenceVariable* VariableOverride;
+	TWeakObjectPtr<UCadenceVariable> VariableOverride;
 };
 
 template <typename T>

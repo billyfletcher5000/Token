@@ -38,6 +38,7 @@ public:
 	virtual bool IsPure() const { return false; }
 	virtual bool IsReroute() const { return false; }
 	virtual bool IsLatent() const { return false; }
+	
 	virtual bool HasInputExecPin() const { return true; }
 	virtual bool HasOutputExecPin() const { return true; }
 
@@ -69,10 +70,11 @@ public:
 	void SetGraphPosition(const double& X, const double& Y) { GraphPosition.X = X; GraphPosition.Y = Y; }
 
 	FGuid GetGUID() const { return GUID; }
-	FString GetDebugName() const { return DebugName; }
+	FString GetDebugName() const { return DebugName; }	
 	
 #if WITH_EDITOR
 	virtual bool CanBeAutoCreated() const { return true; }
+	virtual bool DoesSupportEditorValuePropagation() const { return false; }
 #endif
 	
 protected:

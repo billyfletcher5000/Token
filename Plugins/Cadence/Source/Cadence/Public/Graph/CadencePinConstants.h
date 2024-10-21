@@ -19,4 +19,28 @@ namespace FCadencePinConstants
 	static const FName Pin_Bool = TEXT("Bool");
 	static const FName Pin_Vector = TEXT("Vector");
 	static const FName Pin_Vector2 = TEXT("Vector2");
+	static const FName Pin_Rotator = TEXT("Rotator");
+	static const FName Pin_Object = TEXT("Object");
+}
+
+namespace FCadencePinCategoryConstants
+{
+	static const FName PC_Exec = TEXT("Exec");
+	static const FName PC_Wildcard = TEXT("Wildcard");	
+	static const FName PC_Integer = TEXT("Integer");
+	static const FName PC_Float = TEXT("Float");
+	static const FName PC_Double = TEXT("Double");
+	static const FName PC_Boolean = TEXT("Boolean");
+	static const FName PC_Vector = TEXT("Vector");
+	static const FName PC_Vector2 = TEXT("Vector2");
+	static const FName PC_Rotator = TEXT("Rotator");
+	static const FName PC_Enum = TEXT("Enum");
+	static const FName PC_Object = TEXT("Object");
+	static const FName PC_Actor = TEXT("Actor");	
+	static const FName PC_Trigger = TEXT("Trigger");
+}
+
+namespace FCadencePinSubCategoryConstants
+{
+	static const FName PSC_Array = TEXT("Array");
 }

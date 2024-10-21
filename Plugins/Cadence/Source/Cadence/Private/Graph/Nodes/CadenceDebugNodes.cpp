@@ -23,7 +23,7 @@ ECadenceNodeExecuteResult UCadenceDebugIntNode::Execute(UCadenceContext* InConte
 	UCadenceVariableInt* Variable = Pin->GetVariable<UCadenceVariableInt>();
 	ensure(Variable);
 
-	FString Output = FString::FromInt(Variable->GetValue());
+	const FString Output = Variable->ConvertToValueString();
 	
 	ensure(GEngine);
 	UE_LOG(LogCadence, Log, TEXT("Debug Node Output: %s"), *Output);
