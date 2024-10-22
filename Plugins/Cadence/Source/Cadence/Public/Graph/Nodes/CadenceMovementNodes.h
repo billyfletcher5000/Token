@@ -37,12 +37,6 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	TEnumAsByte<ECadenceEasingFunc::Type> Easing = ECadenceEasingFunc::Linear;
-
-	UPROPERTY(EditAnywhere, DisplayName="(O) Rotation")
-	FRotator O_Rotation;
-
-	UPROPERTY(EditAnywhere, DisplayName="(O) Duration")
-	float O_Duration = 1.0f;
 };
 
 UCLASS()

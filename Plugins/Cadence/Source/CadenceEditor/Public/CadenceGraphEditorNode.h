@@ -44,7 +44,7 @@ public:
 
 private:
 	void CreatePinInternal(const EEdGraphPinDirection& InDirection, UCadenceGraphNodePin* InPin);
-	
+
 private:
 	UPROPERTY()
 	TObjectPtr<UCadenceGraphNode> RuntimeGraphNode;

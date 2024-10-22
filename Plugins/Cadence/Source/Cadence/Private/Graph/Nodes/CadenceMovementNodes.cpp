@@ -25,19 +25,11 @@ void UCadenceRotateToNode::CreateLatentActions(TArray<TScriptInterface<ICadenceT
 	UCadenceGraphNodePin* RotationPin = GetInputPin(FCadencePinConstants::Pin_Rotation);
 	UCadenceGraphNodePin* DurationPin = GetInputPin(FCadencePinConstants::Pin_Duration);
 
-	FRotator TargetRotation = O_Rotation;
-	if(RotationPin->HasConnections())
-	{
-		TargetRotation = RotationPin->GetVariable<UCadenceVariableRotator>()->GetValue();
-	}
+	FRotator TargetRotation = RotationPin->GetVariable<UCadenceVariableRotator>()->GetValue();	
 
 	TargetRotation = TransformRotation(TargetRotation, Actor);
 
-	float TargetDuration = O_Duration;
-	if(DurationPin->HasConnections())
-	{
-		TargetDuration = DurationPin->GetVariable<UCadenceVariableFloat>()->GetValue();
-	}
+	float TargetDuration = DurationPin->GetVariable<UCadenceVariableFloat>()->GetValue();	
 
 	InActionList.Add(UCadenceActorRotateTickable::Create(Actor, TargetDuration, TargetRotation, Easing, bUseShortestPath));
 }

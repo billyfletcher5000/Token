@@ -344,8 +344,6 @@ void UCadenceGraphSchema::OnPinConnectionDoubleCicked(UEdGraphPin* PinA, UEdGrap
 
 void UCadenceGraphSchema::TrySetDefaultValue(UEdGraphPin& Pin, const FString& NewDefaultValue, bool bMarkAsModified) const
 {
-	Super::TrySetDefaultValue(Pin, NewDefaultValue, bMarkAsModified);
-
 	UCadenceGraphEditorNode* ParentEditorNode = Cast<UCadenceGraphEditorNode>(Pin.GetOwningNode());
 	check(ParentEditorNode);
 
@@ -360,6 +358,9 @@ void UCadenceGraphSchema::TrySetDefaultValue(UEdGraphPin& Pin, const FString& Ne
 		Variable->Modify();
 		Variable->SetFromString(NewDefaultValue);
 	}
+
+	// This has to be done last as the variable default value changes get propagated to the editor nodes/pins as a result of the Super
+	Super::TrySetDefaultValue(Pin, NewDefaultValue, bMarkAsModified);
 }
 
 FLinearColor UCadenceGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType) const

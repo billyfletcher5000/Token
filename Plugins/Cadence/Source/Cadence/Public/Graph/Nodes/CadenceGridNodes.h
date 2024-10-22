@@ -63,12 +63,6 @@ public:
 #endif
 
 protected:	
-	UPROPERTY(EditAnywhere, DisplayName="(O) Point A")
-	FVector2D O_PointA = FVector2D(0,0);
-
-	UPROPERTY(EditAnywhere, DisplayName="(O) Point B")
-	FVector2D O_PointB = FVector2D(1,1);
-	
 	UPROPERTY(EditAnywhere)
 	bool bUseNormalisedPositions = true;
 
@@ -126,10 +120,4 @@ protected:
 	
 	UPROPERTY(EditAnywhere)
 	TEnumAsByte<ECadenceEasingFunc::Type> Easing = ECadenceEasingFunc::Linear;
-	
-	UPROPERTY(EditAnywhere, DisplayName="(O) Position")
-	FVector2D O_Position;
-	
-	UPROPERTY(EditAnywhere, DisplayName="(O) Duration")
-	float O_Duration;
 };

@@ -191,20 +191,11 @@ ECadenceNodeExecuteResult UCadenceGridCreateLineNode::Execute(UCadenceContext* I
 	UCadenceGraphNodePin* PointAInputPin = GetInputPin(FCadenceGridNodeConstants::PointAInputPinName);
 	UCadenceGraphNodePin* PointBInputPin = GetInputPin(FCadenceGridNodeConstants::PointBInputPinName);
 
-	FVector2D PointAPosition = O_PointA;
-	FVector2D PointBPosition = O_PointB;
-
-	if(PointAInputPin->HasConnections())
-	{
-		UCadenceVariableVector2D* PointAVariable = PointAInputPin->GetVariable<UCadenceVariableVector2D>();
-		PointAPosition = PointAVariable->GetValue();
-	}
-
-	if(PointBInputPin->HasConnections())
-	{
-		UCadenceVariableVector2D* PointBVariable = PointBInputPin->GetVariable<UCadenceVariableVector2D>();
-		PointBPosition = PointBVariable->GetValue();
-	}
+	UCadenceVariableVector2D* PointAVariable = PointAInputPin->GetVariable<UCadenceVariableVector2D>();
+	UCadenceVariableVector2D* PointBVariable = PointBInputPin->GetVariable<UCadenceVariableVector2D>();
+	
+	FVector2D PointAPosition = PointAVariable->GetValue();
+	FVector2D PointBPosition = PointBVariable->GetValue();
 	
 	FVector PointAWorldLocation = bUseNormalisedPositions ? BlockGridActor->NormalisedPositionToWorldLocation(PointAPosition): BlockGridActor->GridPositionToWorldLocation(PointAPosition);
 	FVector PointBWorldLocation = bUseNormalisedPositions ? BlockGridActor->NormalisedPositionToWorldLocation(PointBPosition): BlockGridActor->GridPositionToWorldLocation(PointBPosition);
@@ -255,22 +246,29 @@ void UCadenceGridCreateLineNode::GetPreviewDrawCommands(TArray<UCadenceGridPrevi
 {	
 	UCadenceGridPreviewDrawLineCommand* LineCommand = NewObject<UCadenceGridPreviewDrawLineCommand>(GetTransientPackage());
 
+	UCadenceGraphNodePin* PointAInputPin = GetInputPin(FCadenceGridNodeConstants::PointAInputPinName);
+	UCadenceGraphNodePin* PointBInputPin = GetInputPin(FCadenceGridNodeConstants::PointBInputPinName);
+	UCadenceVariableVector2D* PointAVariable = PointAInputPin->GetVariable<UCadenceVariableVector2D>();
+	UCadenceVariableVector2D* PointBVariable = PointBInputPin->GetVariable<UCadenceVariableVector2D>();
+	FVector2D PointAPosition = PointAVariable->GetValue();
+	FVector2D PointBPosition = PointBVariable->GetValue();
+	
 	// TODO: Traverse pins at edit time to get these values from input pins if connected
-	LineCommand->PositionStart = O_PointA;
-	LineCommand->PositionEnd = O_PointB;
+	LineCommand->PositionStart = PointAPosition;
+	LineCommand->PositionEnd = PointBPosition;
 	LineCommand->Thickness = LineWidth;
 	LineCommand->Color = FLinearColor::Blue;
 
 	InDrawCommandList.Add(LineCommand);
 
 	UCadenceGridPreviewDrawPointCommand* PointCommand = NewObject<UCadenceGridPreviewDrawPointCommand>(GetTransientPackage());
-	PointCommand->Position = O_PointA;
+	PointCommand->Position = PointAPosition;
 	PointCommand->Color = FLinearColor::Red;
 
 	InDrawCommandList.Add(PointCommand);
 
 	PointCommand = NewObject<UCadenceGridPreviewDrawPointCommand>(GetTransientPackage());
-	PointCommand->Position = O_PointB;
+	PointCommand->Position = PointBPosition;
 	PointCommand->Color = FLinearColor::Green;
 	
 	InDrawCommandList.Add(PointCommand);
@@ -280,11 +278,11 @@ void UCadenceGridCreateLineNode::GetPreviewDrawCommands(TArray<UCadenceGridPrevi
 	{
 		case ECadenceSplinePivot::Manual:
 		case ECadenceSplinePivot::CentreOfPoints:
-			PivotPosition = FMath::Lerp(O_PointA, O_PointB, 0.5f);
+			PivotPosition = FMath::Lerp(PointAPosition, PointBPosition, 0.5f);
 			break;
 
 		case ECadenceSplinePivot::SpecificPoint:
-			PivotPosition = PivotSpecificPointIndex == 1 ? O_PointB : O_PointA;
+			PivotPosition = PivotSpecificPointIndex == 1 ? PointBPosition : PointAPosition;
 			break;
 	}
 	
@@ -357,22 +355,14 @@ void UCadenceGridMoveToPointNode::CreateLatentActions(TArray<TScriptInterface<IC
 	UCadenceVariableActor* ActorVariable = ActorPin->GetVariable<UCadenceVariableActor>();
 	AActor* Actor = ActorVariable->GetValue();
 	
-	UCadenceGraphNodePin* PositionPin = GetInputPin(FCadencePinConstants::Pin_Position);
-	UCadenceGraphNodePin* DurationPin = GetInputPin(FCadencePinConstants::Pin_Duration);
 
-	FVector2D TargetPosition = O_Position;
-	if(PositionPin->HasConnections())
-	{
-		TargetPosition = PositionPin->GetVariable<UCadenceVariableVector2D>()->GetValue();
-	}
+	UCadenceGraphNodePin* PositionPin = GetInputPin(FCadencePinConstants::Pin_Position);
+	FVector2D TargetPosition = PositionPin->GetVariable<UCadenceVariableVector2D>()->GetValue();	
 
 	FVector TargetWorldPosition = bUseNormalisedPositions ? BlockGridActor->NormalisedPositionToWorldLocation(TargetPosition) : BlockGridActor->GridPositionToWorldLocation(TargetPosition);
 
-	float TargetDuration = O_Duration;
-	if(DurationPin->HasConnections())
-	{
-		TargetDuration = DurationPin->GetVariable<UCadenceVariableFloat>()->GetValue();
-	}
+	UCadenceGraphNodePin* DurationPin = GetInputPin(FCadencePinConstants::Pin_Duration);
+	float TargetDuration = DurationPin->GetVariable<UCadenceVariableFloat>()->GetValue();	
 
 	InActionList.Add(UCadenceActorTranslateTickable::Create(Actor, TargetDuration, TargetWorldPosition, Easing));
 }
@@ -381,7 +371,9 @@ void UCadenceGridMoveToPointNode::CreateLatentActions(TArray<TScriptInterface<IC
 void UCadenceGridMoveToPointNode::GetPreviewDrawCommands(TArray<UCadenceGridPreviewDrawCommand*>& InDrawCommandList)
 {
 	UCadenceGridPreviewDrawPointCommand* PointCommand = NewObject<UCadenceGridPreviewDrawPointCommand>(GetTransientPackage());
-	PointCommand->Position = O_Position;
+	
+	UCadenceGraphNodePin* PositionPin = GetInputPin(FCadencePinConstants::Pin_Position);
+	PointCommand->Position = PositionPin->GetVariable<UCadenceVariableVector2D>()->GetValue();
 	PointCommand->Color = FLinearColor::Red;
 
 	InDrawCommandList.Add(PointCommand);

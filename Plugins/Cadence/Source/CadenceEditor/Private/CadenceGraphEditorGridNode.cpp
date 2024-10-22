@@ -26,10 +26,18 @@ void UCadenceGraphEditorGridNode::GetPreviewDrawCommands(TArray<UCadenceGridPrev
 	}	
 }
 
+void UCadenceGraphEditorGridNode::PinDefaultValueChanged(UEdGraphPin* Pin)
+{
+	Super::PinDefaultValueChanged(Pin);
+	OnPinDefaultValueChanged.Broadcast();
+}
+
 void SCadenceGraphGridNode::Construct(const FArguments& InArgs, UCadenceGraphEditorGridNode* InNode)
 {
 	GraphNode = InNode;
 	GridNode = InNode;
+
+	InNode->OnPinDefaultValueChanged.AddSP(this, &SCadenceGraphGridNode::OnParentNodeDefaultValueChanged);
 
 	SetCursor(EMouseCursor::Crosshairs);
 
@@ -233,4 +241,9 @@ const FSlateBrush* SCadenceGraphGridNode::GetGridPreviewArrow()
 FText SCadenceGraphGridNode::GetPreviewOverlayText() const
 {
 	return GridNode->GetPreviewOverlayText();
+}
+
+void SCadenceGraphGridNode::OnParentNodeDefaultValueChanged()
+{
+	UpdateGraphNode();
 }

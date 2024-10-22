@@ -24,6 +24,11 @@ public:
 	void SetGridPreviewExpanded(const bool& bIsExpanded) { bIsGridPreviewExpanded = bIsExpanded; }
 	
 	virtual FText GetPreviewOverlayText() const { return FText(); }
+	
+	virtual void PinDefaultValueChanged(UEdGraphPin* Pin) override;
+
+	DECLARE_MULTICAST_DELEGATE(FOnPinDefaultValueChanged);
+	FOnPinDefaultValueChanged OnPinDefaultValueChanged;
 
 protected:
 	UPROPERTY()
@@ -47,7 +52,9 @@ protected:
 	TSharedRef<SWidget> CreateGridBaseWidget();
 	void OnPreviewExpandedChanged(ECheckBoxState InCheckBoxState);	
 	const FSlateBrush* GetGridPreviewArrow();
-	FText GetPreviewOverlayText() const;	
+	FText GetPreviewOverlayText() const;
+
+	void OnParentNodeDefaultValueChanged();
 
 private:
 	UCadenceGraphEditorGridNode* GridNode = nullptr;
