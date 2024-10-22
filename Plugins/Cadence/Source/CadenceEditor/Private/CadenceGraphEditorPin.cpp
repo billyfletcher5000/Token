@@ -35,7 +35,7 @@ TSharedPtr<SGraphPin> FCadenceGraphEditorPanelPinFactory::CreatePin(UEdGraphPin*
 	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Vector2)	
 		return SNew(SGraphPinVector2D<double>, InPin);
 
-	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Enum)
+	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Enum && InPin->PinType.PinSubCategoryObject != nullptr && InPin->PinType.PinSubCategoryObject->IsA(UEnum::StaticClass()))
 		return SNew(SGraphPinEnum, InPin);
 
 	return SNew(SCadenceGraphPin, InPin);

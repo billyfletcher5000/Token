@@ -94,7 +94,7 @@ T* UCadenceGraphNodePin::GetVariable(bool AutoCreate)
 
 template <typename T>
 T* UCadenceGraphNodePin::CreateVariable()
-{	
+{
 	Variable = NewObject<UCadenceVariable>(this, VariableClass);
 	return Cast<T>(Variable);
 }

@@ -121,3 +121,24 @@ private:
 	UPROPERTY(EditAnywhere)
 	FVector2D Value;
 };
+
+UCLASS()
+class CADENCE_API UCadenceConstantValueQuantizationPeriodNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateOutputPins() override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+
+	virtual bool IsPure() const override { return true; }
+
+	virtual FText GetNodeTitle() const override;
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Quantization Period Constant")); }
+	virtual FText GetNodeCategory() const override { return FCadenceConstantValueConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceConstantValueConstants::NodeTitleColor; }
+	
+private:
+	UPROPERTY(EditAnywhere)
+	EQuartzCommandQuantization Value;
+};

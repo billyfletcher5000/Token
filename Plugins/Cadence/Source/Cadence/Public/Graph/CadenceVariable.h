@@ -36,10 +36,8 @@ public:
 	virtual bool IsEnum() const  { return false; }
 	
 	virtual bool SupportsDefault() const { return false; }
-#if WITH_EDITOR
 	virtual void SetFromString(const FString& InStringValue) { }
 	virtual FString ConvertToValueString() const { return FString(); }
-#endif
 
 	virtual void SetUserVariableName(const FName& InName) { UserVariableName = InName; }
 	virtual FName GetUserVariableName() const { return UserVariableName; }
@@ -84,10 +82,8 @@ public:
 
 	virtual bool SupportsDefault() const override { return true; }
 	
-#if WITH_EDITOR
 	virtual void SetFromString(const FString& InStringValue) override;
 	virtual FString ConvertToValueString() const override;
-#endif
 
 private:
 	UPROPERTY(EditAnywhere)
@@ -115,10 +111,8 @@ public:
 
 	virtual bool SupportsDefault() const override { return true; }
 	
-#if WITH_EDITOR
 	virtual void SetFromString(const FString& InStringValue) override;
 	virtual FString ConvertToValueString() const override;
-#endif
 
 private:
 	UPROPERTY(EditAnywhere)
@@ -146,10 +140,8 @@ public:
 
 	virtual bool SupportsDefault() const override { return true; }
 	
-#if WITH_EDITOR
 	virtual void SetFromString(const FString& InStringValue) override;
 	virtual FString ConvertToValueString() const override;
-#endif
 	
 private:
 	UPROPERTY(EditAnywhere)
@@ -176,10 +168,8 @@ public:
 
 	virtual bool SupportsDefault() const override { return true; }
 	
-#if WITH_EDITOR
 	virtual void SetFromString(const FString& InStringValue) override;
 	virtual FString ConvertToValueString() const override;
-#endif
 
 private:
 	UPROPERTY(EditAnywhere)
@@ -236,10 +226,8 @@ public:
 
 	virtual bool SupportsDefault() const override { return true; }
 	
-#if WITH_EDITOR
 	virtual void SetFromString(const FString& InStringValue) override;
 	virtual FString ConvertToValueString() const override;
-#endif
 
 private:
 	UPROPERTY(EditAnywhere)
@@ -266,10 +254,8 @@ public:
 
 	virtual bool SupportsDefault() const override { return true; }
 	
-#if WITH_EDITOR
 	virtual void SetFromString(const FString& InStringValue) override;
 	virtual FString ConvertToValueString() const override;
-#endif
 
 private:
 	UPROPERTY(EditAnywhere)
@@ -333,7 +319,7 @@ class CADENCE_API UCadenceVariableEnum : public UCadenceVariable
 
 public:
 	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_Enum; }
-	virtual FName GetPinSubCategory() const override { return FName(EnumType->GetName()); }
+	virtual FName GetPinSubCategory() const override { return EnumType != nullptr ? FName(EnumType->GetName()) : NAME_None; }
 	virtual UObject* GetPinSubCategoryObject() const override { return EnumType; }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 1.0f); }
 
@@ -353,19 +339,29 @@ public:
 	template<typename T>
 	void SetValue(const T& InValue) { Value = static_cast<int64>(InValue);}
 
+	UEnum* GetEnumType() const { return EnumType; }
+
 	virtual bool SupportsDefault() const override { return true; }
 	
-#if WITH_EDITOR
 	virtual void SetFromString(const FString& InStringValue) override;
 	virtual FString ConvertToValueString() const override;
-#endif
 
 private:
 	UPROPERTY()
 	int64 Value;
 
+protected:
 	UPROPERTY()
 	UEnum* EnumType;
+};
+
+UCLASS()
+class UCadenceVariableQuantizationPeriod : public UCadenceVariableEnum
+{
+	GENERATED_BODY()
+
+public:
+	UCadenceVariableQuantizationPeriod();
 };
 
 UCLASS()

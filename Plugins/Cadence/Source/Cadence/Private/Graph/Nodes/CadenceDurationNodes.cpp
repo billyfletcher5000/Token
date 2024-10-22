@@ -8,6 +8,12 @@
 #include "Graph/CadencePinConstants.h"
 #include "Graph/CadenceVariable.h"
 
+void UCadenceQuantizedDurationNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+	AddInputVariablePin(FCadencePinConstants::Pin_Period, UCadenceVariableQuantizationPeriod::StaticClass());
+}
+
 void UCadenceQuantizedDurationNode::CreateOutputPins()
 {
 	Super::CreateOutputPins();
@@ -16,11 +22,15 @@ void UCadenceQuantizedDurationNode::CreateOutputPins()
 
 ECadenceNodeExecuteResult UCadenceQuantizedDurationNode::Execute(UCadenceContext* InContext)
 {
-	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Duration);
-	ensure(Pin);
+	UCadenceGraphNodePin* InputPin = GetInputPin(FCadencePinConstants::Pin_Period);
+	UCadenceVariableQuantizationPeriod* InVariable = InputPin->GetVariable<UCadenceVariableQuantizationPeriod>();
+	EQuartzCommandQuantization Period = InVariable->GetValue<EQuartzCommandQuantization>();
+	
+	UCadenceGraphNodePin* OutputPin = GetOutputPin(FCadencePinConstants::Pin_Duration);
+	ensure(OutputPin);
 
-	UCadenceVariableFloat* Variable = Pin->GetVariable<UCadenceVariableFloat>();
-	Variable->SetValue(0.69f);
+	UCadenceVariableFloat* Variable = OutputPin->GetVariable<UCadenceVariableFloat>();
+	Variable->SetValue(static_cast<float>(Period)); // TODO: Actually get the duration from the CadenceSubsystem
 	
 	return ECadenceNodeExecuteResult::Complete;
 }

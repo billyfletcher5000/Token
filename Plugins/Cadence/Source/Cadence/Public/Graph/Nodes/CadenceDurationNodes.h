@@ -21,6 +21,7 @@ class CADENCE_API UCadenceQuantizedDurationNode : public UCadenceGraphNode
 	GENERATED_BODY()
 
 public:
+	virtual void CreateInputPins() override;
 	virtual void CreateOutputPins() override;
 	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 
@@ -29,10 +30,6 @@ public:
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Quantized Duration")); }
 	virtual FText GetNodeCategory() const override { return FCadenceDurationConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceDurationConstants::NodeTitleColor; }
-
-public:
-	UPROPERTY(EditAnywhere)
-	EQuartzCommandQuantization TimePeriod;
 };
 
 UCLASS()

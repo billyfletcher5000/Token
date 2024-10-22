@@ -76,12 +76,18 @@ FString UCadenceVariableRotator::ConvertToValueString() const
 
 void UCadenceVariableEnum::SetFromString(const FString& InStringValue)
 {
-	Value = EnumType->GetValueByNameString(InStringValue);
+	if(IsValid(EnumType))
+		Value = EnumType->GetValueByNameString(InStringValue);
 }
 
 FString UCadenceVariableEnum::ConvertToValueString() const
 {
-	return EnumType->GetNameByValue(Value).ToString();
+	return IsValid(EnumType) ? EnumType->GetNameByValue(Value).ToString() : FString();
+}
+
+UCadenceVariableQuantizationPeriod::UCadenceVariableQuantizationPeriod()
+{
+	EnumType = StaticEnum<EQuartzCommandQuantization>();
 }
 
 void UCadenceVariableActor::CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext)

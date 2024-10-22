@@ -75,13 +75,31 @@ ECadenceNodeExecuteResult UCadenceDebugActorNameNode::Execute(UCadenceContext* I
 	return ECadenceNodeExecuteResult::Complete;
 }
 
-void UCadenceDebugEnumNode::CreateInputPins()
+void UCadenceDebugQuantizationPeriodNode::CreateInputPins()
 {
 	Super::CreateInputPins();
 	AddInputVariablePin(FCadencePinConstants::Pin_Enum, UCadenceVariableEnum::StaticClass());	
 }
 
-ECadenceNodeExecuteResult UCadenceDebugEnumNode::Execute(UCadenceContext* InContext)
+ECadenceNodeExecuteResult UCadenceDebugQuantizationPeriodNode::Execute(UCadenceContext* InContext)
 {
-	return Super::Execute(InContext);
+	TObjectPtr<UCadenceGraphNodePin> Pin = GetInputPin(FCadencePinConstants::Pin_Enum);
+	UCadenceVariableEnum* Variable = Pin->GetVariable<UCadenceVariableEnum>();
+
+	FString Output;
+	if(!Pin->HasConnections())
+	{
+		Output = "No enum connected!";
+	}
+	else
+	{
+		UCadenceVariableEnum* ConnectedVariable = Pin->GetConnectedPins()[0]->GetVariable<UCadenceVariableEnum>();		
+		Output = ConnectedVariable->ConvertToValueString();
+	}	
+	
+	ensure(GEngine);
+	UE_LOG(LogCadence, Log, TEXT("Debug Node Output: %s"), *Output);
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, *Output);
+	
+	return ECadenceNodeExecuteResult::Complete;
 }

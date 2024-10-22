@@ -116,3 +116,27 @@ FText UCadenceConstantValueVector2Node::GetNodeTitle() const
 {
 	return FText::FromString(Value.ToString());
 }
+
+void UCadenceConstantValueQuantizationPeriodNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+	AddOutputVariablePin(FCadencePinConstants::Pin_Period, UCadenceVariableQuantizationPeriod::StaticClass());
+}
+
+ECadenceNodeExecuteResult UCadenceConstantValueQuantizationPeriodNode::Execute(UCadenceContext* InContext)
+{
+	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Period);
+	ensure(Pin);
+
+	UCadenceVariableQuantizationPeriod* Variable = Pin->GetVariable<UCadenceVariableQuantizationPeriod>();
+	Variable->SetValue(Value);
+	
+	return ECadenceNodeExecuteResult::Complete;
+}
+
+FText UCadenceConstantValueQuantizationPeriodNode::GetNodeTitle() const
+{
+	FString Title = StaticEnum<EQuartzCommandQuantization>()->GetValueAsString(Value);
+	Title.RemoveFromStart(TEXT("EQuartzCommandQuantization::"));
+	return FText::FromString(Title);
+}

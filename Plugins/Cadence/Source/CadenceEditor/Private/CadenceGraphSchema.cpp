@@ -117,7 +117,7 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 		UCadenceGraphNodePin* RuntimePinA = A->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeA->GetInputPin(A->PinName) : RuntimeNodeA->GetOutputPin(A->PinName);
 		UCadenceGraphNodePin* RuntimePinB = B->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeB->GetInputPin(B->PinName) : RuntimeNodeB->GetOutputPin(B->PinName);
 
-		if(RuntimePinA && RuntimePinB && RuntimePinA->GetVariableClass() != RuntimePinB->GetVariableClass())
+		if(RuntimePinA && RuntimePinB && !RuntimePinA->GetVariableClass()->IsChildOf(RuntimePinB->GetVariableClass()) && !RuntimePinB->GetVariableClass()->IsChildOf(RuntimePinA->GetVariableClass()))
 		{
 			return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Pins must be of same type or convertible!"));
 		}

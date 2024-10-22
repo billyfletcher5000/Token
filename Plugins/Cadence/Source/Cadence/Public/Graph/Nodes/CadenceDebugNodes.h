@@ -55,7 +55,7 @@ public:
 };
 
 UCLASS()
-class CADENCE_API UCadenceDebugEnumNode : public UCadenceGraphNode
+class CADENCE_API UCadenceDebugQuantizationPeriodNode : public UCadenceGraphNode
 {
 	GENERATED_BODY()
 
