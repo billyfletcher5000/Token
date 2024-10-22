@@ -162,8 +162,8 @@ void UCadenceGridCreateLineNode::CreateInputPins()
 	Super::CreateInputPins();
 
 	AddInputVariablePin(FCadenceGridNodeConstants::BlockGridInputPinName, UCadenceVariableActor::StaticClass());
-	AddInputVariablePin(FCadenceGridNodeConstants::PointAInputPinName, UCadenceVariableVector2D::StaticClass());
-	AddInputVariablePin(FCadenceGridNodeConstants::PointBInputPinName, UCadenceVariableVector2D::StaticClass());
+	AddInputVariablePinDefault<UCadenceVariableVector2D, FVector2D>(FCadenceGridNodeConstants::PointAInputPinName, FVector2D(0.f, 0.f));
+	AddInputVariablePinDefault<UCadenceVariableVector2D, FVector2D>(FCadenceGridNodeConstants::PointBInputPinName, FVector2D(1.f, 1.f));
 }
 
 void UCadenceGridCreateLineNode::CreateOutputPins()
@@ -253,7 +253,7 @@ void UCadenceGridCreateLineNode::GetPreviewDrawCommands(TArray<UCadenceGridPrevi
 	FVector2D PointAPosition = PointAVariable->GetValue();
 	FVector2D PointBPosition = PointBVariable->GetValue();
 	
-	// TODO: Traverse pins at edit time to get these values from input pins if connected
+	// TODO: Traverse pins at edit time to get these values from input pins if connected, see GetBestValue stuff above
 	LineCommand->PositionStart = PointAPosition;
 	LineCommand->PositionEnd = PointBPosition;
 	LineCommand->Thickness = LineWidth;

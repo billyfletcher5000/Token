@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CadenceGraphCore.h"
+#include "CadenceGraphNodePin.h"
 #include "CadenceVariable.h"
 
 #include "CadenceGraphNode.generated.h"
@@ -92,6 +93,26 @@ protected:
 	virtual void RemoveAllInputPins();
 	virtual void RemoveAllOutputPins();
 	virtual void RemoveAllPins();
+
+	template<typename TVar, typename TVal>
+	TObjectPtr<UCadenceGraphNodePin> AddInputVariablePinDefault(const FName& InPinName, const TVal& InDefaultValue)
+	{
+		TObjectPtr<UCadenceGraphNodePin> Pin = AddInputVariablePin(InPinName, TVar::StaticClass());
+		TVar* Variable = Pin->GetVariable<TVar>();
+		if(Variable->SupportsDefault())
+			Variable->SetValue(InDefaultValue);
+		return Pin;
+	}
+
+	template<typename TVar, typename TVal>
+	TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePinDefault(const FName& InPinName, const TVal& InDefaultValue)
+	{
+		TObjectPtr<UCadenceGraphNodePin> Pin = AddOutputVariablePin(InPinName, TVar::StaticClass());
+		TVar* Variable = Pin->GetVariable<TVar>();
+		if(Variable->SupportsDefault())
+			Variable->SetValue(InDefaultValue);
+		return Pin;
+	}
 
 private:
 	static TObjectPtr<UCadenceGraphNodePin> GetPinFromArray(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName);
