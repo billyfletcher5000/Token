@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CadenceGraphCore.h"
+#include "CadenceVariable.h"
 
 #include "CadenceGraphNode.generated.h"
 
@@ -17,6 +19,7 @@ enum class ECadenceNodeExecuteResult : uint8
 	Complete,
 	Failed
 };
+
 
 /**
  * 

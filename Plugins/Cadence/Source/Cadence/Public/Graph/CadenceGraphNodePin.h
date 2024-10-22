@@ -9,9 +9,6 @@
 
 class UCadenceGraphNode;
 
-/**
- * 
- */
 UCLASS()
 class CADENCE_API UCadenceGraphNodePin : public UObject
 {

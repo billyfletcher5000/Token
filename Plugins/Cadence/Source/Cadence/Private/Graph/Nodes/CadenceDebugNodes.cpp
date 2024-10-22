@@ -74,3 +74,14 @@ ECadenceNodeExecuteResult UCadenceDebugActorNameNode::Execute(UCadenceContext* I
 	
 	return ECadenceNodeExecuteResult::Complete;
 }
+
+void UCadenceDebugEnumNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+	AddInputVariablePin(FCadencePinConstants::Pin_Enum, UCadenceVariableEnum::StaticClass());	
+}
+
+ECadenceNodeExecuteResult UCadenceDebugEnumNode::Execute(UCadenceContext* InContext)
+{
+	return Super::Execute(InContext);
+}

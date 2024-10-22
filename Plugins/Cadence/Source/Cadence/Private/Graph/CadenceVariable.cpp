@@ -2,6 +2,7 @@
 
 
 #include "Graph/CadenceVariable.h"
+#include "Graph/CadenceGraphNode.h"
 
 void UCadenceVariableInt::SetFromString(const FString& InStringValue)
 {
@@ -73,12 +74,35 @@ FString UCadenceVariableRotator::ConvertToValueString() const
 	return Value.ToString();
 }
 
-void UCadenceVariableQuartzCommandQuantization::SetFromString(const FString& InStringValue)
+void UCadenceVariableEnum::SetFromString(const FString& InStringValue)
 {
-	Value = (EQuartzCommandQuantization)StaticEnum<EQuartzCommandQuantization>()->GetValueByNameString(InStringValue);
+	Value = EnumType->GetValueByNameString(InStringValue);
 }
 
-FString UCadenceVariableQuartzCommandQuantization::ConvertToValueString() const
+FString UCadenceVariableEnum::ConvertToValueString() const
 {
-	return StaticEnum<EQuartzCommandQuantization>()->GetValueAsString(Value);
+	return EnumType->GetNameByValue(Value).ToString();
+}
+
+void UCadenceVariableActor::CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext)
+{
+	UCadenceVariableActor* CastedVariable = Cast<UCadenceVariableActor>(OtherVariable);
+	Value = CastedVariable->GetValue();
+
+	if(InContext)
+	{
+		FGuid TempGUID = GetGUID();
+		UE_LOG(LogCadence, Log, TEXT("CopyValueFrom Register: %s - This - %s - Other - %s - Node - %s"), *GetName(), *TempGUID.ToString(), *OtherVariable->GetGUID().ToString(), *InContext->ParentNode->GetName());
+		InContext->ActorLifetimeManager->RegisterActorUsage(Value, TempGUID, InContext->ParentNode);
+	}	
+}
+
+void UCadenceVariableActor::OnParentNodeReleased(UCadenceContext* InContext)
+{
+	if(ensure(InContext))
+	{
+		FGuid TempGUID = GetGUID();
+		UE_LOG(LogCadence, Log, TEXT("OnParentNodeReleased Unregister: %s - %s"), *GetName(), *TempGUID.ToString());
+		InContext->ActorLifetimeManager->UnregisterActorUsage(Value, TempGUID);
+	}
 }

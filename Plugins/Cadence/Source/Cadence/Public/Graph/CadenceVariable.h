@@ -7,7 +7,6 @@
 #include "CadenceContext.h"
 #include "Actors/CadenceActorLifetime.h"
 #include "UObject/Object.h"
-#include "CadenceGraphNode.h"
 #include "CadencePinConstants.h"
 #include "CadenceVariable.generated.h"
 
@@ -328,26 +327,31 @@ private:
 };
 
 UCLASS()
-class CADENCE_API UCadenceVariableQuartzCommandQuantization : public UCadenceVariable
+class CADENCE_API UCadenceVariableEnum : public UCadenceVariable
 {
 	GENERATED_BODY()
 
 public:
 	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_Enum; }
-	virtual FName GetPinSubCategory() const override { return FName(StaticEnum<EQuartzCommandQuantization>()->GetName()); }
-	virtual UObject* GetPinSubCategoryObject() const override { return StaticEnum<EQuartzCommandQuantization>(); }
+	virtual FName GetPinSubCategory() const override { return FName(EnumType->GetName()); }
+	virtual UObject* GetPinSubCategoryObject() const override { return EnumType; }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 1.0f); }
 
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
-		UCadenceVariableQuartzCommandQuantization* CastedVariable = Cast<UCadenceVariableQuartzCommandQuantization>(OtherVariable);
+		UCadenceVariableEnum* CastedVariable = Cast<UCadenceVariableEnum>(OtherVariable);
 		Value = CastedVariable->GetValue();
 	}
 
 	virtual bool IsEnum() const override { return true; }
 	
-	EQuartzCommandQuantization GetValue() const { return Value; }
-	void SetValue(const EQuartzCommandQuantization& InValue) { Value = InValue; }
+	int64 GetValue() const { return Value; }
+	void SetValue(const int64& InValue) { Value = InValue; }
+
+	template<typename T>
+	T GetValue() const { return static_cast<T>(Value); }
+	template<typename T>
+	void SetValue(const T& InValue) { Value = static_cast<int64>(InValue);}
 
 	virtual bool SupportsDefault() const override { return true; }
 	
@@ -358,7 +362,10 @@ public:
 
 private:
 	UPROPERTY()
-	EQuartzCommandQuantization Value;
+	int64 Value;
+
+	UPROPERTY()
+	UEnum* EnumType;
 };
 
 UCLASS()
@@ -370,28 +377,9 @@ public:
 	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_Actor; }
 	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 0.95f); }
 
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
-	{
-		UCadenceVariableActor* CastedVariable = Cast<UCadenceVariableActor>(OtherVariable);
-		Value = CastedVariable->GetValue();
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override;
 
-		if(InContext)
-		{
-			FGuid TempGUID = GetGUID();
-			UE_LOG(LogCadence, Log, TEXT("CopyValueFrom Register: %s - This - %s - Other - %s - Node - %s"), *GetName(), *TempGUID.ToString(), *OtherVariable->GetGUID().ToString(), *InContext->ParentNode->GetName());
-			InContext->ActorLifetimeManager->RegisterActorUsage(Value, TempGUID, InContext->ParentNode);
-		}
-	}
-
-	virtual void OnParentNodeReleased(UCadenceContext* InContext) override
-	{
-		if(ensure(InContext))
-		{
-			FGuid TempGUID = GetGUID();
-			UE_LOG(LogCadence, Log, TEXT("OnParentNodeReleased Unregister: %s - %s"), *GetName(), *TempGUID.ToString());
-			InContext->ActorLifetimeManager->UnregisterActorUsage(Value, TempGUID);
-		}
-	}
+	virtual void OnParentNodeReleased(UCadenceContext* InContext) override;
 	
 	TObjectPtr<AActor> GetValue() const { return Value; }
 	void SetValue(const TObjectPtr<AActor>& InValue) { Value = InValue; }

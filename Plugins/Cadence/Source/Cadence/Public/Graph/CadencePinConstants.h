@@ -21,6 +21,7 @@ namespace FCadencePinConstants
 	static const FName Pin_Vector2 = TEXT("Vector2");
 	static const FName Pin_Rotator = TEXT("Rotator");
 	static const FName Pin_Object = TEXT("Object");
+	static const FName Pin_Enum = TEXT("Enum");
 }
 
 namespace FCadencePinCategoryConstants
