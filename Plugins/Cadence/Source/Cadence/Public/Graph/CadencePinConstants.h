@@ -17,6 +17,9 @@ namespace FCadencePinConstants
 	static const FName Pin_Float = TEXT("Float");
 	static const FName Pin_Int = TEXT("Int");
 	static const FName Pin_Bool = TEXT("Bool");
+	static const FName Pin_String = TEXT("String");
+	static const FName Pin_Name = TEXT("Name");
+	static const FName Pin_Text = TEXT("Text");
 	static const FName Pin_Vector = TEXT("Vector");
 	static const FName Pin_Vector2 = TEXT("Vector2");
 	static const FName Pin_Rotator = TEXT("Rotator");
@@ -24,6 +27,12 @@ namespace FCadencePinConstants
 	static const FName Pin_Enum = TEXT("Enum");
 
 	static const FName Pin_Period = TEXT("Period");
+
+	static const FName Pin_Depth = TEXT("Depth");
+
+	static const FName Pin_Condition = TEXT("Condition");
+	static const FName Pin_True = TEXT("True");
+	static const FName Pin_False = TEXT("False");	
 }
 
 namespace FCadencePinCategoryConstants
@@ -37,6 +46,9 @@ namespace FCadencePinCategoryConstants
 	static const FName PC_Vector = TEXT("Vector");
 	static const FName PC_Vector2 = TEXT("Vector2");
 	static const FName PC_Rotator = TEXT("Rotator");
+	static const FName PC_String = TEXT("String");
+	static const FName PC_Name = TEXT("Name");
+	static const FName PC_Text = TEXT("Text");
 	static const FName PC_Enum = TEXT("Enum");
 	static const FName PC_Object = TEXT("Object");
 	static const FName PC_Actor = TEXT("Actor");	

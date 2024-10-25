@@ -104,16 +104,16 @@ FVector ACadenceBlockGridActor::ProjectOnToGrid(const FVector& InWorldVector) co
 	return ActorLocation + FVector::VectorPlaneProject(InWorldVector - ActorLocation, ActorForwardVector); 
 }
 
-FVector ACadenceBlockGridActor::GridPositionToLocalLocation(const FVector2D& InGridPosition) const
+FVector ACadenceBlockGridActor::GridPositionToLocalLocation(const FVector2D& InGridPosition, const float& InDepth) const
 {
 	FVector2D LocalPosition3D = (InGridPosition - (GridTotalSize * 0.5f)) * GridVisualScale;
-	return FVector(0.0f, LocalPosition3D.X, LocalPosition3D.Y);
+	return FVector(InDepth, LocalPosition3D.X, LocalPosition3D.Y);
 }
 
-FVector ACadenceBlockGridActor::GridPositionToWorldLocation(const FVector2D& InGridPosition) const
+FVector ACadenceBlockGridActor::GridPositionToWorldLocation(const FVector2D& InGridPosition, const float& InDepth) const
 {
 	const FTransform& ActorTransform = GetActorTransform();
-	return ActorTransform.TransformPosition(GridPositionToLocalLocation(InGridPosition));
+	return ActorTransform.TransformPosition(GridPositionToLocalLocation(InGridPosition, InDepth));
 }
 
 FVector2D ACadenceBlockGridActor::WorldLocationToGridPosition(const FVector& InWorldPosition, const bool bInSnapToPixel) const
@@ -129,14 +129,14 @@ FVector2D ACadenceBlockGridActor::WorldLocationToGridPosition(const FVector& InW
 	return ScaledGridPosition / GridVisualScale;
 }
 
-FVector ACadenceBlockGridActor::NormalisedPositionToLocalLocation(const FVector2D& InNormalisedPosition) const
+FVector ACadenceBlockGridActor::NormalisedPositionToLocalLocation(const FVector2D& InNormalisedPosition, const float& InDepth) const
 {
-	return GridPositionToLocalLocation(InNormalisedPosition * GridTotalSize);
+	return GridPositionToLocalLocation(InNormalisedPosition * GridTotalSize, InDepth);
 }
 
-FVector ACadenceBlockGridActor::NormalisedPositionToWorldLocation(const FVector2D& InNormalisedPosition) const
+FVector ACadenceBlockGridActor::NormalisedPositionToWorldLocation(const FVector2D& InNormalisedPosition, const float& InDepth) const
 {
-	return GridPositionToWorldLocation(InNormalisedPosition * GridTotalSize);
+	return GridPositionToWorldLocation(InNormalisedPosition * GridTotalSize, InDepth);
 }
 
 FVector2D ACadenceBlockGridActor::WorldLocationToNormalisedPosition(const FVector& InWorldPosition,	const bool bInSnapToPixel) const

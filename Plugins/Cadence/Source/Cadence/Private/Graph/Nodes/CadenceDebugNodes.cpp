@@ -27,7 +27,7 @@ ECadenceNodeExecuteResult UCadenceDebugIntNode::Execute(UCadenceContext* InConte
 	
 	ensure(GEngine);
 	UE_LOG(LogCadence, Log, TEXT("Debug Node Output: %s"), *Output);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::White, *Output);
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, Variable->GetPinColor().ToFColor(false), *Output);
 	
 	return ECadenceNodeExecuteResult::Complete;
 }
@@ -50,7 +50,30 @@ ECadenceNodeExecuteResult UCadenceDebugFloatNode::Execute(UCadenceContext* InCon
 	
 	ensure(GEngine);
 	UE_LOG(LogCadence, Log, TEXT("Debug Node Output: %s"), *Output);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, *Output);
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, Variable->GetPinColor().ToFColor(false), *Output);
+	
+	return ECadenceNodeExecuteResult::Complete;
+}
+
+void UCadenceDebugStringNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+	AddInputVariablePin(FCadencePinConstants::Pin_String, UCadenceVariableString::StaticClass());	
+}
+
+ECadenceNodeExecuteResult UCadenceDebugStringNode::Execute(UCadenceContext* InContext)
+{
+	TObjectPtr<UCadenceGraphNodePin> Pin = GetInputPin(FCadencePinConstants::Pin_String);
+	ensure(Pin);
+
+	UCadenceVariableString* Variable = Pin->GetVariable<UCadenceVariableString>();
+	ensure(Variable);
+
+	FString Output = Variable->GetValue();
+	
+	ensure(GEngine);
+	UE_LOG(LogCadence, Log, TEXT("Debug Node Output: %s"), *Output);
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, Variable->GetPinColor().ToFColor(false), *Output);
 	
 	return ECadenceNodeExecuteResult::Complete;
 }
@@ -70,7 +93,7 @@ ECadenceNodeExecuteResult UCadenceDebugActorNameNode::Execute(UCadenceContext* I
 	
 	ensure(GEngine);
 	UE_LOG(LogCadence, Log, TEXT("Debug Node Output: %s"), *Output);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, *Output);
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, Variable->GetPinColor().ToFColor(false), *Output);
 	
 	return ECadenceNodeExecuteResult::Complete;
 }
@@ -99,7 +122,7 @@ ECadenceNodeExecuteResult UCadenceDebugQuantizationPeriodNode::Execute(UCadenceC
 	
 	ensure(GEngine);
 	UE_LOG(LogCadence, Log, TEXT("Debug Node Output: %s"), *Output);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, *Output);
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, Variable->GetPinColor().ToFColor(false), *Output);
 	
 	return ECadenceNodeExecuteResult::Complete;
 }

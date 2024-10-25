@@ -74,6 +74,36 @@ FString UCadenceVariableRotator::ConvertToValueString() const
 	return Value.ToString();
 }
 
+void UCadenceVariableString::SetFromString(const FString& InStringValue)
+{
+	Value = InStringValue;
+}
+
+FString UCadenceVariableString::ConvertToValueString() const
+{
+	return Value;
+}
+
+void UCadenceVariableName::SetFromString(const FString& InStringValue)
+{
+	Value = FName(InStringValue);
+}
+
+FString UCadenceVariableName::ConvertToValueString() const
+{
+	return Value.ToString();
+}
+
+void UCadenceVariableText::SetFromString(const FString& InStringValue)
+{
+	Value = FText::FromString(InStringValue);
+}
+
+FString UCadenceVariableText::ConvertToValueString() const
+{
+	return Value.ToString();
+}
+
 void UCadenceVariableEnum::SetFromString(const FString& InStringValue)
 {
 	if(IsValid(EnumType))

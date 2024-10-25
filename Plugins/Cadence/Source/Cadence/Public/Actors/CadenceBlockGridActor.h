@@ -38,19 +38,19 @@ public:
 	FVector ProjectOnToGrid(const FVector& InWorldVector) const;
 
 	UFUNCTION(Blueprintable, BlueprintPure)
-	FVector GridPositionToLocalLocation(const FVector2D& InGridPosition) const;
+	FVector GridPositionToLocalLocation(const FVector2D& InGridPosition, const float& InDepth = 0.0f) const;
 
 	UFUNCTION(Blueprintable, BlueprintPure)
-	FVector GridPositionToWorldLocation(const FVector2D& InGridPosition) const;
+	FVector GridPositionToWorldLocation(const FVector2D& InGridPosition, const float& InDepth = 0.0f) const;
 
 	UFUNCTION(Blueprintable, BlueprintPure)
 	FVector2D WorldLocationToGridPosition(const FVector& InWorldPosition, const bool bInSnapToPixel = true) const;
 
 	UFUNCTION(Blueprintable, BlueprintPure)
-	FVector NormalisedPositionToLocalLocation(const FVector2D& InNormalisedPosition) const;
+	FVector NormalisedPositionToLocalLocation(const FVector2D& InNormalisedPosition, const float& InDepth = 0.0f) const;
 
 	UFUNCTION(Blueprintable, BlueprintPure)
-	FVector NormalisedPositionToWorldLocation(const FVector2D& InNormalisedPosition) const;
+	FVector NormalisedPositionToWorldLocation(const FVector2D& InNormalisedPosition, const float& InDepth = 0.0f) const;
 
 	UFUNCTION(Blueprintable, BlueprintPure)
 	FVector2D WorldLocationToNormalisedPosition(const FVector& InWorldPosition, const bool bInSnapToPixel = true) const;

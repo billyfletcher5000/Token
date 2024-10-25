@@ -9,6 +9,7 @@
 #include "KismetPins/SGraphPinEnum.h"
 #include "KismetPins/SGraphPinExec.h"
 #include "KismetPins/SGraphPinInteger.h"
+#include "KismetPins/SGraphPinString.h"
 #include "KismetPins/SGraphPinVector.h"
 #include "KismetPins/SGraphPinVector2D.h"
 
@@ -29,6 +30,15 @@ TSharedPtr<SGraphPin> FCadenceGraphEditorPanelPinFactory::CreatePin(UEdGraphPin*
 	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Boolean)	
 		return SNew(SGraphPinBool, InPin);
 
+	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_String)	
+		return SNew(SGraphPinString, InPin);
+	
+	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Name)	
+		return SNew(SGraphPinString, InPin);
+	
+	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Text)	
+		return SNew(SGraphPinString, InPin);
+	
 	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Vector)	
 		return SNew(SGraphPinVector<double>, InPin);
 

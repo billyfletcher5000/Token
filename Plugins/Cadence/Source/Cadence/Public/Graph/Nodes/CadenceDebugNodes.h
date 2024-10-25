@@ -40,6 +40,21 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceDebugConstants::NodeTitleColor; }
 };
 
+
+UCLASS()
+class CADENCE_API UCadenceDebugStringNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateInputPins() override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+	
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Debug String")); }
+	virtual FText GetNodeCategory() const override { return FCadenceDebugConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceDebugConstants::NodeTitleColor; }
+};
+
 UCLASS()
 class CADENCE_API UCadenceDebugActorNameNode : public UCadenceGraphNode
 {

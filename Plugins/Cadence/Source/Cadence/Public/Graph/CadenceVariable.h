@@ -263,6 +263,90 @@ private:
 };
 
 UCLASS()
+class CADENCE_API UCadenceVariableString : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_String; }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.969f, 0.471f, 0.875f); }
+
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
+	{
+		UCadenceVariableString* CastedVariable = Cast<UCadenceVariableString>(OtherVariable);
+		Value = CastedVariable->GetValue();
+	}
+	
+	FString GetValue() const { return Value; }
+	void SetValue(const FString& InValue) { Value = InValue; }
+
+	virtual bool SupportsDefault() const override { return true; }
+	
+	virtual void SetFromString(const FString& InStringValue) override;
+	virtual FString ConvertToValueString() const override;
+
+private:
+	UPROPERTY(EditAnywhere)
+	FString Value;
+};
+
+UCLASS()
+class CADENCE_API UCadenceVariableName : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_Name; }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.969f, 0.471f, 0.875f); }
+
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
+	{
+		UCadenceVariableName* CastedVariable = Cast<UCadenceVariableName>(OtherVariable);
+		Value = CastedVariable->GetValue();
+	}
+	
+	FName GetValue() const { return Value; }
+	void SetValue(const FName& InValue) { Value = InValue; }
+
+	virtual bool SupportsDefault() const override { return true; }
+	
+	virtual void SetFromString(const FString& InStringValue) override;
+	virtual FString ConvertToValueString() const override;
+
+private:
+	UPROPERTY(EditAnywhere)
+	FName Value;
+};
+
+UCLASS()
+class CADENCE_API UCadenceVariableText : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_Text; }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.969f, 0.471f, 0.875f); }
+
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
+	{
+		UCadenceVariableText* CastedVariable = Cast<UCadenceVariableText>(OtherVariable);
+		Value = CastedVariable->GetValue();
+	}
+	
+	FText GetValue() const { return Value; }
+	void SetValue(const FText& InValue) { Value = InValue; }
+
+	virtual bool SupportsDefault() const override { return true; }
+	
+	virtual void SetFromString(const FString& InStringValue) override;
+	virtual FString ConvertToValueString() const override;
+
+private:
+	UPROPERTY(EditAnywhere)
+	FText Value;
+};
+
+UCLASS()
 class CADENCE_API UCadenceVariableUObject : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -321,7 +405,7 @@ public:
 	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_Enum; }
 	virtual FName GetPinSubCategory() const override { return EnumType != nullptr ? FName(EnumType->GetName()) : NAME_None; }
 	virtual UObject* GetPinSubCategoryObject() const override { return EnumType; }
-	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.3f, 0.3f, 1.0f); }
+	virtual FLinearColor GetPinColor() const override { return FLinearColor(0.09f, 0.702f, 0.271f); }
 
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{

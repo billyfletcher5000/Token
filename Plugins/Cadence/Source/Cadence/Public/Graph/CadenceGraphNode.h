@@ -18,6 +18,7 @@ enum class ECadenceNodeExecuteResult : uint8
 {
 	Running = 0,
 	Complete,
+	AdditionalExecPinActuated,
 	Failed
 };
 
@@ -44,13 +45,15 @@ public:
 	virtual bool IsLatent() const { return false; }
 	
 	virtual bool HasInputExecPin() const { return true; }
-	virtual bool HasOutputExecPin() const { return true; }
+	virtual bool ShouldCreateThenExecPin() const { return true; }
 
 	virtual void DestroyNode();
 	
 	virtual void CreateInputPins();
 	virtual void CreateOutputPins();
 	virtual void ClearConnections();
+
+	virtual TArray<UCadenceGraphNodePin*> GetActuatingOutputExecPins() const { return { GetThenPin() }; }
 
 	TObjectPtr<UCadenceGraphNodePin> GetExecPin() const;
 	TObjectPtr<UCadenceGraphNodePin> GetThenPin() const;

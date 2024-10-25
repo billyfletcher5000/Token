@@ -121,47 +121,64 @@ void UCadenceGraphRunnerPathway::ExecuteCurrentNode(UCadenceContext* InContext)
 		return;
 	}
 	
-	if(Result == ECadenceNodeExecuteResult::Complete)
-	{		
-		TArray<UCadenceGraphNodePin*> ConnectedPins = CurrentNode->GetThenPin()->GetConnectedPins();
-
-		if(ConnectedPins.Num() == 0)
+	if(Result == ECadenceNodeExecuteResult::Complete || Result == ECadenceNodeExecuteResult::AdditionalExecPinActuated)
+	{
+		bool bAnyPinActuated = false;
+		UCadenceGraphNode* ActuatingNode = CurrentNode;
+		TArray<UCadenceGraphNodePin*> ActuatingExecPins = CurrentNode->GetActuatingOutputExecPins();
+		for(UCadenceGraphNodePin* ActuatingExecPin : ActuatingExecPins)
 		{
-			End();
-			return;
-		}
+			TArray<UCadenceGraphNodePin*> ConnectedPins = ActuatingExecPin->GetConnectedPins();
 
-		TArray<UCadenceGraphNodePin*> NextNodePins;
+			if(ConnectedPins.Num() == 0)
+			{
+				continue;
+			}
+
+			TArray<UCadenceGraphNodePin*> NextNodePins;
 		
-		for(UCadenceGraphNodePin* ConnectedPin : ConnectedPins)
-		{
-			UCadenceGraphNode* Node = ConnectedPin->GetParentNode();
-			if(Node->IsReroute())
+			for(UCadenceGraphNodePin* ConnectedPin : ConnectedPins)
 			{
-				UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(Node);
-				NextNodePins.Append(RerouteNode->GetRerouteOutputNodeConnectedInputPins());
+				UCadenceGraphNode* Node = ConnectedPin->GetParentNode();
+				if(Node->IsReroute())
+				{
+					UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(Node);
+					NextNodePins.Append(RerouteNode->GetRerouteOutputNodeConnectedInputPins());
+				}
+				else
+				{
+					NextNodePins.Add(ConnectedPin);
+				}
 			}
-			else
+
+			if(NextNodePins.Num() == 0)
 			{
-				NextNodePins.Add(ConnectedPin);
+				continue;
 			}
-		}
+
+			bAnyPinActuated = true;
 		
-		for(int32 NodeIndex = 0; NodeIndex < NextNodePins.Num(); ++NodeIndex)
-		{
-			// Process execution logic, spawning more pathways if necessary			
-			if(NodeIndex == 0)
+			for(int32 NodeIndex = 0; NodeIndex < NextNodePins.Num(); ++NodeIndex)
 			{
-				SetCurrentNode(InContext, NextNodePins[0]->GetParentNode());
-			}
-			else
-			{				
-				InContext->Runner->RequestAdditionalPathway(NextNodePins[NodeIndex]->GetParentNode(), Context->bProcessNodesImmediately, InContext->DeltaSeconds);
+				// Process execution logic, spawning more pathways if necessary			
+				if(Result == ECadenceNodeExecuteResult::Complete && ActuatingNode == CurrentNode)
+				{
+					SetCurrentNode(InContext, NextNodePins[0]->GetParentNode());
+				}
+				else
+				{				
+					InContext->Runner->RequestAdditionalPathway(NextNodePins[NodeIndex]->GetParentNode(), Context->bProcessNodesImmediately, InContext->DeltaSeconds);
+				}
 			}
 		}
 
-		if(Context->bProcessNodesImmediately)
-			ExecuteCurrentNode(InContext);
+		if(Result == ECadenceNodeExecuteResult::Complete)
+		{
+			if(!bAnyPinActuated)
+				End();
+			else if(Context->bProcessNodesImmediately && ActuatingNode != CurrentNode)
+				ExecuteCurrentNode(InContext);
+		}
 	}
 }
 

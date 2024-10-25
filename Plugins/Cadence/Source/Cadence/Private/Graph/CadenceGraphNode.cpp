@@ -38,7 +38,7 @@ void UCadenceGraphNode::CreateInputPins()
 
 void UCadenceGraphNode::CreateOutputPins()
 {
-	if(!IsPure() && HasOutputExecPin())
+	if(!IsPure() && ShouldCreateThenExecPin())
 	{
 		AddOutputExecPin(FCadencePinConstants::Pin_Default_Then);
 	}
