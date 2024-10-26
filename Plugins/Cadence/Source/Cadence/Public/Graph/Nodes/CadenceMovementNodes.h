@@ -27,7 +27,7 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceMovementConstants::NodeTitleColor; }
 
 protected:
-	virtual void CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList) override;
+	virtual void CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList, UCadenceContext* InContext) override;
 
 	virtual FRotator TransformRotation(const FRotator& InRotation, AActor* InActor) { return InRotation; }
 

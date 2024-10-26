@@ -15,7 +15,7 @@ void UCadenceWaitForTriggerNode::CreateInputPins()
 	AddInputVariablePin(FCadencePinConstants::Pin_Trigger, UCadenceVariableTrigger::StaticClass());
 }
 
-void UCadenceWaitForTriggerNode::CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList)
+void UCadenceWaitForTriggerNode::CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList, UCadenceContext* InContext)
 {
 	UCadenceGraphNodePin* InputPin = GetInputPin(FCadencePinConstants::Pin_Trigger);
 	UCadenceVariableTrigger* TriggerVariable = InputPin->GetVariable<UCadenceVariableTrigger>();

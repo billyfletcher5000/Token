@@ -32,7 +32,13 @@ namespace FCadencePinConstants
 
 	static const FName Pin_Condition = TEXT("Condition");
 	static const FName Pin_True = TEXT("True");
-	static const FName Pin_False = TEXT("False");	
+	static const FName Pin_False = TEXT("False");
+	
+	static const FName Pin_LoopBody = TEXT("Loop Body");
+	static const FName Pin_Completed = TEXT("Completed");
+	static const FName Pin_Index = TEXT("Index");
+	static const FName Pin_FirstIndex = TEXT("First Index");
+	static const FName Pin_LastIndex = TEXT("Last Index");
 }
 
 namespace FCadencePinCategoryConstants

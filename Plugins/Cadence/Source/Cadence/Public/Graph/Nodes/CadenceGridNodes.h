@@ -104,7 +104,7 @@ class CADENCE_API UCadenceGridMoveToPointNode : public UCadenceLatentNode, publi
 
 public:
 	virtual void CreateInputPins() override;
-	virtual void CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList) override;
+	virtual void CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList, UCadenceContext* InContext) override;
 	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Move To Grid Point")); }
 	virtual FText GetNodeCategory() const override { return FCadenceGridNodeConstants::NodeCategory; }

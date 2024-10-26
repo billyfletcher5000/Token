@@ -50,7 +50,7 @@ public:
 	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 	
 protected:
-	virtual void CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList) PURE_VIRTUAL();
+	virtual void CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList, UCadenceContext* InContext) PURE_VIRTUAL();
 
 private:
 	UPROPERTY()

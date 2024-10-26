@@ -82,3 +82,19 @@ public:
 	virtual FText GetNodeCategory() const override { return FCadenceDebugConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceDebugConstants::NodeTitleColor; }
 };
+
+
+UCLASS()
+class CADENCE_API UCadenceTestIncrementIntNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateInputPins() override;
+	virtual void CreateOutputPins() override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+	
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Test Increment Int")); }
+	virtual FText GetNodeCategory() const override { return FCadenceDebugConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceDebugConstants::NodeTitleColor; }
+};

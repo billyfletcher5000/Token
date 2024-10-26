@@ -208,7 +208,7 @@ void UCadenceGridMoveToPointNode::CreateInputPins()
 	AddInputVariablePin(FCadencePinConstants::Pin_Depth, UCadenceVariableFloat::StaticClass());
 }
 
-void UCadenceGridMoveToPointNode::CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList)
+void UCadenceGridMoveToPointNode::CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList, UCadenceContext* InContext)
 {
 	UCadenceGraphNodePin* BlockGridPin = GetInputPin(FCadenceGridNodeConstants::BlockGridInputPinName);
 	UCadenceVariableActor* BlockGridVariable = BlockGridPin->GetVariable<UCadenceVariableActor>();

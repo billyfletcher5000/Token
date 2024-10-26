@@ -126,3 +126,32 @@ ECadenceNodeExecuteResult UCadenceDebugQuantizationPeriodNode::Execute(UCadenceC
 	
 	return ECadenceNodeExecuteResult::Complete;
 }
+
+void UCadenceTestIncrementIntNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+	AddInputVariablePin(FCadencePinConstants::Pin_Int, UCadenceVariableInt::StaticClass());
+	AddInputVariablePinDefault<UCadenceVariableInt>(FCadencePinConstants::Pin_Value, 1);
+}
+
+void UCadenceTestIncrementIntNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+	AddOutputVariablePin(FCadencePinConstants::Pin_Int, UCadenceVariableInt::StaticClass());
+}
+
+ECadenceNodeExecuteResult UCadenceTestIncrementIntNode::Execute(UCadenceContext* InContext)
+{
+	UCadenceGraphNodePin* InIntPin = GetInputPin(FCadencePinConstants::Pin_Int);
+	int32 InInt = InIntPin->GetVariable<UCadenceVariableInt>()->GetValue();
+
+	UCadenceGraphNodePin* InValuePin = GetInputPin(FCadencePinConstants::Pin_Value);
+	int32 InValue = InValuePin->GetVariable<UCadenceVariableInt>()->GetValue();
+
+	UCadenceGraphNodePin* OutIntPin = GetOutputPin(FCadencePinConstants::Pin_Int);
+	UCadenceVariableInt* OutVariable = OutIntPin->GetVariable<UCadenceVariableInt>();
+
+	OutVariable->SetValue(InInt + InValue);
+	
+	return ECadenceNodeExecuteResult::Complete;
+}

@@ -46,6 +46,11 @@ void UCadenceGraphRunner::Tick(const float& InDeltaSeconds)
 	for(UCadenceGraphRunnerPathway* EndedPathway : EndedPathways)
 	{
 		ActivePathways.Remove(EndedPathway);
+		
+		if(PathwayToCallback.Contains(EndedPathway))
+		{
+			PathwayToCallback.Remove(EndedPathway);
+		}
 	}
 
 	EndedPathways.Empty();
@@ -69,13 +74,23 @@ void UCadenceGraphRunner::NotifyPathwayEnded(UCadenceGraphRunnerPathway* InPathw
 {
 	if(!EndedPathways.Contains(InPathway))
 		EndedPathways.Add(InPathway);
+
+	if(PathwayToCallback.Contains(InPathway))
+	{
+		FOnAdditionalPathWayEndedDelegate Callback = MoveTemp(PathwayToCallback[InPathway]); 
+		Callback.Execute();
+		Callback.Unbind();
+	}
 }
 
-void UCadenceGraphRunner::RequestAdditionalPathway(UCadenceGraphNode* InStartNode, const bool& bInExecuteImmediately, const float& InDeltaSeconds)
+void UCadenceGraphRunner::RequestAdditionalPathway(UCadenceGraphNode* InStartNode, const bool& bInExecuteImmediately, const float& InDeltaSeconds, FOnAdditionalPathWayEndedDelegate InOnEndedCallback)
 {	
 	UCadenceGraphRunnerPathway* Pathway = NewObject<UCadenceGraphRunnerPathway>(this);
-	Pathway->Init(Context, InStartNode);
+	Pathway->Init(DuplicateObject<UCadenceContext>(Context, this), InStartNode);
 	AddedPathways.Add(Pathway);
+
+	if(InOnEndedCallback.IsBound())
+		PathwayToCallback.Add(Pathway, MoveTemp(InOnEndedCallback));
 
 	if(bInExecuteImmediately)
 		Pathway->Tick(InDeltaSeconds);
@@ -114,6 +129,7 @@ UCadenceContext* UCadenceGraphRunnerPathway::GetContext()
 
 void UCadenceGraphRunnerPathway::ExecuteCurrentNode(UCadenceContext* InContext)
 {
+	UCadenceGraphNode* CurrentNodeAtStart = CurrentNode;
 	ECadenceNodeExecuteResult Result = CurrentNode->Execute(InContext);
 	if(Result == ECadenceNodeExecuteResult::Failed)
 	{

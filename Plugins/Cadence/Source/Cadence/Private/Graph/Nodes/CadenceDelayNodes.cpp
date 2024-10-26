@@ -14,7 +14,7 @@ void UCadenceDelayNode::CreateInputPins()
 	AddInputVariablePin(FCadencePinConstants::Pin_Duration, UCadenceVariableFloat::StaticClass());
 }
 
-void UCadenceDelayNode::CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList)
+void UCadenceDelayNode::CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList, UCadenceContext* InContext)
 {
 	UCadenceGraphNodePin* InputPin = GetInputPin(FCadencePinConstants::Pin_Duration);
 	UCadenceVariableFloat* InputFloatVariable = InputPin->GetVariable<UCadenceVariableFloat>();

@@ -16,7 +16,7 @@ void UCadenceRotateToNode::CreateInputPins()
 	AddInputVariablePin(FCadencePinConstants::Pin_Duration, UCadenceVariableFloat::StaticClass());
 }
 
-void UCadenceRotateToNode::CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList)
+void UCadenceRotateToNode::CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList, UCadenceContext* InContext)
 {
 	UCadenceGraphNodePin* ActorPin = GetInputPin(FCadencePinConstants::Pin_Actor);
 	UCadenceVariableActor* ActorVariable = ActorPin->GetVariable<UCadenceVariableActor>();

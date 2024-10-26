@@ -12,7 +12,7 @@ ECadenceNodeExecuteResult UCadenceLatentNode::Execute(UCadenceContext* InContext
 	if(!ActionListMap.Contains(InContext->Pathway))
 	{
 		TArray<TScriptInterface<ICadenceTickableAction>> NewActionList;
-		CreateLatentActions(NewActionList);
+		CreateLatentActions(NewActionList, InContext);
 
 		ActionListMap.Add(FCadencePathwayActionListPair::Create(InContext->Pathway, NewActionList));
 
@@ -22,7 +22,7 @@ ECadenceNodeExecuteResult UCadenceLatentNode::Execute(UCadenceContext* InContext
 		}
 	}	
 	
-	ActionListPair = ActionListMap.FindByKey(InContext->Pathway);	
+	ActionListPair = ActionListMap.FindByKey(InContext->Pathway);
 
 	TArray<TScriptInterface<ICadenceTickableAction>> ActionsToRemove;
 	

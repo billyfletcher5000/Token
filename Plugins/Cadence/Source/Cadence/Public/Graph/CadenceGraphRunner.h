@@ -27,11 +27,14 @@ public:
 	void Tick(const float& InDeltaSeconds);
 	void End();
 
+	DECLARE_DELEGATE(FOnAdditionalPathWayEndedDelegate);
+	
+	void RequestAdditionalPathway(UCadenceGraphNode* InStartNode, const bool& bInExecuteImmediately = false, const float& InDeltaSeconds = 0.0f, FOnAdditionalPathWayEndedDelegate InOnEndedCallback = nullptr);
+	
 protected:
 	friend UCadenceGraphRunnerPathway;
 
 	void NotifyPathwayEnded(UCadenceGraphRunnerPathway* InPathway);
-	void RequestAdditionalPathway(UCadenceGraphNode* InStartNode, const bool& bInExecuteImmediately = false, const float& InDeltaSeconds = 0.0f);
 
 public:
 	UCadenceContext* GetContext();
@@ -48,6 +51,8 @@ private:
 
 	UPROPERTY()
 	TArray<UCadenceGraphRunnerPathway*> EndedPathways;
+
+	TMap<UCadenceGraphRunnerPathway*, FOnAdditionalPathWayEndedDelegate> PathwayToCallback;
 };
 
 UCLASS()
