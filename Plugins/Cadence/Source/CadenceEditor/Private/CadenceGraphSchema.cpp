@@ -100,6 +100,9 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 	if (A->Direction == B->Direction)
 		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Inputs can only connect to outputs!"));
 
+	if (A->PinType.ContainerType != B->PinType.ContainerType)
+		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Cannot connect a pin of a different container type (e.g. variable to array)!"));
+
 	const FName PinACategory = A->PinType.PinCategory;
 	const FName PinBCategory = B->PinType.PinCategory;
 	

@@ -65,3 +65,22 @@ namespace FCadencePinSubCategoryConstants
 {
 	static const FName PSC_Array = TEXT("Array");
 }
+
+namespace FCadenceVariableColorConstants
+{
+	static constexpr FLinearColor VC_Int = FLinearColor(0.4f, 0.4f, 1.0f);	
+	static constexpr FLinearColor VC_Float = FLinearColor(0.0f, 1.0f, 0.0f);
+	static constexpr FLinearColor VC_Double = FLinearColor(0.4f, 0.4f, 1.0f); 
+	static constexpr FLinearColor VC_Bool = FLinearColor(1.0f, 0.0f, 0.0f); 
+	static constexpr FLinearColor VC_Vector = FLinearColor(1.0f, 1.0f, 0.0f); 
+	static constexpr FLinearColor VC_Vector2 = FLinearColor(0.0f, 0.0f, 1.0f);
+	static constexpr FLinearColor VC_Rotator = FLinearColor(1.0f, 0.7f, 0.2f);
+	static constexpr FLinearColor VC_String = FLinearColor(0.969f, 0.471f, 0.875f);
+	static constexpr FLinearColor VC_Name = FLinearColor(0.969f, 0.471f, 0.875f);
+	static constexpr FLinearColor VC_Text = FLinearColor(0.969f, 0.471f, 0.875f);
+	static constexpr FLinearColor VC_UObject = FLinearColor(0.3f, 0.3f, 1.0f); 
+	static constexpr FLinearColor VC_Enum = FLinearColor(0.09f, 0.702f, 0.271f);
+	static constexpr FLinearColor VC_Actor = FLinearColor(0.3f, 0.3f, 0.95f); 
+	static constexpr FLinearColor VC_Trigger = FLinearColor(0.75f, 0.0f, 0.0f);
+	
+}
