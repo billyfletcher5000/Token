@@ -19,6 +19,26 @@ namespace FCadenceEditorConstants
 	const FString ContextIdentifier = TEXT("CadenceEditorContext");
 }
 
+namespace CadenceNodeSectionID
+{
+	enum Type
+	{
+		NONE = 0,
+		GRAPH,					// Graph
+		FUNCTION,				// Functions
+		FUNCTION_OVERRIDABLE,	// Overridable functions
+		INTERFACE,				// Interface
+		MACRO,					// Macros
+		VARIABLE,				// Variables
+		COMPONENT,				// Components
+		DELEGATE,				// Delegate/Event
+		USER_ENUM,				// User defined enums
+		LOCAL_VARIABLE,			// Local variables
+		USER_STRUCT,			// User defined structs
+		USER_SORTED				// User sorted categories
+	};
+}
+
 class FCadenceGraphApplication : public FWorkflowCentricApplication, public FEditorUndoClient, public FNotifyHook
 {
 public:
@@ -128,21 +148,6 @@ class FCadenceGraphNodeDetailsTabFactory : public FWorkflowTabFactory
 {
 public:
 	FCadenceGraphNodeDetailsTabFactory(TSharedPtr<FCadenceGraphApplication> InApplication);
-
-	virtual TSharedRef<SWidget> CreateTabBody(const FWorkflowTabSpawnInfo& Info) const override;
-	virtual FText GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const override;
-
-private:
-	TWeakPtr<FCadenceGraphApplication> Application;
-
-public:
-	static const FName Identifier;
-};
-
-class FCadenceGraphDetailsTabFactory : public FWorkflowTabFactory
-{
-public:
-	FCadenceGraphDetailsTabFactory(TSharedPtr<FCadenceGraphApplication> InApplication);
 
 	virtual TSharedRef<SWidget> CreateTabBody(const FWorkflowTabSpawnInfo& Info) const override;
 	virtual FText GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const override;
