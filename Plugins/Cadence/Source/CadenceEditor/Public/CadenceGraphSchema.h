@@ -6,6 +6,7 @@
 
 #include "CadenceGraphSchema.generated.h"
 
+class UCadenceVariable;
 /**
  * 
  */
@@ -28,8 +29,11 @@ public:
 	virtual void TrySetDefaultValue(UEdGraphPin& Pin, const FString& NewDefaultValue, bool bMarkAsModified = true) const override;
 
 	virtual FLinearColor GetPinTypeColor(const FEdGraphPinType& PinType) const override;
+	virtual FLinearColor GetSecondaryPinTypeColor(const FEdGraphPinType& PinType) const override;
 
 	virtual FText GetPinDisplayName(const UEdGraphPin* Pin) const override;
+
+	virtual bool ConvertVariableToPinType(const UCadenceVariable* InVariable, FEdGraphPinType& OutPinType) const;
 
 public:
 	static const FName PC_Variable;

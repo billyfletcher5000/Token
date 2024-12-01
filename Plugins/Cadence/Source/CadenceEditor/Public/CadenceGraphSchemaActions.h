@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Graph/CadenceGraph.h"
 #include "EdGraph/EdGraphSchema.h"
+#include "Graph/CadenceVariable.h"
 #include "CadenceGraphSchemaActions.generated.h"
 
 class UCadenceGraphNode;
@@ -69,4 +70,59 @@ protected:
 private:
 	UPROPERTY()
 	FCadenceNamedVariable NamedVariable;
+};
+
+USTRUCT()
+struct FCadenceVariableAction : public FEdGraphSchemaAction
+{
+	GENERATED_USTRUCT_BODY()
+
+private:
+	TWeakObjectPtr<UCadenceVariable> Variable;
+
+public:
+	// Simple type info
+	static FName StaticGetTypeId() {static FName Type("FCadenceVariableAction"); return Type;}
+	virtual FName GetTypeId() const override { return StaticGetTypeId(); } 
+
+	FCadenceVariableAction()
+	: FEdGraphSchemaAction()
+	{}
+
+	FCadenceVariableAction(UCadenceVariable* InVariable)
+	: FEdGraphSchemaAction(), Variable(InVariable)
+	{}
+
+	UCadenceVariable* GetVariable() const
+	{
+		return Variable.Get();
+	}
+
+	FName GetVariableName() const
+	{
+		return Variable->GetUserVariableName();
+	}
+
+	FString GetFriendlyVariableName() const
+	{
+		return Variable->GetUserVariableName().ToString();
+	}
+
+	virtual FEdGraphPinType GetPinType() const;
+
+	virtual void ChangeVariableType(const FEdGraphPinType& NewPinType);
+
+	virtual void RenameVariable(const FName& NewName) { Variable->SetUserVariableName(NewName); }
+
+	virtual bool IsValidName(const FName& NewName, FText& OutErrorMessage) const;
+	virtual void DeleteVariable();
+	virtual bool IsVariableUsed();
+	
+	// FEdGraphSchemaAction interface
+	virtual void MovePersistentItemToCategory(const FText& NewCategoryName) override;
+	virtual int32 GetReorderIndexInContainer() const override;
+	virtual bool ReorderToBeforeAction(TSharedRef<FEdGraphSchemaAction> OtherAction) override;
+	virtual FEdGraphSchemaActionDefiningObject GetPersistentItemDefiningObject() const override;
+	virtual bool IsAVariable() const { return true; }
+	// End of FEdGraphSchemaAction interface
 };

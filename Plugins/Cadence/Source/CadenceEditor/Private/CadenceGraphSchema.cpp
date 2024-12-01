@@ -12,6 +12,7 @@
 #include "Graph/CadenceGraphNode.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "CadenceGraphSchemaActions.h"
+#include "GraphEditorSettings.h"
 #include "Graph/CadencePinConstants.h"
 #include "Graph/Nodes/CadenceUserVariableNodes.h"
 #include "Graph/CadenceVariable.h"
@@ -374,6 +375,24 @@ FLinearColor UCadenceGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType
 	return FLinearColor::White;
 }
 
+FLinearColor UCadenceGraphSchema::GetSecondaryPinTypeColor(const FEdGraphPinType& PinType) const
+{
+	if (PinType.IsMap())
+	{
+		FEdGraphPinType FakePrimary = PinType;
+		FakePrimary.PinCategory = FakePrimary.PinValueType.TerminalCategory;
+		FakePrimary.PinSubCategory = FakePrimary.PinValueType.TerminalSubCategory;
+		FakePrimary.PinSubCategoryObject = FakePrimary.PinValueType.TerminalSubCategoryObject;
+
+		return GetPinTypeColor(FakePrimary);
+	}
+	else
+	{
+		const UGraphEditorSettings* Settings = GetDefault<UGraphEditorSettings>();
+		return Settings->WildcardPinTypeColor;
+	}
+}
+
 FText UCadenceGraphSchema::GetPinDisplayName(const UEdGraphPin* Pin) const
 {
 	if(Pin->PinName == FCadencePinConstants::Pin_Default_Exec ||
@@ -383,6 +402,19 @@ FText UCadenceGraphSchema::GetPinDisplayName(const UEdGraphPin* Pin) const
 	}
 		
 	return Super::GetPinDisplayName(Pin);
+}
+
+bool UCadenceGraphSchema::ConvertVariableToPinType(const UCadenceVariable* InVariable, FEdGraphPinType& OutPinType) const
+{
+	if(!IsValid(InVariable))
+		return false;
+
+	OutPinType.PinCategory = InVariable->GetPinCategory();
+	OutPinType.PinSubCategory = InVariable->GetPinSubCategory();
+	OutPinType.PinSubCategoryObject = InVariable->GetPinSubCategoryObject();
+	OutPinType.ContainerType = InVariable->IsArray() ? EPinContainerType::Array : EPinContainerType::None;
+
+	return true;
 }
 
 bool UCadenceGraphSchema::IsVariablePinCategory(const FName& InPinCategory)

@@ -4,6 +4,7 @@
 #include "CadenceGraphApplication.h"
 
 #include "CadenceAsset.h"
+#include "CadenceGraphDetailsTab.h"
 #include "Graph/CadenceGraph.h"
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorGridNode.h"
@@ -116,6 +117,12 @@ void FCadenceGraphApplication::SetGraphDetailsView(const TSharedPtr<IDetailsView
 	GraphDetailsView = InDetailsView;
 }
 
+bool FCadenceGraphApplication::InEditingMode() const
+{
+	// TODO: Update this if read only mode is ever added
+	return true;
+}
+
 void FCadenceGraphApplication::OnToolkitHostingStarted(const TSharedRef<IToolkit>& Toolkit)
 {
 }
@@ -142,6 +149,32 @@ void FCadenceGraphApplication::OnDetailsPropertyChangesFinished(const FPropertyC
 {	
 	TSharedPtr<SGraphEditor> GraphEditor = SlateGraphEditor.Pin();
 	GraphEditor->NotifyGraphChanged();
+}
+
+FSlateBrush const* FCadenceGraphApplication::GetVarIconAndColorFromVariable(const UCadenceVariable* Property, FSlateColor& IconColorOut, FSlateBrush const*& SecondaryBrushOut, FSlateColor& SecondaryColorOut)
+{
+	SecondaryBrushOut = nullptr;
+	if (Property != nullptr)
+	{
+		const UCadenceGraphSchema* CadenceGraphSchema = GetDefault<UCadenceGraphSchema>();
+
+		FEdGraphPinType PinType;
+		if (CadenceGraphSchema->ConvertVariableToPinType(Property, PinType)) // use schema to get the color
+		{
+			return GetVarIconAndColorFromPinType(PinType, IconColorOut, SecondaryBrushOut, SecondaryColorOut);
+		}
+	}
+	return FAppStyle::GetBrush(TEXT("Kismet.AllClasses.VariableIcon"));
+}
+
+FSlateBrush const* FCadenceGraphApplication::GetVarIconAndColorFromPinType(const FEdGraphPinType& PinType,
+	FSlateColor& IconColorOut, FSlateBrush const*& SecondaryBrushOut, FSlateColor& SecondaryColorOut)
+{
+	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
+	IconColorOut = K2Schema->GetPinTypeColor(PinType);
+	SecondaryBrushOut = FBlueprintEditorUtils::GetSecondaryIconFromPin(PinType);
+	SecondaryColorOut = K2Schema->GetSecondaryPinTypeColor(PinType);
+	return FBlueprintEditorUtils::GetIconFromPin(PinType);
 }
 
 void FCadenceGraphApplication::ReconstructEditorGraph()

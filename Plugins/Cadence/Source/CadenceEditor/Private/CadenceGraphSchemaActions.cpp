@@ -7,6 +7,7 @@
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorGridNode.h"
 #include "CadenceGraphEditorNode.h"
+#include "CadenceGraphSchema.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/Nodes/CadenceGridNodes.h"
 #include "Graph/Nodes/CadenceUserVariableNodes.h"
@@ -99,4 +100,53 @@ UCadenceGraphNode* FNewVariableSetterNodeAction::CreateCadenceGraphNode(UCadence
 	SetterNode->CreateInputPins();
 	SetterNode->CreateOutputPins();	
 	return Node;
+}
+
+FEdGraphPinType FCadenceVariableAction::GetPinType() const
+{
+	const UCadenceGraphSchema* Schema = GetDefault<UCadenceGraphSchema>();
+	FEdGraphPinType OutType;
+	Schema->ConvertVariableToPinType(Variable.Get(), OutType);
+	return OutType;
+}
+
+void FCadenceVariableAction::ChangeVariableType(const FEdGraphPinType& NewPinType)
+{
+	// TODO: Access graph, delete current variable, create new one, have it update appropriately somehow
+}
+
+bool FCadenceVariableAction::IsValidName(const FName& NewName, FText& OutErrorMessage) const
+{
+	return true;
+}
+
+void FCadenceVariableAction::DeleteVariable()
+{
+	// TODO
+}
+
+bool FCadenceVariableAction::IsVariableUsed()
+{
+	// TODO
+	return false;
+}
+
+void FCadenceVariableAction::MovePersistentItemToCategory(const FText& NewCategoryName)
+{
+	FEdGraphSchemaAction::MovePersistentItemToCategory(NewCategoryName);
+}
+
+int32 FCadenceVariableAction::GetReorderIndexInContainer() const
+{
+	return FEdGraphSchemaAction::GetReorderIndexInContainer();
+}
+
+bool FCadenceVariableAction::ReorderToBeforeAction(TSharedRef<FEdGraphSchemaAction> OtherAction)
+{
+	return FEdGraphSchemaAction::ReorderToBeforeAction(OtherAction);
+}
+
+FEdGraphSchemaActionDefiningObject FCadenceVariableAction::GetPersistentItemDefiningObject() const
+{
+	return FEdGraphSchemaAction::GetPersistentItemDefiningObject();
 }

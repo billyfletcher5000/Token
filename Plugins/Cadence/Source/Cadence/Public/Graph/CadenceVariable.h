@@ -43,6 +43,9 @@ public:
 	virtual void SetUserVariableName(const FName& InName) { UserVariableName = InName; }
 	virtual FName GetUserVariableName() const { return UserVariableName; }
 
+	virtual bool IsVisible() const { return bIsVisible; }
+	virtual void SetVisible(const bool& InValue) { bIsVisible = InValue; }
+	
 	FGuid GetGUID()
 	{
 		if(!GUID.IsValid())
@@ -56,6 +59,9 @@ public:
 protected:
 	UPROPERTY()
 	FName UserVariableName = NAME_None;
+
+	UPROPERTY()
+	bool bIsVisible = true;
 
 private:
 	UPROPERTY(VisibleAnywhere, NonPIEDuplicateTransient, TextExportTransient, NonTransactional)

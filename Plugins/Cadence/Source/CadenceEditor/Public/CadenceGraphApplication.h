@@ -9,6 +9,7 @@
 #include "WorkflowOrientedApp/WorkflowTabFactory.h"
 #include "WorkflowOrientedApp/WorkflowTabManager.h"
 
+class UCadenceVariable;
 class UCadenceAsset;
 class UCadenceGraph;
 class UCadenceGraphEditor;
@@ -46,6 +47,7 @@ public:
 	void InitEditor(const EToolkitMode::Type InMode, const TSharedPtr<IToolkitHost> InToolkitHost, UObject* InObject);
     virtual void OnClose() override;
 
+	UCadenceAsset* GetWorkingAsset() const { return WorkingAsset; }
 	UCadenceGraph* GetWorkingGraph() const { return WorkingAsset->GetGraph(); }
 	UCadenceGraphEditor* GetWorkingGraphEditor() const { return WorkingGraphEditor; }
 	TSharedPtr<SGraphEditor> GetSlateGraphEditor() const { return SlateGraphEditor.Pin(); }
@@ -54,6 +56,8 @@ public:
 	void SetSlateGraphEditor(const TSharedPtr<SGraphEditor>& InSlateGraphEditor) { SlateGraphEditor = InSlateGraphEditor; }
 	void SetSelectedDetailsView(const TSharedPtr<IDetailsView>& InDetailsView);
 	void SetGraphDetailsView(const TSharedPtr<IDetailsView>& InDetailsView);
+	
+	bool InEditingMode() const;
 
 public: // FAssetEditorToolkit
 	virtual FName GetToolkitFName() const override { return ToolkitFName; }
@@ -67,6 +71,10 @@ public: // FAssetEditorToolkit
 public:
 	void OnGraphSelectionChanged(const FGraphPanelSelectionSet& InSelectionSet);
 	void OnDetailsPropertyChangesFinished(const FPropertyChangedEvent& InPropertyChangedEvent);
+	
+	static FSlateBrush const* GetVarIconAndColorFromVariable(const UCadenceVariable* Property, FSlateColor& IconColorOut, FSlateBrush const*& SecondaryBrushOut, FSlateColor& SecondaryColorOut);
+	static FSlateBrush const* GetVarIconAndColorFromPinType(const FEdGraphPinType& PinType, FSlateColor& IconColorOut, FSlateBrush const*& SecondaryBrushOut, FSlateColor& SecondaryColorOut);
+
 	
 private:
 	void ReconstructEditorGraph();

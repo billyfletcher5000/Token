@@ -52,6 +52,7 @@ public class CadenceEditor : ModuleRules
 				"SequencerCore",
 				"MovieScene",
 				"MovieSceneTracks",
+				"KismetWidgets",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
