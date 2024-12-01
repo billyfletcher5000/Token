@@ -133,7 +133,8 @@ bool FCadenceVariableAction::IsVariableUsed()
 
 void FCadenceVariableAction::MovePersistentItemToCategory(const FText& NewCategoryName)
 {
-	FEdGraphSchemaAction::MovePersistentItemToCategory(NewCategoryName);
+	if(Variable.IsValid())
+		Variable->SetCategory(NewCategoryName);
 }
 
 int32 FCadenceVariableAction::GetReorderIndexInContainer() const
@@ -147,6 +148,26 @@ bool FCadenceVariableAction::ReorderToBeforeAction(TSharedRef<FEdGraphSchemaActi
 }
 
 FEdGraphSchemaActionDefiningObject FCadenceVariableAction::GetPersistentItemDefiningObject() const
+{
+	return FEdGraphSchemaActionDefiningObject(Variable.Get());
+}
+
+void FCadenceGraphAction::MovePersistentItemToCategory(const FText& NewCategoryName)
+{
+	FEdGraphSchemaAction::MovePersistentItemToCategory(NewCategoryName);
+}
+
+int32 FCadenceGraphAction::GetReorderIndexInContainer() const
+{
+	return INDEX_NONE;
+}
+
+bool FCadenceGraphAction::ReorderToBeforeAction(TSharedRef<FEdGraphSchemaAction> OtherAction)
+{
+	return FEdGraphSchemaAction::ReorderToBeforeAction(OtherAction);
+}
+
+FEdGraphSchemaActionDefiningObject FCadenceGraphAction::GetPersistentItemDefiningObject() const
 {
 	return FEdGraphSchemaAction::GetPersistentItemDefiningObject();
 }

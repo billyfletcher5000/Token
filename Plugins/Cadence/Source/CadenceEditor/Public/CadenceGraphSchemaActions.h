@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GraphEditorDragDropAction.h"
 #include "Graph/CadenceGraph.h"
 #include "EdGraph/EdGraphSchema.h"
 #include "Graph/CadenceVariable.h"
@@ -124,5 +125,54 @@ public:
 	virtual bool ReorderToBeforeAction(TSharedRef<FEdGraphSchemaAction> OtherAction) override;
 	virtual FEdGraphSchemaActionDefiningObject GetPersistentItemDefiningObject() const override;
 	virtual bool IsAVariable() const { return true; }
+	// End of FEdGraphSchemaAction interface
+};
+
+UENUM()
+namespace ECadenceGraphAction
+{
+	enum Type : int
+	{
+		Graph,
+		Subgraph,
+		MAX
+	};
+}
+
+/** Reference to a function, macro, event graph, or timeline (only used in 'docked' palette) */
+USTRUCT()
+struct BLUEPRINTGRAPH_API FCadenceGraphAction : public FEdGraphSchemaAction
+{
+	GENERATED_USTRUCT_BODY()
+
+	// Simple type info
+	static FName StaticGetTypeId() {static FName Type("FEdGraphSchemaAction_K2Graph"); return Type;}
+	virtual FName GetTypeId() const override { return StaticGetTypeId(); } 
+
+	/** Name of function or class */
+	FName FuncName;
+
+	/** The type of graph that action is */
+	ECadenceGraphAction::Type GraphType;
+
+	/** The associated editor graph for this schema */
+	UEdGraph* EdGraph;
+
+	FCadenceGraphAction() 
+		: FEdGraphSchemaAction()
+	{}
+
+	FCadenceGraphAction(ECadenceGraphAction::Type InType, FText InNodeCategory, FText InMenuDesc, FText InToolTip, const int32 InGrouping, const int32 InSectionID = 0)
+		: FEdGraphSchemaAction(MoveTemp(InNodeCategory), MoveTemp(InMenuDesc), MoveTemp(InToolTip), InGrouping, FText(), InSectionID)
+		, GraphType(InType)
+		, EdGraph(nullptr)
+	{}
+
+	// FEdGraphSchemaAction interface
+	virtual bool IsParentable() const override { return true; }
+	virtual void MovePersistentItemToCategory(const FText& NewCategoryName) override;
+	virtual int32 GetReorderIndexInContainer() const override;
+	virtual bool ReorderToBeforeAction(TSharedRef<FEdGraphSchemaAction> OtherAction) override;
+	virtual FEdGraphSchemaActionDefiningObject GetPersistentItemDefiningObject() const override;
 	// End of FEdGraphSchemaAction interface
 };

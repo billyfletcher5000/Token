@@ -4,6 +4,9 @@
 #include "CadenceGraphDetailsTab.h"
 
 #include "CadenceGraphApplication.h"
+#include "CadenceGraphSchema.h"
+#include "CadenceGraphSchemaActions.h"
+#include "CadencePalette.h"
 #include "DetailLayoutBuilder.h"
 #include "EditorCategoryUtils.h"
 #include "GraphActionNode.h"
@@ -75,21 +78,12 @@ static const TCHAR* GRAPH_PREFIX = TEXT("CadenceGraph");
 
 
 void FCadenceGraphDetailsCommands::RegisterCommands() 
-{
-	UI_COMMAND( OpenGraph, "Open Graph", "Opens up this function, macro, or event graph's graph panel up.", EUserInterfaceActionType::Button, FInputChord() );
-	UI_COMMAND( OpenGraphInNewTab, "Open in New Tab", "Opens up this function, macro, or event graph's graph panel up in a new tab. Hold down Ctrl and double click for shortcut.", EUserInterfaceActionType::Button, FInputChord() );
+{	
 	UI_COMMAND( OpenExternalGraph, "Open External Graph", "Opens up this external graph's graph panel in its own asset editor", EUserInterfaceActionType::Button, FInputChord() );
 	UI_COMMAND( FocusNode, "Focus", "Focuses on the associated node", EUserInterfaceActionType::Button, FInputChord() );
-	UI_COMMAND( FocusNodeInNewTab, "Focus in New Tab", "Focuses on the associated node in a new tab", EUserInterfaceActionType::Button, FInputChord() );
-	UI_COMMAND( ImplementFunction, "Implement event", "Implements this overridable function as a new event.", EUserInterfaceActionType::Button, FInputChord() );
-	UI_COMMAND( DeleteEntry, "Delete", "Deletes this function or variable from this blueprint.", EUserInterfaceActionType::Button, FInputChord(EKeys::Delete), FInputChord(EKeys::BackSpace));
-	UI_COMMAND( PasteVariable, "Paste Variable", "Pastes the variable to this blueprint.", EUserInterfaceActionType::Button, FInputChord());
-	UI_COMMAND( PasteLocalVariable, "Paste Local Variable", "Pastes the variable to this scope.", EUserInterfaceActionType::Button, FInputChord());
-	UI_COMMAND( PasteFunction, "Paste Function", "Pastes the function to this blueprint.", EUserInterfaceActionType::Button, FInputChord());
-	UI_COMMAND( PasteMacro, "Paste Macro", "Pastes the macro to this blueprint.", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND( DeleteEntry, "Delete", "Deletes this variable from this cadence graph.", EUserInterfaceActionType::Button, FInputChord(EKeys::Delete), FInputChord(EKeys::BackSpace));
+	UI_COMMAND( PasteVariable, "Paste Variable", "Pastes the variable to this cadence graph.", EUserInterfaceActionType::Button, FInputChord());
 	UI_COMMAND( GotoNativeVarDefinition, "Goto Code Definition", "Goto the native code definition of this variable", EUserInterfaceActionType::Button, FInputChord() );
-	UI_COMMAND( MoveVariableToParent, "Move to Parent Class", "Moves the variable to its parent class", EUserInterfaceActionType::Button, FInputChord() );
-	UI_COMMAND( MoveFunctionToParent, "Move to Parent Class", "Moves the function to its parent class", EUserInterfaceActionType::Button, FInputChord() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -256,7 +250,6 @@ private:
 void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr<FCadenceGraphApplication> InGraphApplication)
 {
 	bNeedsRefresh = false;
-	bShowReplicatedVariablesOnly = false;
 
 	ApplicationPtr = InGraphApplication;
 	EdGraph = nullptr;
@@ -271,16 +264,6 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 		
 		CommandList->Append(ApplicationPtr.Pin()->GetToolkitCommands());
 
-		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().OpenGraph,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnOpenGraph),
-			FCanExecuteAction(), FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanOpenGraph) );
-	
-		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().OpenGraphInNewTab,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnOpenGraphInNewTab),
-			FCanExecuteAction(), FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanOpenGraph) );
-
 		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().OpenExternalGraph,
 			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnOpenExternalGraph),
 			FCanExecuteAction(), FIsActionChecked(),
@@ -290,16 +273,6 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnFocusNode),
 			FCanExecuteAction(), FIsActionChecked(),
 			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanFocusOnNode) );
-
-		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().FocusNodeInNewTab,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnFocusNodeInNewTab),
-			FCanExecuteAction(), FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanFocusOnNode) );
-
-		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().ImplementFunction,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnImplementFunction),
-			FCanExecuteAction(), FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanImplementFunction) );
 			
 		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().DeleteEntry,
 			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnDeleteEntry),
@@ -311,23 +284,6 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 			FIsActionChecked(),
 			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::IsDuplicateActionVisible) );
 
-		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().MoveVariableToParent,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnMoveToParent),
-			FCanExecuteAction(),
-			FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanMoveVariableToParent) );
-
-		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().MoveFunctionToParent,
-			 FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnMoveToParent),
-			 FCanExecuteAction(),
-			 FIsActionChecked(),
-			 FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanMoveFunctionToParent) );
-
-		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().GotoNativeVarDefinition,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::GotoNativeCodeVarDefinition),
-			FCanExecuteAction(),
-			FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::IsNativeVariable) );
 		ToolbarBuilderWidget = SNullWidget::NullWidget;
 	
 		CommandList->MapAction(FGenericCommands::Get().Rename,
@@ -351,50 +307,21 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnPasteVariable),
 			FCanExecuteAction(), FIsActionChecked(),
 			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanPasteVariable));
-
-		CommandList->MapAction(FCadenceGraphDetailsCommands::Get().PasteLocalVariable,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnPasteLocalVariable),
-			FCanExecuteAction(), FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanPasteLocalVariable));
-
-		CommandList->MapAction(FCadenceGraphDetailsCommands::Get().PasteFunction,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnPasteFunction),
-			FCanExecuteAction(), FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanPasteFunction));
-
-		CommandList->MapAction(FCadenceGraphDetailsCommands::Get().PasteMacro,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnPasteMacro),
-			FCanExecuteAction(), FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanPasteMacro));
 	}
 
 	TSharedPtr<SWidget> AddNewMenu = SNew(SPositiveActionButton)
-		.AddMetaData<FTagMetaData>(FTagMetaData(TEXT("MyBlueprintAddNewCombo")))
+		.AddMetaData<FTagMetaData>(FTagMetaData(TEXT("CadenceAddNewCombo")))
 		.Icon(FAppStyle::Get().GetBrush("Icons.Plus"))
 		.Text(LOCTEXT("AddNewLabel", "Add"))
-		.ToolTipText(LOCTEXT("AddNewToolTip", "Add a new Variable, Graph, Function, Macro, or Event Dispatcher."))
+		.ToolTipText(LOCTEXT("AddNewToolTip", "Add a new Variable."))
 		.IsEnabled(this, &SCadenceGraphDetailsTabWidget::IsEditingMode)
 		.OnGetMenuContent(this, &SCadenceGraphDetailsTabWidget::CreateAddNewMenuWidget);
 
-	FMenuBuilder ViewOptions(true, nullptr);
-
-	ViewOptions.AddMenuEntry(
-		LOCTEXT("ShowInheritedVariables", "Show Inherited Variables"),
-		LOCTEXT("ShowInheritedVariablesTooltip", "Should inherited variables from parent classes and blueprints be shown in the tree?"),
-		FSlateIcon(),
-		FUIAction( 
-			FExecuteAction::CreateSP( this, &SCadenceGraphDetailsTabWidget::OnToggleShowInheritedVariables ),
-			FCanExecuteAction(),
-			FIsActionChecked::CreateSP( this, &SCadenceGraphDetailsTabWidget::IsShowingInheritedVariables )
-		),
-		NAME_None,
-		EUserInterfaceActionType::ToggleButton,
-		TEXT("CadenceGraphDetails_ShowInheritedVariables")
-	);
+	FMenuBuilder ViewOptions(true, nullptr);	
 
 	ViewOptions.AddMenuEntry(
 		LOCTEXT("ShowEmptySections", "Show Empty Sections"),
-		LOCTEXT("ShowEmptySectionsTooltip", "Should we show empty sections? eg. Graphs, Functions...etc."),
+		LOCTEXT("ShowEmptySectionsTooltip", "Should we show empty sections?"),
 		FSlateIcon(),
 		FUIAction( 
 			FExecuteAction::CreateSP( this, &SCadenceGraphDetailsTabWidget::OnToggleShowEmptySections ),
@@ -404,48 +331,6 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 		NAME_None,
 		EUserInterfaceActionType::ToggleButton,
 		TEXT("CadenceGraphDetails_ShowEmptySections")
-	);
-
-	ViewOptions.AddMenuEntry(
-		LOCTEXT("ShowReplicatedVariablesOnly", "Show Replicated Variables Only"),
-		LOCTEXT("ShowReplicatedVariablesOnlyTooltip", "Should we only show variables that are replicated?"),
-		FSlateIcon(),
-		FUIAction(
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnToggleShowReplicatedVariablesOnly),
-			FCanExecuteAction(),
-			FIsActionChecked::CreateSP(this, &SCadenceGraphDetailsTabWidget::IsShowingReplicatedVariablesOnly)
-		),
-		NAME_None,
-		EUserInterfaceActionType::ToggleButton,
-		TEXT("CadenceGraphDetails_ShowReplicatedVariablesOnly")
-	);
-
-	ViewOptions.AddMenuEntry(
-		LOCTEXT("AlwaysShowInterfacesInOverrides", "Show interfaces in the function override menu"),
-		LOCTEXT("AlwaysShowInterfacesInOverridesTooltip", "Should we always display interface functions/events in the override menu?"),
-		FSlateIcon(),
-		FUIAction(
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnToggleAlwaysShowInterfacesInOverrides),
-			FCanExecuteAction(),
-			FIsActionChecked::CreateSP(this, &SCadenceGraphDetailsTabWidget::GetAlwaysShowInterfacesInOverrides)
-		),
-		NAME_None,
-		EUserInterfaceActionType::ToggleButton,
-		TEXT("CadenceGraphDetails_AlwaysShowInterfacesInOverrides")
-	);
-
-	ViewOptions.AddMenuEntry(
-		LOCTEXT("AlwaysShowAccessSpecifier", "Show access specifier in the My Blueprint View"),
-		LOCTEXT("AlwaysShowAccessSpecifierTooltip", "Should we always display the access specifier of functions in the function menu?"),
-		FSlateIcon(),
-		FUIAction(
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnToggleShowAccessSpecifier),
-			FCanExecuteAction(),
-			FIsActionChecked::CreateSP(this, &SCadenceGraphDetailsTabWidget::GetShowAccessSpecifier)
-		),
-		NAME_None,
-		EUserInterfaceActionType::ToggleButton,
-		TEXT("CadenceGraphDetails_AlwaysShowAccessSpecifier")
 	);
 
 	SAssignNew(FilterBox, SSearchBox)
@@ -548,11 +433,7 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 
 	TMap<int32, bool> ExpandedSections;
 	ExpandedSections.Add(CadenceNodeSectionID::VARIABLE, true);
-	ExpandedSections.Add(CadenceNodeSectionID::FUNCTION, true);
-	ExpandedSections.Add(CadenceNodeSectionID::MACRO, true);
-	ExpandedSections.Add(CadenceNodeSectionID::DELEGATE, true);
 	ExpandedSections.Add(CadenceNodeSectionID::GRAPH, true);
-	ExpandedSections.Add(CadenceNodeSectionID::LOCAL_VARIABLE, true);
 
 	GraphActionMenu->SetSectionExpansion(ExpandedSections);
 
@@ -595,88 +476,22 @@ void SCadenceGraphDetailsTabWidget::OnCategoryNameCommitted(const FText& InNewTe
 	{
 		const FScopedTransaction Transaction( LOCTEXT( "RenameCategory", "Rename Category" ) );
 
-		GetBlueprintObj()->Modify();
+		GetMainGraph()->Modify();
 
 		for (int32 i = 0; i < Actions.Num(); ++i)
 		{
-			if (Actions[i]->GetTypeId() == FEdGraphSchemaAction_K2Var::StaticGetTypeId())
+			if (Actions[i]->GetTypeId() == FCadenceVariableAction::StaticGetTypeId())
 			{
-				FEdGraphSchemaAction_K2Var* VarAction = (FEdGraphSchemaAction_K2Var*)Actions[i].Get();
+				FCadenceVariableAction* VarAction = (FCadenceVariableAction*)Actions[i].Get();
 
-				if(FProperty* TargetProperty = VarAction->GetProperty())
+				if(UCadenceVariable* Var = VarAction->GetVariable())
 				{
-					UClass* OuterClass = VarAction->GetProperty()->GetOwnerChecked<UClass>();
-					const bool bIsNativeVar = (OuterClass->ClassGeneratedBy == NULL);
-
-					// If the variable is not native and it's outer is the skeleton generated class, we can rename the category
-					if(!bIsNativeVar && OuterClass == GetBlueprintObj()->SkeletonGeneratedClass)
-					{
-						FBlueprintEditorUtils::SetBlueprintVariableCategory(GetBlueprintObj(), VarAction->GetVariableName(), NULL, CategoryName, true);
-					}
+					Var->SetCategory(CategoryName);
 				}
-			}
-			else if (Actions[i]->GetTypeId() == FEdGraphSchemaAction_K2LocalVar::StaticGetTypeId())
-			{
-				FEdGraphSchemaAction_K2LocalVar* LocalVarAction = (FEdGraphSchemaAction_K2LocalVar*)Actions[i].Get();
-
-				FBlueprintEditorUtils::SetBlueprintVariableCategory(GetBlueprintObj(), LocalVarAction->GetVariableName(), CastChecked<UStruct>(LocalVarAction->GetVariableScope()), CategoryName, true);
-			}
-			else if (Actions[i]->GetTypeId() == FEdGraphSchemaAction_K2Delegate::StaticGetTypeId())
-			{
-				FEdGraphSchemaAction_K2Delegate* DelegateAction = (FEdGraphSchemaAction_K2Delegate*)Actions[i].Get();
-				FBlueprintEditorUtils::SetBlueprintVariableCategory(GetBlueprintObj(), DelegateAction->GetDelegateProperty()->GetFName(), NULL, CategoryName, true);
-			}
-			else if (Actions[i]->GetTypeId() == FEdGraphSchemaAction_K2Graph::StaticGetTypeId())
-			{
-				// Do not allow renaming of any graph actions outside of the following
-				if(Actions[i]->GetSectionID() == CadenceNodeSectionID::FUNCTION || Actions[i]->GetSectionID() == CadenceNodeSectionID::MACRO || Actions[i]->GetSectionID() == CadenceNodeSectionID::ANIMLAYER)
-				{
-					FEdGraphSchemaAction_K2Graph* GraphAction = (FEdGraphSchemaAction_K2Graph*)Actions[i].Get();
-
-					// Don't allow changing the category of a graph who's parent is not the current Blueprint
-					if(GraphAction && !FBlueprintEditorUtils::IsPaletteActionReadOnly(Actions[i], BlueprintEditorPtr.Pin()) && FBlueprintEditorUtils::FindBlueprintForGraph(GraphAction->EdGraph) == GetBlueprintObj())
-					{
-						FReply ReplyBySchema = FReply::Unhandled();
-						if (GraphAction->EdGraph)
-						{
-							if (UEdGraphSchema* Schema = (UEdGraphSchema*)GraphAction->EdGraph->GetSchema())
-							{
-								TArray<FString> CategoryParts;
-								TWeakPtr< FGraphActionNode > CurrentActionNode = InAction;
-								while (CurrentActionNode.IsValid())
-								{
-									FString CurrentDisplayName = CurrentActionNode.Pin()->GetDisplayName().ToString();
-									if (!CurrentDisplayName.IsEmpty())
-									{
-										CategoryParts.Insert(CurrentDisplayName, 0);
-									}
-									CurrentActionNode = CurrentActionNode.Pin()->GetParentNode();
-								}
-
-								FString OldCategoryPath = FString::Join(CategoryParts, TEXT("|"));
-								CategoryParts.Last() = CategoryName.ToString();
-								FString NewCategoryPath = FString::Join(CategoryParts, TEXT("|"));
-
-								FString CurrentCategoryPath = GraphAction->GetCategory().ToString();
-								if (CurrentCategoryPath == OldCategoryPath || CurrentCategoryPath.StartsWith(OldCategoryPath + TEXT("|"), ESearchCase::CaseSensitive))
-								{
-									NewCategoryPath = NewCategoryPath + CurrentCategoryPath.RightChop(OldCategoryPath.Len());
-								}
-
-								ReplyBySchema = Schema->TrySetGraphCategory(GraphAction->EdGraph, FText::FromString(NewCategoryPath));
-							}
-						}
-
-						if (!ReplyBySchema.IsEventHandled())
-						{
-							GraphAction->MovePersistentItemToCategory(CategoryName);
-						}
-					}
-				}
-			}
+			}			
 		}
 		Refresh();
-		FBlueprintEditorUtils::MarkBlueprintAsModified(GetBlueprintObj());
+		ApplicationPtr.Pin()->GetWorkingAsset()->Modify();
 		SelectItemByName(FName(*CategoryName.ToString()), ESelectInfo::OnMouseClick, InAction.Pin()->SectionID, true);
 	}
 }
@@ -690,51 +505,9 @@ FText SCadenceGraphDetailsTabWidget::OnGetSectionTitle( int32 InSectionID )
 	case CadenceNodeSectionID::VARIABLE:
 		SeparatorTitle = NSLOCTEXT("GraphActionNode", "Variables", "Variables");
 		break;
-	case CadenceNodeSectionID::COMPONENT:
-		SeparatorTitle = NSLOCTEXT("GraphActionNode", "Components", "Components");
-		break;
-	case CadenceNodeSectionID::FUNCTION:
-		if ( OverridableFunctionActions.Num() > 0 )
-		{
-			SeparatorTitle = FText::Format(NSLOCTEXT("GraphActionNode", "FunctionsOverridableFormat", "Functions <TinyText.Subdued>({0} Overridable)</>"), FText::AsNumber(OverridableFunctionActions.Num()));
-		}
-		else
-		{
-			SeparatorTitle = NSLOCTEXT("GraphActionNode", "Functions", "Functions");
-		}
-
-		break;
-	case CadenceNodeSectionID::FUNCTION_OVERRIDABLE:
-		SeparatorTitle = NSLOCTEXT("GraphActionNode", "OverridableFunctions", "Overridable Functions");
-		break;
-	case CadenceNodeSectionID::MACRO:
-		SeparatorTitle = NSLOCTEXT("GraphActionNode", "Macros", "Macros");
-		break;
-	case CadenceNodeSectionID::INTERFACE:
-		SeparatorTitle = NSLOCTEXT("GraphActionNode", "Interfaces", "Interfaces");
-		break;
-	case CadenceNodeSectionID::DELEGATE:
-		SeparatorTitle = NSLOCTEXT("GraphActionNode", "EventDispatchers", "Event Dispatchers");
-		break;	
 	case CadenceNodeSectionID::GRAPH:
 		SeparatorTitle = NSLOCTEXT("GraphActionNode", "Graphs", "Graphs");
 		break;
-	case CadenceNodeSectionID::USER_ENUM:
-		SeparatorTitle = NSLOCTEXT("GraphActionNode", "Userenums", "User Enums");
-		break;	
-	case CadenceNodeSectionID::LOCAL_VARIABLE:
-		if ( GetFocusedGraph() )
-		{
-			SeparatorTitle = FText::Format(NSLOCTEXT("GraphActionNode", "LocalVariables_Focused", "Local Variables <TinyText.Subdued>({0})</>"), FText::FromName(GetFocusedGraph()->GetFName()));
-		}
-		else
-		{
-			SeparatorTitle = NSLOCTEXT("GraphActionNode", "LocalVariables", "Local Variables");
-		}
-		break;
-	case CadenceNodeSectionID::USER_STRUCT:
-		SeparatorTitle = NSLOCTEXT("GraphActionNode", "Userstructs", "User Structs");
-		break;	
 	default:
 	case CadenceNodeSectionID::NONE:
 		SeparatorTitle = FText::GetEmpty();
@@ -755,57 +528,6 @@ TSharedRef<SWidget> SCadenceGraphDetailsTabWidget::OnGetSectionWidget(TSharedRef
 	case CadenceNodeSectionID::VARIABLE:
 		AddNewText = LOCTEXT("AddNewVariable", "Variable");
 		MetaDataTag = TEXT("AddNewVariable");
-		break;
-	case CadenceNodeSectionID::FUNCTION:
-		AddNewText = LOCTEXT("AddNewFunction", "Function");
-		MetaDataTag = TEXT("AddNewFunction");
-
-		if ( OverridableFunctionActions.Num() > 0 )
-		{
-			return SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				[
-					SAssignNew(FunctionSectionButton, SComboButton)
-					.IsEnabled(this, &SCadenceGraphDetailsTabWidget::IsEditingMode)
-					.Visibility(this, &SCadenceGraphDetailsTabWidget::OnGetSectionTextVisibility, WeakRowWidget, InSectionID)
-					.ForegroundColor(FAppStyle::GetSlateColor("DefaultForeground"))
-					.OnGetMenuContent(this, &SCadenceGraphDetailsTabWidget::OnGetFunctionListMenu)
-					.ContentPadding(0.0f)
-					.HasDownArrow(true)
-					.ButtonContent()
-					[
-						SNew(STextBlock)
-						.Font(IDetailLayoutBuilder::GetDetailFontBold())
-						.Text(LOCTEXT("Override", "Override"))
-					]
-				]
-
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.VAlign(VAlign_Center)
-				.Padding(2,0,0,0)
-				[
-					CreateAddToSectionButton(InSectionID, WeakRowWidget, AddNewText, MetaDataTag)
-				];
-		}
-
-		break;
-	case CadenceNodeSectionID::MACRO:
-		AddNewText = LOCTEXT("AddNewMacro", "Macro");
-		MetaDataTag = TEXT("AddNewMacro");
-		break;
-	case CadenceNodeSectionID::DELEGATE:
-		AddNewText = LOCTEXT("AddNewDelegate", "Event Dispatcher");
-		MetaDataTag = TEXT("AddNewDelegate");
-		break;
-	case CadenceNodeSectionID::GRAPH:
-		AddNewText = LOCTEXT("AddNewGraph", "New Graph");
-		MetaDataTag = TEXT("AddNewGraph");
-		break;
-	case CadenceNodeSectionID::LOCAL_VARIABLE:
-		AddNewText = LOCTEXT("AddNewLocalVariable", "Local Variable");
-		MetaDataTag = TEXT("AddNewLocalVariable");
 		break;
 	default:
 		return SNullWidget::NullWidget;
@@ -836,10 +558,7 @@ FReply SCadenceGraphDetailsTabWidget::OnAddButtonClickedOnSection(int32 InSectio
 	switch ( InSectionID )
 	{
 	case CadenceNodeSectionID::VARIABLE:
-		CommandList->ExecuteAction(FBlueprintEditorCommands::Get().AddNewVariable.ToSharedRef());
-		break;
-	case CadenceNodeSectionID::LOCAL_VARIABLE:
-		OnAddNewLocalVariable();
+		CommandList->ExecuteAction(FCadenceGraphDetailsCommands::Get().AddNewVariable.ToSharedRef());
 		break;
 	}
 
@@ -869,14 +588,8 @@ bool SCadenceGraphDetailsTabWidget::HandleActionMatchesName(FEdGraphSchemaAction
 
 EVisibility SCadenceGraphDetailsTabWidget::OnGetSectionTextVisibility(TWeakPtr<SWidget> RowWidget, int32 InSectionID) const
 {
-	bool ShowText = RowWidget.Pin()->IsHovered();
-	if ( InSectionID == CadenceNodeSectionID::FUNCTION && FunctionSectionButton.IsValid() && FunctionSectionButton->IsOpen() )
-	{
-		ShowText = true;
-	}
-
 	// If the row is currently hovered, or a menu is being displayed for a button, keep the button expanded.
-	if ( ShowText )
+	if ( RowWidget.Pin()->IsHovered() )
 	{
 		return EVisibility::SelfHitTestInvisible;
 	}
@@ -884,24 +597,6 @@ EVisibility SCadenceGraphDetailsTabWidget::OnGetSectionTextVisibility(TWeakPtr<S
 	{
 		return EVisibility::Hidden;
 	}
-}
-
-TSharedRef<SWidget> SCadenceGraphDetailsTabWidget::OnGetFunctionListMenu()
-{
-	const bool bShouldCloseWindowAfterMenuSelection = true;
-	FMenuBuilder MenuBuilder(bShouldCloseWindowAfterMenuSelection, CommandList);
-
-	BuildOverridableFunctionsMenu(MenuBuilder);
-
-	TSharedRef<SWidget> MenuWidget = MenuBuilder.MakeWidget();
-	
-	// force user focus onto the menu widget:
-	if(FunctionSectionButton.IsValid())
-	{
-		FunctionSectionButton->SetMenuContentWidgetToFocus(MenuWidget);
-	}
-
-	return MenuWidget;
 }
 
 bool SCadenceGraphDetailsTabWidget::CanRequestRenameOnActionNode(TWeakPtr<FGraphActionNode> InSelectedNode) const
@@ -936,7 +631,7 @@ void SCadenceGraphDetailsTabWidget::Refresh()
 
 TSharedRef<SWidget> SCadenceGraphDetailsTabWidget::OnCreateWidgetForAction(FCreateWidgetForActionData* const InCreateData)
 {
-	return ApplicationPtr.IsValid() ? SNew(SBlueprintPaletteItem, InCreateData, BlueprintEditorPtr.Pin()) : SNew(SBlueprintPaletteItem, InCreateData, GetBlueprintObj());
+	return SNew(SCadencePaletteItem, InCreateData, ApplicationPtr.Pin());
 }
 
 void SCadenceGraphDetailsTabWidget::GetChildGraphs(UEdGraph* InEdGraph, int32 const SectionId, FGraphActionSort& SortList, const FText& ParentCategory) const
@@ -982,585 +677,31 @@ void SCadenceGraphDetailsTabWidget::GetChildGraphs(UEdGraph* InEdGraph, int32 co
 		FText ChildTooltip = DisplayText;
 		FText ChildDesc = MoveTemp(DisplayText);
 
-		TSharedPtr<FEdGraphSchemaAction_K2Graph> NewChildAction = MakeShareable(new FEdGraphSchemaAction_K2Graph(EEdGraphSchemaAction_K2Graph::Subgraph, Category, MoveTemp(ChildDesc), MoveTemp(ChildTooltip), 1, SectionId));
+		TSharedPtr<FCadenceGraphAction> NewChildAction = MakeShareable(new FCadenceGraphAction(ECadenceGraphAction::Subgraph, Category, MoveTemp(ChildDesc), MoveTemp(ChildTooltip), 1, SectionId));
 		NewChildAction->FuncName = DisplayName;
 		NewChildAction->EdGraph = Graph;
 		SortList.AddAction(NewChildAction);
 		
 		GetChildGraphs(Graph, SectionId, SortList, Category);
-		GetChildEvents(Graph, SectionId, SortList, Category);
 	}
-}
-
-void SCadenceGraphDetailsTabWidget::GetChildEvents(UEdGraph const* InEdGraph, int32 const SectionId, FGraphActionSort& SortList, const FText& ParentCategory, bool bInAddChildGraphs) const
-{
-	if (!ensure(InEdGraph != NULL))
-	{
-		return;
-	}
-
-	// ask the schema first to provide the child events
-	if (UEdGraphSchema const* Schema = InEdGraph->GetSchema())
-	{
-		TArray<TSharedPtr<FEdGraphSchemaAction>> ActionsFromSchema;
-		if(Schema->TryToGetChildEvents(InEdGraph, SectionId, ActionsFromSchema, ParentCategory))
-		{
-			for(TSharedPtr<FEdGraphSchemaAction> ActionFromSchema : ActionsFromSchema)
-			{
-				SortList.AddAction(ActionFromSchema);
-			}
-			return;
-		}
-	}
-
-	// grab the parent graph's name
-	FGraphDisplayInfo EdGraphDisplayInfo;
-	if (UEdGraphSchema const* Schema = InEdGraph->GetSchema())
-	{
-		Schema->GetGraphDisplayInformation(*InEdGraph, EdGraphDisplayInfo);
-	}
-	FText EdGraphDisplayName = EdGraphDisplayInfo.DisplayName;
-	FText ActionCategory;
-	if (!ParentCategory.IsEmpty())
-	{
-		ActionCategory = FText::Format(FText::FromString(TEXT("{0}|{1}")), ParentCategory, EdGraphDisplayName);
-	}
-	else
-	{
-		ActionCategory = MoveTemp(EdGraphDisplayName);
-	}
-
-	for (UEdGraphNode* GraphNode : InEdGraph->Nodes)
-	{
-		if (GraphNode)
-		{
-			TSharedPtr<FEdGraphSchemaAction> EventNodeAction;
-			if(GraphNode->GetClass()->ImplementsInterface(UK2Node_EventNodeInterface::StaticClass()))
-			{
-				EventNodeAction = CastChecked<IK2Node_EventNodeInterface>(GraphNode)->GetEventNodeAction(ActionCategory);
-				EventNodeAction->SectionID = SectionId;
-				SortList.AddAction(EventNodeAction);
-			}
-
-			if(bInAddChildGraphs && GraphNode->GetClass()->ImplementsInterface(UK2Node_ExternalGraphInterface::StaticClass()))
-			{
-				TArray<UEdGraph*> ExternalGraphs = CastChecked<IK2Node_ExternalGraphInterface>(GraphNode)->GetExternalGraphs();
-				for(UEdGraph* ExternalGraph : ExternalGraphs)
-				{
-					FText ExternalGraphCategory;
-					if(EventNodeAction.IsValid())
-					{
-						ExternalGraphCategory = FText::Format(FText::FromString(TEXT("{0}|{1}")), ActionCategory, EventNodeAction->GetMenuDescription());
-					}
-					else
-					{
-						ExternalGraphCategory = ActionCategory;
-					}
-					
-					// Dont add child graphs, to avoid circular references creating infinite recursion
-					const bool bAddChildGraphs = false;
-					AddEventForFunctionGraph(ExternalGraph, SectionId, SortList, ExternalGraphCategory, bAddChildGraphs);
-				}
-			}
-		}
-	}
-}
-
-void SCadenceGraphDetailsTabWidget::GetLocalVariables(FGraphActionSort& SortList) const
-{
-	// We want to pull local variables from the top level function graphs
-	UEdGraph* TopLevelGraph = FBlueprintEditorUtils::GetTopLevelGraph(GetFocusedGraph());
-	if( TopLevelGraph )
-	{
-		TArray<FBPVariableDescription> LocalVariables;
-		bool bSchemaImplementsGetLocalVariables = false;
-	
-		// grab the parent graph's name
-		FGraphDisplayInfo EdGraphDisplayInfo;
-		if (UEdGraphSchema const* Schema = TopLevelGraph->GetSchema())
-		{
-			Schema->GetGraphDisplayInformation(*TopLevelGraph, EdGraphDisplayInfo);
-
-			// Try to get the local variables from the schema
-			bSchemaImplementsGetLocalVariables = Schema->GetLocalVariables(GetFocusedGraph(), LocalVariables);
-			for (const FBPVariableDescription& Variable : LocalVariables)
-			{
-				FText Category = Variable.Category;
-				if (Variable.Category.EqualTo(UEdGraphSchema_K2::VR_DefaultCategory))
-				{
-					Category = FText::GetEmpty();
-				}
-
-				TSharedPtr<FEdGraphSchemaAction> Action =  Schema->MakeActionFromVariableDescription(GetFocusedGraph(), Variable);
-				if (Action.IsValid())
-				{
-					SortList.AddAction(Action);
-				}						
-			}
-		}
-
-		// If the schema did not return any local variables, try to get them from the function entry
-		if (!bSchemaImplementsGetLocalVariables)
-		{
-			TArray<UK2Node_FunctionEntry*> FunctionEntryNodes;
-			TopLevelGraph->GetNodesOfClass<UK2Node_FunctionEntry>(FunctionEntryNodes);
-
-			// Search in all FunctionEntry nodes for their local variables
-			FText ActionCategory;
-			for (UK2Node_FunctionEntry* const FunctionEntry : FunctionEntryNodes)
-			{
-				for (const FBPVariableDescription& Variable : FunctionEntry->LocalVariables)
-				{
-					FText Category = Variable.Category;
-					if (Variable.Category.EqualTo(UEdGraphSchema_K2::VR_DefaultCategory))
-					{
-						Category = FText::GetEmpty();
-					}
-
-					UFunction* Func = FindUField<UFunction>(GetBlueprintObj()->SkeletonGeneratedClass, TopLevelGraph->GetFName());
-					if (Func)
-					{
-						TSharedPtr<FEdGraphSchemaAction_K2LocalVar> NewVarAction = MakeShareable(new FEdGraphSchemaAction_K2LocalVar(Category, FText::FromName(Variable.VarName), FText::GetEmpty(), 0, CadenceNodeSectionID::LOCAL_VARIABLE));
-						NewVarAction->SetVariableInfo(Variable.VarName, Func, Variable.VarType.PinCategory == UEdGraphSchema_K2::PC_Boolean);
-						SortList.AddAction(NewVarAction);
-					}
-				}
-			}
-		}
-	}
-}
-
-EVisibility SCadenceGraphDetailsTabWidget::GetLocalActionsListVisibility() const
-{
-	if( !BlueprintEditorPtr.IsValid())
-	{
-		return EVisibility::Visible;
-	}
-
-	if( BlueprintEditorPtr.IsValid() && BlueprintEditorPtr.Pin()->NewDocument_IsVisibleForType(FBlueprintEditor::CGT_NewLocalVariable))
-	{
-		return EVisibility::Visible;
-	}
-	return EVisibility::Collapsed;
-}
-
-void SCadenceGraphDetailsTabWidget::AddEventForFunctionGraph(UEdGraph* InEdGraph, int32 const SectionId, FGraphActionSort& SortList, const FText& ParentCategory, bool bAddChildGraphs) const
-{
-	UBlueprint* BlueprintObj = GetBlueprintObj();
-	check(BlueprintObj);
-	
-	FGraphDisplayInfo DisplayInfo;
-	InEdGraph->GetSchema()->GetGraphDisplayInformation(*InEdGraph, DisplayInfo);
-
-	FText FunctionCategory = InEdGraph->GetSchema()->GetGraphCategory(InEdGraph);
-	if (FunctionCategory.IsEmpty() && BlueprintObj->SkeletonGeneratedClass != nullptr)
-	{
-		UFunction* Function = BlueprintObj->SkeletonGeneratedClass->FindFunctionByName(InEdGraph->GetFName());
-		if (Function != nullptr)
-		{
-			FunctionCategory = FObjectEditorUtils::GetCategoryText(Function);
-		}
-	}
-
-	// Default, so place in 'non' category
-	if (FunctionCategory.EqualTo(FText::FromString(BlueprintObj->GetName())) || FunctionCategory.EqualTo(UEdGraphSchema_K2::VR_DefaultCategory))
-	{
-		FunctionCategory = FText::GetEmpty();
-	}
-
-	FText ActionCategory;
-	if (!ParentCategory.IsEmpty())
-	{
-		ActionCategory = FText::Format(FText::FromString(TEXT("{0}|{1}")), ParentCategory, FunctionCategory);
-	}
-	else
-	{
-		ActionCategory = MoveTemp(FunctionCategory);
-	}
-	
-	//@TODO: Should be a bit more generic (or the AnimGraph shouldn't be stored as a FunctionGraph...)
-	const bool bIsConstructionScript = InEdGraph->GetFName() == UEdGraphSchema_K2::FN_UserConstructionScript;
-
-	TSharedPtr<FEdGraphSchemaAction_K2Graph> NewFuncAction = MakeShareable(new FEdGraphSchemaAction_K2Graph(EEdGraphSchemaAction_K2Graph::Function, ActionCategory, DisplayInfo.PlainName, DisplayInfo.Tooltip, bIsConstructionScript ? 2 : 1, SectionId));
-	NewFuncAction->FuncName = InEdGraph->GetFName();
-	NewFuncAction->EdGraph = InEdGraph;
-
-	const FString UserCategoryName = FEditorCategoryUtils::GetCategoryDisplayString(ActionCategory.ToString());
-	SortList.AddAction(UserCategoryName, NewFuncAction);
-
-	if(bAddChildGraphs)
-	{
-		GetChildGraphs(InEdGraph, NewFuncAction->GetSectionID(), SortList, ActionCategory);
-	}
-	GetChildEvents(InEdGraph, NewFuncAction->GetSectionID(), SortList, ActionCategory, bAddChildGraphs);
 }
 
 void SCadenceGraphDetailsTabWidget::CollectAllActions(FGraphActionListBuilderBase& OutAllActions)
 {
-	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
+	UCadenceGraph* CadenceGraph = GetMainGraph();
+	check(CadenceGraph);
 
-	UBlueprint* BlueprintObj = GetBlueprintObj();
-	check(BlueprintObj);
+	TSharedPtr<FCadenceGraphApplication> CadenceApplication = ApplicationPtr.Pin();
 
-	TSharedPtr<FBlueprintEditor> BlueprintEditor = BlueprintEditorPtr.Pin();
+	FGraphActionSort SortList( CadenceGraph->CategorySorting );
 
-	EFieldIteratorFlags::SuperClassFlags FieldIteratorSuperFlag = EFieldIteratorFlags::IncludeSuper;
-	if ( ShowUserVarsOnly() )
+	for(FCadenceNamedVariable& NamedVar : CadenceGraph->UserVariables.Variables)
 	{
-		FieldIteratorSuperFlag = EFieldIteratorFlags::ExcludeSuper;
-	}
+		UCadenceVariable* Var = NamedVar.Variable;
 
-	bool bShowReplicatedOnly = IsShowingReplicatedVariablesOnly();
-
-	// Initialise action sorting instance
-	FGraphActionSort SortList( BlueprintObj->CategorySorting );
-	// List of names of functions we implement
-	ImplementedFunctionCache.Empty();
-
-	// Fill with functions names we've already collected for rename, to ensure we do not add the same function multiple times.
-	TArray<FName> OverridableFunctionNames;
-
-	// Grab Variables
-	for (TFieldIterator<FProperty> PropertyIt(BlueprintObj->SkeletonGeneratedClass, FieldIteratorSuperFlag); PropertyIt; ++PropertyIt)
-	{
-		FProperty* Property = *PropertyIt;
-		FName PropName = Property->GetFName();
-
-		// If we're showing only replicated, ignore the rest
-		if (bShowReplicatedOnly && (!Property->HasAnyPropertyFlags(CPF_Net | CPF_RepNotify) || Property->HasAnyPropertyFlags(CPF_RepSkip)))
-		{
-			continue;
-		}
-		
-		// Don't show delegate properties, there is special handling for these
-		const bool bMulticastDelegateProp = Property->IsA(FMulticastDelegateProperty::StaticClass());
-		const bool bDelegateProp = (Property->IsA(FDelegateProperty::StaticClass()) || bMulticastDelegateProp);
-		const bool bShouldShowAsVar = (!Property->HasAnyPropertyFlags(CPF_Parm) && Property->HasAllPropertyFlags(CPF_BlueprintVisible)) && !bDelegateProp;
-		const bool bShouldShowAsDelegate = !Property->HasAnyPropertyFlags(CPF_Parm) && bMulticastDelegateProp 
-			&& Property->HasAnyPropertyFlags(CPF_BlueprintAssignable | CPF_BlueprintCallable);
-		FObjectPropertyBase* Obj = CastField<FObjectPropertyBase>(Property);
-		if(!bShouldShowAsVar && !bShouldShowAsDelegate)
-		{
-			continue;
-		}
-
-		const FText PropertyTooltip = Property->GetToolTipText();
-		const FName PropertyName = Property->GetFName();
-		const FText PropertyDesc = Property->IsNative() ? Property->GetDisplayNameText() : FText::FromName(PropertyName);
-
-		FText CategoryName = FObjectEditorUtils::GetCategoryText(Property);
-		FText PropertyCategory = FObjectEditorUtils::GetCategoryText(Property);
-		const FString UserCategoryName = FEditorCategoryUtils::GetCategoryDisplayString( PropertyCategory.ToString() );
-
-		if (CategoryName.EqualTo(FText::FromString(BlueprintObj->GetName())) || CategoryName.EqualTo(UEdGraphSchema_K2::VR_DefaultCategory))
-		{
-			CategoryName = FText::GetEmpty();		// default, so place in 'non' category
-			PropertyCategory = FText::GetEmpty();
-		}
-
-		if (bShouldShowAsVar)
-		{
-			const bool bComponentProperty = Obj && Obj->PropertyClass ? Obj->PropertyClass->IsChildOf<UActorComponent>() : false;
-
-			// By default components go into the variable section under the component category unless a custom category is specified.
-			if ( bComponentProperty && CategoryName.IsEmpty() )
-			{
-				PropertyCategory = LOCTEXT("Components", "Components");
-			}
-
-			TSharedPtr<FEdGraphSchemaAction_K2Var> NewVarAction = MakeShareable(new FEdGraphSchemaAction_K2Var(PropertyCategory, PropertyDesc, PropertyTooltip, 0, CadenceNodeSectionID::VARIABLE));
-			const FArrayProperty* ArrayProperty = CastField<const FArrayProperty>(Property);
-			const FProperty* TestProperty = ArrayProperty ? ArrayProperty->Inner : Property;
-			NewVarAction->SetVariableInfo(PropertyName, BlueprintObj->SkeletonGeneratedClass, CastField<FBoolProperty>(TestProperty) != nullptr);
-			SortList.AddAction( UserCategoryName, NewVarAction );
-		}
-		else if (bShouldShowAsDelegate && BlueprintEditor.IsValid() && BlueprintEditor->AreDelegatesAllowed())
-		{
-			TSharedPtr<FEdGraphSchemaAction_K2Delegate> NewDelegateAction;
-			// Delegate is visible in MyBlueprint when not-native or its category name is not empty.
-			if (Property->HasAllPropertyFlags(CPF_Edit) || !PropertyCategory.IsEmpty())
-			{
-				NewDelegateAction = MakeShareable(new FEdGraphSchemaAction_K2Delegate(PropertyCategory, PropertyDesc, PropertyTooltip, 0, CadenceNodeSectionID::DELEGATE));
-				NewDelegateAction->SetVariableInfo(PropertyName, BlueprintObj->SkeletonGeneratedClass, false);
-				SortList.AddAction( UserCategoryName, NewDelegateAction );
-			}
-
-			UClass* OwnerClass = Property->GetOwnerChecked<UClass>();
-			UEdGraph* Graph = FBlueprintEditorUtils::GetDelegateSignatureGraphByName(BlueprintObj, PropertyName);
-			if (Graph && OwnerClass && (BlueprintObj == OwnerClass->ClassGeneratedBy))
-			{
-				if (NewDelegateAction.IsValid())
-				{
-					NewDelegateAction->EdGraph = Graph;
-				}
-				ImplementedFunctionCache.Add(PropertyName);
-			}
-		}
-	}
-
-	// Grab what events are implemented in the event graphs so they don't show up in the menu if they are already implemented
-	for (UEdGraph* const Graph : BlueprintObj->EventGraphs)
-	{
-		if (Graph && !Graph->IsUnreachable())
-		{
-			FName GraphName = Graph->GetFName();
-			ImplementedFunctionCache.Add(GraphName);
-			OverridableFunctionNames.Add(GraphName);
-		}
-	}
-
-	// Grab functions implemented by the blueprint
-	for (UEdGraph* Graph : BlueprintObj->FunctionGraphs)
-	{
-		check(Graph);
-
-		int32 SectionID = CadenceNodeSectionID::FUNCTION;
-
-		if(Graph->IsA<UAnimationGraph>())
-		{
-			const bool bIsDefaultAnimGraph = Graph->GetFName() == UEdGraphSchema_K2::GN_AnimGraph;
-			if(bIsDefaultAnimGraph)
-			{
-				SectionID = CadenceNodeSectionID::ANIMGRAPH;
-			}
-			else
-			{
-				SectionID = CadenceNodeSectionID::ANIMLAYER;
-			}
-		}
-
-		AddEventForFunctionGraph(Graph, SectionID, SortList, FText::GetEmpty(), true);
-
-		ImplementedFunctionCache.Add(Graph->GetFName());
-	}
-
-	if(BlueprintEditor.IsValid() && BlueprintEditor->AreMacrosAllowed())
-	{
-		// Grab macros implemented by the blueprint
-		for (int32 i = 0; i < BlueprintObj->MacroGraphs.Num(); i++)
-		{
-			UEdGraph* Graph = BlueprintObj->MacroGraphs[i];
-			check(Graph);
-		
-			const FName MacroName = Graph->GetFName();
-
-			FGraphDisplayInfo DisplayInfo;
-			Graph->GetSchema()->GetGraphDisplayInformation(*Graph, DisplayInfo);
-
-			FText MacroCategory = GetGraphCategory(Graph);
-
-			TSharedPtr<FEdGraphSchemaAction_K2Graph> NewMacroAction = MakeShareable(new FEdGraphSchemaAction_K2Graph(EEdGraphSchemaAction_K2Graph::Macro, MacroCategory, DisplayInfo.PlainName, DisplayInfo.Tooltip, 1, CadenceNodeSectionID::MACRO));
-			NewMacroAction->FuncName = MacroName;
-			NewMacroAction->EdGraph = Graph;
-
-			const FString UserCategoryName = FEditorCategoryUtils::GetCategoryDisplayString(MacroCategory.ToString());
-			SortList.AddAction(UserCategoryName, NewMacroAction);
-
-			GetChildGraphs(Graph, NewMacroAction->GetSectionID(), SortList, MacroCategory);
-			GetChildEvents(Graph, NewMacroAction->GetSectionID(), SortList, MacroCategory);
-
-			ImplementedFunctionCache.Add(MacroName);
-		}
-	}
-
-	OverridableFunctionActions.Reset();
-
-	// Cache potentially overridable functions
-	UClass* ParentClass = BlueprintObj->SkeletonGeneratedClass ? BlueprintObj->SkeletonGeneratedClass->GetSuperClass() : *BlueprintObj->ParentClass;
-	for ( TFieldIterator<UFunction> FunctionIt(ParentClass, EFieldIteratorFlags::IncludeSuper); FunctionIt; ++FunctionIt )
-	{
-		const UFunction* Function = *FunctionIt;
-		const FName FunctionName = Function->GetFName();
-
-		UClass *OuterClass = CastChecked<UClass>(Function->GetOuter());
-		// ignore skeleton classes and convert them into their "authoritative" types so they
-		// can be found in the graph
-		if(UBlueprintGeneratedClass *GeneratedOuterClass = Cast<UBlueprintGeneratedClass>(OuterClass))
-		{
-			OuterClass = GeneratedOuterClass->GetAuthoritativeClass();
-		}
-
-		if (    UEdGraphSchema_K2::CanKismetOverrideFunction(Function) 
-			 && !OverridableFunctionNames.Contains(FunctionName) 
-			 && !ImplementedFunctionCache.Contains(FunctionName) 
-			 && !FObjectEditorUtils::IsFunctionHiddenFromClass(Function, ParentClass)
-			 && !FBlueprintEditorUtils::FindOverrideForFunction(BlueprintObj, OuterClass, Function->GetFName())
-			 && CadenceGraph->AllowFunctionOverride(Function)
-		   )
-		{
-			FText FunctionTooltip = FText::FromString(UK2Node_CallFunction::GetDefaultTooltipForFunction(Function));
-			FText FunctionDesc = K2Schema->GetFriendlySignatureName(Function);
-			if ( FunctionDesc.IsEmpty() )
-			{
-				FunctionDesc = FText::FromString(Function->GetName());
-			}
-
-			if (Function->HasMetaData(FBlueprintMetadata::MD_DeprecatedFunction))
-			{
-				FunctionDesc = FBlueprintEditorUtils::GetDeprecatedMemberMenuItemName(FunctionDesc);
-			}
-
-			FText FunctionCategory = FObjectEditorUtils::GetCategoryText(Function);
-
-			TSharedPtr<FEdGraphSchemaAction_K2Graph> NewFuncAction = MakeShareable(new FEdGraphSchemaAction_K2Graph(EEdGraphSchemaAction_K2Graph::Function, FunctionCategory, FunctionDesc, FunctionTooltip, 1, CadenceNodeSectionID::FUNCTION_OVERRIDABLE));
-			NewFuncAction->FuncName = FunctionName;
-
-			OverridableFunctionActions.Add(NewFuncAction);
-			OverridableFunctionNames.Add(FunctionName);
-		}
-	}
-
-	auto IsInAnimBPLambda = [&BlueprintObj](const FName FunctionName, FText& FunctionCategory) -> bool
-	{
-		if (BlueprintObj->SkeletonGeneratedClass != nullptr)
-		{
-			if (UFunction * Function = BlueprintObj->SkeletonGeneratedClass->FindFunctionByName(FunctionName))
-			{
-				FunctionCategory = FObjectEditorUtils::GetCategoryText(Function);
-
-				if (IAnimClassInterface * AnimClassInterface = IAnimClassInterface::GetFromClass(BlueprintObj->SkeletonGeneratedClass))
-				{
-					if (IAnimClassInterface::IsAnimBlueprintFunction(AnimClassInterface, Function))
-					{
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	};
-
-	// Also functions implemented from interfaces
-	for (int32 i=0; i < BlueprintObj->ImplementedInterfaces.Num(); i++)
-	{
-		FBPInterfaceDescription& InterfaceDesc = BlueprintObj->ImplementedInterfaces[i];
-		UClass* InterfaceClass = InterfaceDesc.Interface.Get();
-		if (InterfaceClass)
-		{
-			for (TFieldIterator<UFunction> FunctionIt(InterfaceClass, EFieldIteratorFlags::IncludeSuper); FunctionIt; ++FunctionIt)
-			{
-				const UFunction* Function = *FunctionIt;
-				const FName FunctionName = Function->GetFName();
-
-				if (FunctionName != UEdGraphSchema_K2::FN_ExecuteUbergraphBase)
-				{
-					FText FunctionTooltip = Function->GetToolTipText();
-					FText FunctionDesc = K2Schema->GetFriendlySignatureName(Function);
-
-					FText FunctionCategory;
-					bool bIsAnimFunction = IsInAnimBPLambda(FunctionName, FunctionCategory);
-
-					TSharedPtr<FEdGraphSchemaAction_K2Graph> NewFuncAction = MakeShareable(new FEdGraphSchemaAction_K2Graph(EEdGraphSchemaAction_K2Graph::Interface, FunctionCategory, FunctionDesc, FunctionTooltip, 1, bIsAnimFunction ? CadenceNodeSectionID::ANIMLAYER : CadenceNodeSectionID::INTERFACE));
-
-					NewFuncAction->FuncName = FunctionName;
-					OutAllActions.AddAction(NewFuncAction);
-
-					// Find the graph that this function is on so the user can double click and open it from the interfaces menu
-					for (UEdGraph* const Graph : InterfaceDesc.Graphs)
-					{
-						if (Graph && Graph->GetFName() == FunctionName)
-						{
-							NewFuncAction->EdGraph = Graph;
-							break;
-						}
-					}
-
-					// if this function is not in the interfaces menu, then allow it to be put in the override function menu
-					if (GetAlwaysShowInterfacesInOverrides())
-					{
-						OverridableFunctionActions.Add(NewFuncAction);
-						OverridableFunctionNames.Add(FunctionName);
-					}
-
-					if(bIsAnimFunction && NewFuncAction->EdGraph)
-					{
-						GetChildGraphs(NewFuncAction->EdGraph, NewFuncAction->GetSectionID(), SortList, FunctionCategory);
-						GetChildEvents(NewFuncAction->EdGraph, NewFuncAction->GetSectionID(), SortList, FunctionCategory);
-					}
-				}
-			}
-		}
-	}
-
-	// also walk up the class chain to look for overridable functions in natively implemented interfaces
-	for (UClass* TempClass = BlueprintObj->ParentClass; TempClass; TempClass = TempClass->GetSuperClass())
-	{
-		for (int32 Idx = 0; Idx < TempClass->Interfaces.Num(); ++Idx)
-		{
-			FImplementedInterface const& I = TempClass->Interfaces[Idx];
-			
-			// same as above, make a function?
-			for (TFieldIterator<UFunction> FunctionIt(I.Class, EFieldIteratorFlags::IncludeSuper); FunctionIt; ++FunctionIt)
-			{
-				const UFunction* Function = *FunctionIt;
-				const FName FunctionName = Function->GetFName();
-
-				if (UEdGraphSchema_K2::CanKismetOverrideFunction(Function) && !ImplementedFunctionCache.Contains(FunctionName))
-				{
-					FText FunctionTooltip = Function->GetToolTipText();
-					FText FunctionDesc = K2Schema->GetFriendlySignatureName(Function);
-
-					FText FunctionCategory = FObjectEditorUtils::GetCategoryText(Function);
-					bool bIsAnimFunction = IsInAnimBPLambda(FunctionName, FunctionCategory);
-
-					TSharedPtr<FEdGraphSchemaAction_K2Graph> NewFuncAction = MakeShareable(new FEdGraphSchemaAction_K2Graph(EEdGraphSchemaAction_K2Graph::Interface, FunctionCategory, FunctionDesc, FunctionTooltip, 1, bIsAnimFunction ? CadenceNodeSectionID::ANIMLAYER : CadenceNodeSectionID::INTERFACE));
-					NewFuncAction->FuncName = FunctionName;
-					
-					if (!OverridableFunctionNames.Contains(FunctionName))
-					{
-						OverridableFunctionActions.Add(NewFuncAction);
-						OverridableFunctionNames.Add(FunctionName);
-					}
-
-					OutAllActions.AddAction(NewFuncAction);
-				}
-			}
-		}
-	}
-
-	
-	if(BlueprintEditor.IsValid() && BlueprintEditor->AreEventGraphsAllowed())
-	{
-		// Grab ubergraph pages
-		for (int32 i = 0; i < BlueprintObj->UbergraphPages.Num(); i++)
-		{
-			UEdGraph* Graph = BlueprintObj->UbergraphPages[i];
-			check(Graph);
-		
-			FGraphDisplayInfo DisplayInfo;
-			Graph->GetSchema()->GetGraphDisplayInformation(*Graph, DisplayInfo);
-
-			TSharedPtr<FEdGraphSchemaAction_K2Graph> NeUbergraphAction = MakeShareable(new FEdGraphSchemaAction_K2Graph(EEdGraphSchemaAction_K2Graph::Graph, FText::GetEmpty(), DisplayInfo.PlainName, DisplayInfo.Tooltip, 2, CadenceNodeSectionID::GRAPH));
-			NeUbergraphAction->FuncName = Graph->GetFName();
-			NeUbergraphAction->EdGraph = Graph;
-			OutAllActions.AddAction(NeUbergraphAction);
-
-			GetChildGraphs(Graph, NeUbergraphAction->GetSectionID(), SortList);
-			GetChildEvents(Graph, NeUbergraphAction->GetSectionID(), SortList);
-		}
-	}
-
-	// Grab intermediate pages
-	for (int32 i = 0; i < BlueprintObj->IntermediateGeneratedGraphs.Num(); i++)
-	{
-		UEdGraph* Graph = BlueprintObj->IntermediateGeneratedGraphs[i];
-		check(Graph);
-		
-		const FName IntermediateName(*(FString(TEXT("$INTERMEDIATE$_")) + Graph->GetName()));
-		FString IntermediateTooltip = IntermediateName.ToString();
-		FString IntermediateDesc = IntermediateName.ToString();
-		TSharedPtr<FEdGraphSchemaAction_K2Graph> NewIntermediateAction = MakeShareable(new FEdGraphSchemaAction_K2Graph(EEdGraphSchemaAction_K2Graph::Graph, FText::GetEmpty(), FText::FromString(IntermediateDesc), FText::FromString(IntermediateTooltip), 1));
-		NewIntermediateAction->FuncName = IntermediateName;
-		NewIntermediateAction->EdGraph = Graph;
-		OutAllActions.AddAction(NewIntermediateAction);
-
-		GetChildGraphs(Graph, NewIntermediateAction->GetSectionID(), SortList);
-		GetChildEvents(Graph, NewIntermediateAction->GetSectionID(), SortList);
-	}
-
-	if (GetLocalActionsListVisibility().IsVisible())
-	{
-		GetLocalVariables(SortList);
+		const FString UserCategoryName = Var->GetCategory().ToString();
+		TSharedPtr<FCadenceVariableAction> NewVarAction = MakeShareable(new FCadenceVariableAction());
+		SortList.AddAction( UserCategoryName, NewVarAction );
 	}
 
 	// Add all the sorted variables, components, functions, etc...
@@ -1570,290 +711,55 @@ void SCadenceGraphDetailsTabWidget::CollectAllActions(FGraphActionListBuilderBas
 
 void SCadenceGraphDetailsTabWidget::CollectStaticSections(TArray<int32>& StaticSectionIDs)
 {
-	TSharedPtr<FBlueprintEditor> BlueprintEditor = BlueprintEditorPtr.Pin();
-	const bool bIsEditor = BlueprintEditor.IsValid();
+	TSharedPtr<FCadenceGraphApplication> CadenceGraphApplication = ApplicationPtr.Pin();
+	const bool bIsEditor = CadenceGraphApplication.IsValid();
 
 	if ( IsShowingEmptySections() )
 	{
-		if (!bIsEditor || (BlueprintEditor->NewDocument_IsVisibleForType(FBlueprintEditor::CGT_NewEventGraph) && BlueprintEditor->IsSectionVisible(CadenceNodeSectionID::GRAPH)))
+		if (!bIsEditor || CadenceGraphApplication->IsSectionVisible(CadenceNodeSectionID::GRAPH))
 		{
 			StaticSectionIDs.Add(CadenceNodeSectionID::GRAPH);
 		}
-		if (!bIsEditor || (BlueprintEditor->NewDocument_IsVisibleForType(FBlueprintEditor::CGT_NewAnimationLayer) && BlueprintEditor->IsSectionVisible(CadenceNodeSectionID::ANIMLAYER)))
-		{
-			StaticSectionIDs.Add(CadenceNodeSectionID::ANIMLAYER);
-		}
-		if (!bIsEditor || (BlueprintEditor->NewDocument_IsVisibleForType(FBlueprintEditor::CGT_NewMacroGraph) && BlueprintEditor->IsSectionVisible(CadenceNodeSectionID::MACRO)))
-		{
-			StaticSectionIDs.Add(CadenceNodeSectionID::MACRO);
-		}
-		if (!bIsEditor || (BlueprintEditor->NewDocument_IsVisibleForType(FBlueprintEditor::CGT_NewFunctionGraph) && BlueprintEditor->IsSectionVisible(CadenceNodeSectionID::FUNCTION)))
-		{
-			StaticSectionIDs.Add(CadenceNodeSectionID::FUNCTION);
-		}
-		if (!bIsEditor || (BlueprintEditor->NewDocument_IsVisibleForType(FBlueprintEditor::CGT_NewVariable) && BlueprintEditor->IsSectionVisible(CadenceNodeSectionID::VARIABLE)))
+		if (!bIsEditor || CadenceGraphApplication->IsSectionVisible(CadenceNodeSectionID::VARIABLE))
 		{
 			StaticSectionIDs.Add(CadenceNodeSectionID::VARIABLE);
 		}
-		if (!bIsEditor || (BlueprintEditor->FBlueprintEditor::AddNewDelegateIsVisible() && BlueprintEditor->IsSectionVisible(CadenceNodeSectionID::DELEGATE)))
-		{
-			StaticSectionIDs.Add(CadenceNodeSectionID::DELEGATE);
-		}
 	}
-
-	if ( GetLocalActionsListVisibility().IsVisible() && (!bIsEditor || BlueprintEditor->IsSectionVisible(CadenceNodeSectionID::LOCAL_VARIABLE)))
-	{
-		StaticSectionIDs.Add(CadenceNodeSectionID::LOCAL_VARIABLE);
-	}
-}
-
-bool SCadenceGraphDetailsTabWidget::IsShowingInheritedVariables() const
-{
-	return GetMutableDefault<UBlueprintEditorSettings>()->bShowInheritedVariables;
-}
-
-void SCadenceGraphDetailsTabWidget::OnToggleShowInheritedVariables()
-{
-	UBlueprintEditorSettings* Settings = GetMutableDefault<UBlueprintEditorSettings>();
-	Settings->bShowInheritedVariables = !Settings->bShowInheritedVariables;
-	Settings->PostEditChange();
-	Settings->SaveConfig();
-
-	Refresh();
 }
 
 void SCadenceGraphDetailsTabWidget::OnToggleShowEmptySections()
 {
-	UBlueprintEditorSettings* Settings = GetMutableDefault<UBlueprintEditorSettings>();
-	Settings->bShowEmptySections = !Settings->bShowEmptySections;
-	Settings->PostEditChange();
-	Settings->SaveConfig();
-
+	bIsShowingEmptySections = !bIsShowingEmptySections;
 	Refresh();
 }
 
 bool SCadenceGraphDetailsTabWidget::IsShowingEmptySections() const
 {
-	return GetMutableDefault<UBlueprintEditorSettings>()->bShowEmptySections;
-}
-
-void SCadenceGraphDetailsTabWidget::OnToggleShowReplicatedVariablesOnly()
-{
-	bShowReplicatedVariablesOnly = !bShowReplicatedVariablesOnly;
-	Refresh();
-}
-
-void SCadenceGraphDetailsTabWidget::OnToggleAlwaysShowInterfacesInOverrides()
-{
-	UBlueprintEditorSettings* Settings = GetMutableDefault<UBlueprintEditorSettings>();
-	Settings->bAlwaysShowInterfacesInOverrides = !Settings->bAlwaysShowInterfacesInOverrides;
-	Settings->PostEditChange();
-	Settings->SaveConfig();
-	Refresh();
-}
-
-bool SCadenceGraphDetailsTabWidget::GetAlwaysShowInterfacesInOverrides() const
-{
-	return GetMutableDefault<UBlueprintEditorSettings>()->bAlwaysShowInterfacesInOverrides;
-}
-
-void SCadenceGraphDetailsTabWidget::OnToggleShowParentClassInOverrides()
-{
-	UBlueprintEditorSettings* Settings = GetMutableDefault<UBlueprintEditorSettings>();
-	Settings->bShowParentClassInOverrides = !Settings->bShowParentClassInOverrides;
-	Settings->PostEditChange();
-	Settings->SaveConfig();
-	Refresh();
-}
-
-bool SCadenceGraphDetailsTabWidget::GetShowParentClassInOverrides() const
-{
-	return GetMutableDefault<UBlueprintEditorSettings>()->bShowParentClassInOverrides;
-}
-
-void SCadenceGraphDetailsTabWidget::OnToggleShowAccessSpecifier()
-{
-	UBlueprintEditorSettings* Settings = GetMutableDefault<UBlueprintEditorSettings>();
-	Settings->bShowAccessSpecifier = !Settings->bShowAccessSpecifier;
-	Settings->PostEditChange();
-	Settings->SaveConfig();
-	Refresh();
-}
-
-bool SCadenceGraphDetailsTabWidget::GetShowAccessSpecifier() const 
-{
-	return GetMutableDefault<UBlueprintEditorSettings>()->bShowAccessSpecifier;
-}
-
-bool SCadenceGraphDetailsTabWidget::IsShowingReplicatedVariablesOnly() const
-{
-	return bShowReplicatedVariablesOnly;
+	return bIsShowingEmptySections;
 }
 
 FReply SCadenceGraphDetailsTabWidget::OnActionDragged( const TArray< TSharedPtr<FEdGraphSchemaAction> >& InActions, const FPointerEvent& MouseEvent )
 {
-	if (!BlueprintEditorPtr.IsValid())
+	if (!ApplicationPtr.IsValid())
 	{
 		return FReply::Unhandled();
 	}
 
 	TSharedPtr<FEdGraphSchemaAction> InAction( InActions.Num() > 0 ? InActions[0] : nullptr );
 	if(InAction.IsValid())
-	{
-		auto AnalyticsDelegate = FNodeCreationAnalytic::CreateSP( this, &SCadenceGraphDetailsTabWidget::UpdateNodeCreation );
-
-		if(InAction->GetTypeId() == FEdGraphSchemaAction_K2Graph::StaticGetTypeId())
+	{		
+		if(InAction->GetTypeId() == FCadenceVariableAction::StaticGetTypeId())
 		{
-			FEdGraphSchemaAction_K2Graph* FuncAction = (FEdGraphSchemaAction_K2Graph*)InAction.Get();
-
-			if (FuncAction->EdGraph)
+			FCadenceVariableAction* VarAction = (FCadenceVariableAction*)InAction.Get();
+			if (UCadenceVariable* Vars = VarAction->GetVariable())
 			{
-				if (FuncAction->EdGraph->GetSchema()->CanGraphBeDropped(InAction))
-				{
-					return FuncAction->EdGraph->GetSchema()->BeginGraphDragAction(InAction, FPointerEvent());
-				}
-			}
-
-			if (FuncAction->GraphType == EEdGraphSchemaAction_K2Graph::Function ||FuncAction->GraphType == EEdGraphSchemaAction_K2Graph::Interface)
-			{
-				// Callback function to report that the user cannot drop this function in the graph
-				auto CanDragDropAction = [](TSharedPtr<FEdGraphSchemaAction> /*DropAction*/, UEdGraph* HoveredGraphIn, FText& ImpededReasonOut, int32 FunctionFlags)->bool //bool bIsBlueprintCallableFunction, bool bIsPureFunction)->bool
-				{
-					if ((FunctionFlags & (FUNC_BlueprintCallable | FUNC_BlueprintPure)) == 0)
-					{
-						ImpededReasonOut = LOCTEXT("NonBlueprintCallable", "This function was not marked as Blueprint Callable and cannot be placed in a graph!");
-						return false;
-					}
-					
-					if (const UEdGraphSchema_K2* K2Schema = Cast<UEdGraphSchema_K2>(HoveredGraphIn->GetSchema()))
-					{
-						if ((FunctionFlags & (FUNC_BlueprintPure)) == 0)
-						{
-							if (K2Schema->DoesGraphSupportImpureFunctions(HoveredGraphIn) == false)
-							{
-								ImpededReasonOut = LOCTEXT("GraphNoSupportImpureF", "The target graph does not support Impure Functions.");
-								return false;
-							}
-						}
-					}
-					else
-					{
-						// TODO : Check if this else has to block everything or just explicit schemas
-						if (const UAnimationStateMachineSchema* AnimationStateMachineSchema = Cast<UAnimationStateMachineSchema>(HoveredGraphIn->GetSchema()))
-						{
-							ImpededReasonOut = LOCTEXT("GraphNoSupportFunctions", "The target graph does not support Functions.");
-							return false;
-						}
-					}
-
-					return true;
-				};
-
-				int32 FunctionFlags = 0;
-
-				if (FuncAction->EdGraph)
-				{
-					for (UEdGraphNode* GraphNode : FuncAction->EdGraph->Nodes)
-					{
-						if (UK2Node_FunctionEntry* Node = Cast<UK2Node_FunctionEntry>(GraphNode))
-						{
-							FunctionFlags |= Node->GetFunctionFlags();
-						}
-					}
-				}
-
-				return FReply::Handled().BeginDragDrop(FKismetFunctionDragDropAction::New(
-					InAction, 
-					FuncAction->FuncName, 
-					GetBlueprintObj()->SkeletonGeneratedClass, 
-					FMemberReference(), 
-					AnalyticsDelegate, 
-					FKismetDragDropAction::FCanBeDroppedDelegate::CreateLambda(CanDragDropAction, FunctionFlags)));
-			}
-			else if (FuncAction->GraphType == EEdGraphSchemaAction_K2Graph::Macro)
-			{
-				if ((FuncAction->EdGraph != NULL) && GetBlueprintObj()->BlueprintType != BPTYPE_MacroLibrary)
-				{
-					return FReply::Handled().BeginDragDrop(FKismetMacroDragDropAction::New(InAction, FuncAction->FuncName, GetBlueprintObj(), FuncAction->EdGraph, AnalyticsDelegate));
-				}
-			}
-		}
-		else if(InAction->GetTypeId() == FEdGraphSchemaAction_K2Delegate::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2Delegate* DelegateAction = (FEdGraphSchemaAction_K2Delegate*)InAction.Get();
-			check(DelegateAction->GetDelegateName() != NAME_None);
-			if (UClass* VarClass = DelegateAction->GetDelegateClass())
-			{
-				const bool bIsAltDown = MouseEvent.IsAltDown();
-				const bool bIsCtrlDown = MouseEvent.IsLeftControlDown() || MouseEvent.IsRightControlDown();
-				
-				TSharedRef<FKismetVariableDragDropAction> DragOperation = FKismetDelegateDragDropAction::New(InAction, DelegateAction->GetDelegateName(), VarClass, AnalyticsDelegate);
-				DragOperation->SetAltDrag(bIsAltDown);
-				DragOperation->SetCtrlDrag(bIsCtrlDown);
-				return FReply::Handled().BeginDragDrop(DragOperation);
-			}
-		}
-		else if( InAction->GetTypeId() == FEdGraphSchemaAction_K2LocalVar::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2LocalVar* VarAction = (FEdGraphSchemaAction_K2LocalVar*)InAction.Get();
-			if (UStruct* VariableScope = Cast<UStruct>(VarAction->GetVariableScope()))
-			{
-				TSharedRef<FKismetVariableDragDropAction> DragOperation = FKismetVariableDragDropAction::New(InAction, VarAction->GetVariableName(), VariableScope, AnalyticsDelegate);
-				DragOperation->SetAltDrag(MouseEvent.IsAltDown());
-				DragOperation->SetCtrlDrag(MouseEvent.IsLeftControlDown() || MouseEvent.IsRightControlDown());
-				return FReply::Handled().BeginDragDrop(DragOperation);
-			}
-		}
-		else if(InAction->GetTypeId() == FEdGraphSchemaAction_K2Var::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2Var* VarAction = (FEdGraphSchemaAction_K2Var*)InAction.Get();
-			if (UClass* VarClass = VarAction->GetVariableClass())
-			{
+				// TODO: Support drag drop variables
+				/*
 				TSharedRef<FKismetVariableDragDropAction> DragOperation = FKismetVariableDragDropAction::New(InAction, VarAction->GetVariableName(), VarClass, AnalyticsDelegate);
 				DragOperation->SetAltDrag(MouseEvent.IsAltDown());
 				DragOperation->SetCtrlDrag(MouseEvent.IsLeftControlDown() || MouseEvent.IsRightControlDown());
 				return FReply::Handled().BeginDragDrop(DragOperation);
-			}
-		}
-		else if( InAction->IsA(FEdGraphSchemaAction_BlueprintVariableBase::StaticGetTypeId()))
-		{
-			FEdGraphSchemaAction_BlueprintVariableBase* VarAction = (FEdGraphSchemaAction_BlueprintVariableBase*)InAction.Get();
-
-			if (GetFocusedGraph()->GetSchema()->CanGraphBeDropped(InAction))
-			{
-				return GetFocusedGraph()->GetSchema()->BeginGraphDragAction(InAction, MouseEvent);
-			}		
-		}
-		else if (InAction->GetTypeId() == FEdGraphSchemaAction_K2Event::StaticGetTypeId())
-		{	
-			// Check if it's a custom event, it is preferable to drop a call function for custom events than to focus on the node
-			FEdGraphSchemaAction_K2Event* FuncAction = (FEdGraphSchemaAction_K2Event*)InAction.Get();
-			if (UK2Node_Event* Event = Cast<UK2Node_Event>(FuncAction->NodeTemplate))
-			{
-				UFunction* const Function = FFunctionFromNodeHelper::FunctionFromNode(Event);
-
-				// Callback function to report that the user cannot drop this function in the graph
-				auto CanDragDropAction = [](TSharedPtr<FEdGraphSchemaAction> /*DropAction*/, UEdGraph* /*HoveredGraphIn*/, FText& ImpededReasonOut, UFunction* Func)->bool
-				{
-					// If this function is not BP callable then don't let it be dropped
-					if (Func && !(Func->FunctionFlags & (FUNC_BlueprintCallable | FUNC_BlueprintPure)))
-					{
-						ImpededReasonOut = LOCTEXT("NonBlueprintCallableEvent", "This event was not marked as Blueprint Callable and cannot be placed in a graph!");
-						return false;
-					}
-
-					return true;
-				};
-
-				TSharedRef< FKismetFunctionDragDropAction> DragOperation =
-					FKismetFunctionDragDropAction::New(
-						InAction, (Function ? Function->GetFName() : Event->GetFName()),
-						GetBlueprintObj()->SkeletonGeneratedClass,
-						FMemberReference(),
-						AnalyticsDelegate,
-						FKismetDragDropAction::FCanBeDroppedDelegate::CreateLambda(CanDragDropAction, Function)
-					);
-				return FReply::Handled().BeginDragDrop(DragOperation);	
+				*/
 			}
 		}
 	}
@@ -1863,7 +769,7 @@ FReply SCadenceGraphDetailsTabWidget::OnActionDragged( const TArray< TSharedPtr<
 
 FReply SCadenceGraphDetailsTabWidget::OnCategoryDragged(const FText& InCategory, const FPointerEvent& MouseEvent)
 {
-	TSharedRef<FMyBlueprintCategoryDragDropAction> DragOperation = FMyBlueprintCategoryDragDropAction::New(InCategory, SharedThis(this));
+	TSharedRef<FCadenceGraphCategoryDragDropAction> DragOperation = FCadenceGraphCategoryDragDropAction::New(InCategory, SharedThis(this));
 	return FReply::Handled().BeginDragDrop(DragOperation);
 }
 
@@ -1878,122 +784,32 @@ void SCadenceGraphDetailsTabWidget::OnGlobalActionSelected(const TArray< TShared
 void SCadenceGraphDetailsTabWidget::OnActionSelected( const TArray< TSharedPtr<FEdGraphSchemaAction> >& InActions )
 {
 	TSharedPtr<FEdGraphSchemaAction> InAction(InActions.Num() > 0 ? InActions[0] : NULL);
-	UBlueprint* CurrentBlueprint = CadenceGraph;
-	TSharedPtr<SKismetInspector> CurrentInspector = Inspector.Pin();
-
-	TSharedPtr<FBlueprintEditor> BlueprintEditor = BlueprintEditorPtr.Pin();
-
-	if (BlueprintEditor.IsValid())
-	{
-		BlueprintEditor->SetUISelectionState(FBlueprintEditor::SelectionState_MyBlueprint);
-
-		CurrentBlueprint = BlueprintEditor->GetBlueprintObj();
-		CurrentInspector = BlueprintEditor->GetInspector();
-	}
-	OnActionSelectedHelper(InAction, BlueprintEditorPtr, CadenceGraph, CurrentInspector.ToSharedRef());
+	OnActionSelectedHelper(InAction);
 }
 
-void SCadenceGraphDetailsTabWidget::OnActionSelectedHelper(TSharedPtr<FEdGraphSchemaAction> InAction, TWeakPtr< FBlueprintEditor > InBlueprintEditor, UBlueprint* CurrentBlueprint, TSharedRef<SKismetInspector> CurrentInspector)
+void SCadenceGraphDetailsTabWidget::OnActionSelectedHelper(TSharedPtr<FEdGraphSchemaAction> InAction)
 {
-	if (InAction.IsValid())
+	TSharedPtr<FCadenceGraphApplication> GraphApplication = ApplicationPtr.Pin();
+	
+	if (GraphApplication.IsValid() && InAction.IsValid())
 	{
-		if (InAction->GetTypeId() == FEdGraphSchemaAction_K2Graph::StaticGetTypeId())
+		if (InAction->GetTypeId() == FCadenceVariableAction::StaticGetTypeId())
 		{
-			FEdGraphSchemaAction_K2Graph* GraphAction = (FEdGraphSchemaAction_K2Graph*)InAction.Get();
-
-			if (GraphAction->EdGraph)
-			{
-				FGraphDisplayInfo DisplayInfo;
-				const UEdGraphSchema* Schema = GraphAction->EdGraph->GetSchema();
-				check(Schema != nullptr);
-				Schema->GetGraphDisplayInformation(*GraphAction->EdGraph, DisplayInfo);
-				CurrentInspector->ShowDetailsForSingleObject(GraphAction->EdGraph, SKismetInspector::FShowDetailsOptions(DisplayInfo.PlainName));
-			}
-		}
-		else if (InAction->GetTypeId() == FEdGraphSchemaAction_K2Delegate::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2Delegate* DelegateAction = (FEdGraphSchemaAction_K2Delegate*)InAction.Get();
-			if (FMulticastDelegateProperty* Property = DelegateAction->GetDelegateProperty())
-			{
-				CurrentInspector->ShowDetailsForSingleObject(Property->GetUPropertyWrapper(), SKismetInspector::FShowDetailsOptions(FText::FromString(Property->GetName())));
-			}
-		}
-		else if (InAction->GetTypeId() == FEdGraphSchemaAction_K2Var::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2Var* VarAction = (FEdGraphSchemaAction_K2Var*)InAction.Get();
-
-			SKismetInspector::FShowDetailsOptions Options(FText::FromName(VarAction->GetVariableName()));
-			Options.bForceRefresh = true;
-
-			FProperty* Prop = VarAction->GetProperty();
-			UPropertyWrapper* PropWrap = (Prop ? Prop->GetUPropertyWrapper() : nullptr);
-			CurrentInspector->ShowDetailsForSingleObject(PropWrap, Options);
-		}
-		else if (InAction->GetTypeId() == FEdGraphSchemaAction_K2LocalVar::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2LocalVar* VarAction = (FEdGraphSchemaAction_K2LocalVar*)InAction.Get();
-
-			SKismetInspector::FShowDetailsOptions Options(FText::FromName(VarAction->GetVariableName()));
-
-			FProperty* Prop = VarAction->GetProperty();
-			UPropertyWrapper* PropWrap = (Prop ? Prop->GetUPropertyWrapper() : nullptr);
-			CurrentInspector->ShowDetailsForSingleObject(PropWrap, Options);
-		}
-		else if (InAction->IsAVariable())
-		{
-			FEdGraphSchemaAction_BlueprintVariableBase* VarAction = (FEdGraphSchemaAction_BlueprintVariableBase*)InAction.Get();
-			if (UEdGraph* Graph = GetFocusedGraph())
-			{
-				if (BlueprintEditorPtr.IsValid())
-				{
-					BlueprintEditorPtr.Pin()->SelectLocalVariable(Graph, VarAction->GetVariableName());	
-				}
-			}
-		}
-		else if (InAction->GetTypeId() == FEdGraphSchemaAction_K2Enum::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2Enum* EnumAction = (FEdGraphSchemaAction_K2Enum*)InAction.Get();
-
-			SKismetInspector::FShowDetailsOptions Options(FText::FromName(EnumAction->GetPathName()));
-			Options.bForceRefresh = true;
-
-			CurrentInspector->ShowDetailsForSingleObject(EnumAction->Enum, Options);
-		}
-		else if (InAction->GetTypeId() == FEdGraphSchemaAction_K2Struct::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2Struct* StructAction = (FEdGraphSchemaAction_K2Struct*)InAction.Get();
-
-			SKismetInspector::FShowDetailsOptions Options(FText::FromName(StructAction->GetPathName()));
-			Options.bForceRefresh = true;
-
-			CurrentInspector->ShowDetailsForSingleObject(StructAction->Struct, Options);
-		}
-		else if (InAction->GetTypeId() == FEdGraphSchemaAction_K2TargetNode::StaticGetTypeId() ||
-			InAction->GetTypeId() == FEdGraphSchemaAction_K2Event::StaticGetTypeId() ||
-			InAction->GetTypeId() == FEdGraphSchemaAction_K2InputAction::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2TargetNode* TargetNodeAction = (FEdGraphSchemaAction_K2TargetNode*)InAction.Get();
+			FCadenceVariableAction* VarAction = (FCadenceVariableAction*)InAction.Get();
+			UCadenceVariable* Var = VarAction->GetVariable();
 			
-			UK2Node* NodeTemplate = TargetNodeAction->NodeTemplate.Get();
-			check(NodeTemplate != nullptr)
-
-			SKismetInspector::FShowDetailsOptions Options(NodeTemplate->GetNodeTitle(ENodeTitleType::EditableTitle));
-			CurrentInspector->ShowDetailsForSingleObject(NodeTemplate, Options);
+			GraphApplication->GetSelectedDetailsView()->SetObject(Var);
 		}
-		else
+		else if (InAction->GetTypeId() == FCadenceGraphAction::StaticGetTypeId())
 		{
-			CurrentInspector->ShowDetailsForObjects(TArray<UObject*>());
+			FCadenceGraphAction* GraphAction = (FCadenceGraphAction*)InAction.Get();
 		}
-	}
-	else
-	{
-		CurrentInspector->ShowDetailsForObjects(TArray<UObject*>());
 	}
 }
 
 void SCadenceGraphDetailsTabWidget::OnActionDoubleClicked(const TArray< TSharedPtr<FEdGraphSchemaAction> >& InActions)
 {
-	if ( !BlueprintEditorPtr.IsValid() )
+	if ( !ApplicationPtr.IsValid() )
 	{
 		return;
 	}
@@ -2004,86 +820,9 @@ void SCadenceGraphDetailsTabWidget::OnActionDoubleClicked(const TArray< TSharedP
 
 void SCadenceGraphDetailsTabWidget::ExecuteAction(TSharedPtr<FEdGraphSchemaAction> InAction)
 {
-	// Force it to open in a new document if shift is pressed
-	const bool bIsShiftPressed = FSlateApplication::Get().GetModifierKeys().IsShiftDown();
-	FDocumentTracker::EOpenDocumentCause OpenMode = bIsShiftPressed ? FDocumentTracker::ForceOpenNewDocument : FDocumentTracker::OpenNewDocument;
-
-	UBlueprint* BlueprintObj = BlueprintEditorPtr.Pin()->GetBlueprintObj();
 	if(InAction.IsValid())
-	{
-		if(InAction->GetTypeId() == FEdGraphSchemaAction_K2Graph::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2Graph* GraphAction = (FEdGraphSchemaAction_K2Graph*)InAction.Get();
-
-			if (GraphAction->EdGraph)
-			{
-				BlueprintEditorPtr.Pin()->JumpToHyperlink(GraphAction->EdGraph);
-			}
-			else if(IsAnInterfaceEvent(GraphAction))
-			{
-				// Focus it's node in the event graph
-				UFunction* OverrideFunc = nullptr;
-				UClass* const OverrideFuncClass = FBlueprintEditorUtils::GetOverrideFunctionClass(BlueprintObj, GraphAction->FuncName, &OverrideFunc);
-				if (OverrideFunc)
-				{
-					FName EventName = OverrideFunc->GetFName();
-					// check if event has been implemented
-					if (UK2Node_Event* ExistingNode = FBlueprintEditorUtils::FindOverrideForFunction(BlueprintObj, OverrideFuncClass, EventName))
-					{
-						FKismetEditorUtilities::BringKismetToFocusAttentionOnObject(ExistingNode);
-					}
-					else
-					{
-						// if there isn't an associated node, make one and focus it
-						ImplementFunction(GraphAction);
-					}
-				}
-			}
-		}
-		if (InAction->GetTypeId() == FEdGraphSchemaAction_K2Delegate::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2Delegate* DelegateAction = (FEdGraphSchemaAction_K2Delegate*)InAction.Get();
-
-			if (DelegateAction->EdGraph)
-			{
-				BlueprintEditorPtr.Pin()->JumpToHyperlink(DelegateAction->EdGraph);
-			}
-		}
-		else if(InAction->GetTypeId() == FEdGraphSchemaAction_K2Var::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2Var* VarAction = (FEdGraphSchemaAction_K2Var*)InAction.Get();
-			
-			// timeline variables
-			const FObjectPropertyBase* ObjectProperty = CastField<const FObjectPropertyBase>(VarAction->GetProperty());
-			if (ObjectProperty &&
-				ObjectProperty->PropertyClass &&
-				ObjectProperty->PropertyClass->IsChildOf(UTimelineComponent::StaticClass()))
-			{
-				for (int32 i=0; i<BlueprintObj->Timelines.Num(); i++)
-				{
-					// Convert the Timeline's name to a variable name before comparing it to the variable
-					if (BlueprintObj->Timelines[i]->GetVariableName() == VarAction->GetVariableName())
-					{
-						BlueprintEditorPtr.Pin()->JumpToHyperlink(BlueprintObj->Timelines[i]);
-					}
-				}
-			}
-		}
-		else if (InAction->GetTypeId() == FEdGraphSchemaAction_K2Event::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2Event* EventNodeAction = (FEdGraphSchemaAction_K2Event*)InAction.Get();
-			FKismetEditorUtilities::BringKismetToFocusAttentionOnObject(EventNodeAction->NodeTemplate);
-		}
-		else if (InAction->GetTypeId() == FEdGraphSchemaAction_K2TargetNode::StaticGetTypeId() || 
-			InAction->GetTypeId() == FEdGraphSchemaAction_K2InputAction::StaticGetTypeId())
-		{
-			FEdGraphSchemaAction_K2TargetNode* TargetNodeAction = (FEdGraphSchemaAction_K2TargetNode*)InAction.Get();
-			FKismetEditorUtilities::BringKismetToFocusAttentionOnObject(TargetNodeAction->NodeTemplate);
-		}
-		else
-		{
-			InAction->OnDoubleClick(CadenceGraph);
-		}
+	{		
+		InAction->OnDoubleClick(nullptr);		
 	}
 }
 
@@ -2106,61 +845,14 @@ template<class SchemaActionType> SchemaActionType* SelectionAsType( const TShare
 	return Selection;
 }
 
-FEdGraphSchemaAction_K2Enum* SCadenceGraphDetailsTabWidget::SelectionAsEnum() const
+FCadenceGraphAction* SCadenceGraphDetailsTabWidget::SelectionAsGraph() const
 {
-	return SelectionAsType<FEdGraphSchemaAction_K2Enum>( GraphActionMenu );
+	return SelectionAsType<FCadenceGraphAction>( GraphActionMenu );
 }
 
-
-FEdGraphSchemaAction_K2Struct* SCadenceGraphDetailsTabWidget::SelectionAsStruct() const
+FCadenceVariableAction* SCadenceGraphDetailsTabWidget::SelectionAsVar() const
 {
-	return SelectionAsType<FEdGraphSchemaAction_K2Struct>( GraphActionMenu );
-}
-
-FEdGraphSchemaAction_K2Graph* SCadenceGraphDetailsTabWidget::SelectionAsGraph() const
-{
-	return SelectionAsType<FEdGraphSchemaAction_K2Graph>( GraphActionMenu );
-}
-
-FEdGraphSchemaAction_K2Var* SCadenceGraphDetailsTabWidget::SelectionAsVar() const
-{
-	return SelectionAsType<FEdGraphSchemaAction_K2Var>( GraphActionMenu );
-}
-
-FEdGraphSchemaAction_K2LocalVar* SCadenceGraphDetailsTabWidget::SelectionAsLocalVar() const
-{
-	return SelectionAsType<FEdGraphSchemaAction_K2LocalVar>(GraphActionMenu);
-}
-
-FEdGraphSchemaAction_BlueprintVariableBase* SCadenceGraphDetailsTabWidget::SelectionAsBlueprintVariable() const
-{
-	TArray<TSharedPtr<FEdGraphSchemaAction> > SelectedActions;
-	GraphActionMenu->GetSelectedActions(SelectedActions);
-
-	FEdGraphSchemaAction_BlueprintVariableBase* Selection = nullptr;
-
-	TSharedPtr<FEdGraphSchemaAction> SelectedAction( SelectedActions.Num() > 0 ? SelectedActions[0] : nullptr );
-	if ( SelectedAction.IsValid() && SelectedAction->IsA(FEdGraphSchemaAction_BlueprintVariableBase::StaticGetTypeId()))
-	{
-		Selection = (FEdGraphSchemaAction_BlueprintVariableBase*)SelectedAction.Get();
-	}
-
-	return Selection;
-}
-
-FEdGraphSchemaAction_K2Delegate* SCadenceGraphDetailsTabWidget::SelectionAsDelegate() const
-{
-	return SelectionAsType<FEdGraphSchemaAction_K2Delegate>( GraphActionMenu );
-}
-
-FEdGraphSchemaAction_K2Event* SCadenceGraphDetailsTabWidget::SelectionAsEvent() const
-{
-	return SelectionAsType<FEdGraphSchemaAction_K2Event>( GraphActionMenu );
-}
-
-FEdGraphSchemaAction_K2InputAction* SCadenceGraphDetailsTabWidget::SelectionAsInputAction() const
-{
-	return SelectionAsType<FEdGraphSchemaAction_K2InputAction>(GraphActionMenu);
+	return SelectionAsType<FCadenceVariableAction>( GraphActionMenu );
 }
 
 bool SCadenceGraphDetailsTabWidget::SelectionIsCategory() const
@@ -2177,26 +869,7 @@ bool SCadenceGraphDetailsTabWidget::SelectionHasContextMenu() const
 
 FText SCadenceGraphDetailsTabWidget::GetGraphCategory(UEdGraph* InGraph) const
 {
-	FText ReturnCategory;
-
-	// Pull the category from the required metadata based on the types of nodes we can discover in the graph
-	UK2Node_EditablePinBase* EntryNode = FBlueprintEditorUtils::GetEntryNode(InGraph);
-	if (UK2Node_FunctionEntry* FunctionEntryNode = Cast<UK2Node_FunctionEntry>(EntryNode))
-	{
-		ReturnCategory = FunctionEntryNode->MetaData.Category;
-	}
-	else if (UK2Node_Tunnel* TypedEntryNode = ExactCast<UK2Node_Tunnel>(EntryNode))
-	{
-		ReturnCategory = TypedEntryNode->MetaData.Category;
-	}
-
-	// Empty the category if it's default, we don't want to display the "default" category and items will just appear without a category
-	if(ReturnCategory.EqualTo(UEdGraphSchema_K2::VR_DefaultCategory))
-	{
-		ReturnCategory = FText::GetEmpty();
-	}
-
-	return ReturnCategory;
+	return FText::GetEmpty();
 }
 
 void SCadenceGraphDetailsTabWidget::GetSelectedItemsForContextMenu(TArray<FComponentEventConstructionData>& OutSelectedItems) const
@@ -2422,14 +1095,6 @@ void SCadenceGraphDetailsTabWidget::BuildAddNewMenu(FMenuBuilder& MenuBuilder)
 	MenuBuilder.EndSection();
 }
 
-bool SCadenceGraphDetailsTabWidget::CanOpenGraph() const
-{
-	const FEdGraphSchemaAction_K2Graph* GraphAction = SelectionAsGraph();
-	const bool bGraph = GraphAction && GraphAction->EdGraph;
-	const FEdGraphSchemaAction_K2Delegate* DelegateAction = SelectionAsDelegate();
-	const bool bDelegate = DelegateAction && DelegateAction->EdGraph;
-	return (bGraph || bDelegate) && BlueprintEditorPtr.IsValid();
-}
 
 bool SCadenceGraphDetailsTabWidget::CanOpenExternalGraph() const 
 {
@@ -2484,16 +1149,6 @@ void SCadenceGraphDetailsTabWidget::OpenGraph(FDocumentTracker::EOpenDocumentCau
 	}
 }
 
-
-void SCadenceGraphDetailsTabWidget::OnOpenGraph()
-{
-	OpenGraph(FDocumentTracker::OpenNewDocument);
-}
-
-void SCadenceGraphDetailsTabWidget::OnOpenGraphInNewTab()
-{
-	OpenGraph(FDocumentTracker::ForceOpenNewDocument);	
-}
 
 void SCadenceGraphDetailsTabWidget::OnOpenExternalGraph()
 {
@@ -2550,274 +1205,6 @@ void SCadenceGraphDetailsTabWidget::OnFocusNode()
 			}
 		}
 	}
-}
-
-void SCadenceGraphDetailsTabWidget::OnFocusNodeInNewTab()
-{
-	OpenGraph(FDocumentTracker::ForceOpenNewDocument);
-	OnFocusNode();
-}
-
-bool SCadenceGraphDetailsTabWidget::CanImplementFunction() const
-{
-	FEdGraphSchemaAction_K2Graph* GraphAction = SelectionAsGraph();
-	return GraphAction && GraphAction->EdGraph == nullptr && !CanFocusOnNode();
-}
-
-void SCadenceGraphDetailsTabWidget::OnImplementFunction()
-{
-	if ( FEdGraphSchemaAction_K2Graph* GraphAction = SelectionAsGraph() )
-	{
-		ImplementFunction(GraphAction);
-	}
-}
-
-void SCadenceGraphDetailsTabWidget::ImplementFunction(TSharedPtr<FEdGraphSchemaAction_K2Graph> GraphAction)
-{
-	ImplementFunction(GraphAction.Get());
-}
-
-void SCadenceGraphDetailsTabWidget::ImplementFunction(FEdGraphSchemaAction_K2Graph* GraphAction)
-{
-	UBlueprint* BlueprintObj = GetBlueprintObj();
-	check(BlueprintObj && BlueprintObj->SkeletonGeneratedClass);
-
-	// Ensure that we are conforming to all current interfaces so that if there has been an additional
-	// interface function added we just focus to it instead of creating a new one
-	FBlueprintEditorUtils::ConformImplementedInterfaces(BlueprintObj);
-
-	UFunction* OverrideFunc = nullptr;
-	UClass* const OverrideFuncClass = FBlueprintEditorUtils::GetOverrideFunctionClass(BlueprintObj, GraphAction->FuncName, &OverrideFunc);
-	check(OverrideFunc);
-	// Some types of blueprints don't have an event graph (IE gameplay ability blueprints), in that case just make a new graph, even
-	// for events:
-	UEdGraph* EventGraph = FBlueprintEditorUtils::FindEventGraph(BlueprintObj);
-	if (UEdGraphSchema_K2::FunctionCanBePlacedAsEvent(OverrideFunc) && !IsImplementationDesiredAsFunction(OverrideFunc) && EventGraph)
-	{
-		// Add to event graph
-		FName EventName = OverrideFunc->GetFName();
-		UK2Node_Event* ExistingNode = FBlueprintEditorUtils::FindOverrideForFunction(BlueprintObj, OverrideFuncClass, EventName);
-
-		if (ExistingNode)
-		{
-			FKismetEditorUtilities::BringKismetToFocusAttentionOnObject(ExistingNode);
-		}
-		else
-		{
-			UK2Node_Event* NewEventNode = FEdGraphSchemaAction_K2NewNode::SpawnNode<UK2Node_Event>(
-				EventGraph,
-				EventGraph->GetGoodPlaceForNewNode(),
-				EK2NewNodeFlags::SelectNewNode,
-				[EventName, OverrideFuncClass](UK2Node_Event* NewInstance)
-				{
-					NewInstance->EventReference.SetExternalMember(EventName, OverrideFuncClass);
-					NewInstance->bOverrideFunction = true;
-				}
-			);
-			if (NewEventNode)
-			{
-				FKismetEditorUtilities::BringKismetToFocusAttentionOnObject(NewEventNode);
-			}
-		}
-	}
-	else
-	{
-		// If there is an already existing graph of this function than just open that
-		// Needed for implementing interface functions on the base class through the override menu
-		UEdGraph* const ExistingGraph = FindObject<UEdGraph>(BlueprintObj, *GraphAction->FuncName.ToString());
-		if (ExistingGraph)
-		{
-			FKismetEditorUtilities::BringKismetToFocusAttentionOnObject(ExistingGraph);
-		}
-		else
-		{
-			const FScopedTransaction Transaction(LOCTEXT("CreateOverrideFunctionGraph", "Create Override Function Graph"));
-			BlueprintObj->Modify();
-			// Implement the function graph
-			UEdGraph* const NewGraph = FBlueprintEditorUtils::CreateNewGraph(BlueprintObj, GraphAction->FuncName, UEdGraph::StaticClass(), UEdGraphSchema_K2::StaticClass());
-			FBlueprintEditorUtils::AddFunctionGraph(BlueprintObj, NewGraph, /*bIsUserCreated=*/ false, OverrideFuncClass);
-			NewGraph->Modify();
-			BlueprintEditorPtr.Pin()->OpenDocument(NewGraph, FDocumentTracker::OpenNewDocument);
-		}
-	}
-}
-
-bool SCadenceGraphDetailsTabWidget::IsImplementationDesiredAsFunction(const UFunction* OverrideFunc) const
-{	
-	// If the original function was created in a parent blueprint, then prefer a BP function
-	if (OverrideFunc)
-	{
-		FName OverrideName = *OverrideFunc->GetName();
-		TSet<FName> GraphNames;
-		FBlueprintEditorUtils::GetAllGraphNames(GetBlueprintObj(), GraphNames);
-		for (const FName & Name : GraphNames)
-		{
-			if (Name == OverrideName)
-			{
-				return true;
-			}
-		}
-	}
-	
-	// Otherwise, we would prefer an event
-	return false;
-}
-
-void SCadenceGraphDetailsTabWidget::OnFindReference(bool bSearchAllBlueprints, const EGetFindReferenceSearchStringFlags Flags)
-{
-	FString SearchTerm;
-	for(const UEdGraph* UberGraph : GetBlueprintObj()->UbergraphPages)
-	{
-		if(const UEdGraphSchema* Schema = UberGraph->GetSchema())
-		{
-			TArray<TSharedPtr<FEdGraphSchemaAction> > SelectedActions;
-			GraphActionMenu->GetSelectedActions(SelectedActions);
-			if(SelectedActions.Num() == 1)
-			{
-				if (const FEdGraphSchemaAction* GraphAction = SelectedActions[0].Get())
-				{
-					SearchTerm = Schema->GetFindReferenceSearchTerm(GraphAction);
-					if(!SearchTerm.IsEmpty())
-					{
-						BlueprintEditorPtr.Pin()->SummonSearchUI(true, SearchTerm);
-						return;
-					}
-				}
-			}
-		}
-	}
-
-	bool bUseQuotes = true;
-
-	if (FEdGraphSchemaAction_K2Graph* GraphAction = SelectionAsGraph())
-	{
-		bool bSearchTermGenerated = false;
-		if (EnumHasAnyFlags(Flags, EGetFindReferenceSearchStringFlags::UseSearchSyntax))
-		{
-			// Attempt to resolve function, then attempt to generate search term from it
-			if (const UFunction* Function = GraphAction->GetFunction())
-			{
-				if (FindInBlueprintsHelpers::ConstructSearchTermFromFunction(Function, SearchTerm))
-				{
-					bSearchTermGenerated = true;
-					bUseQuotes = false;	
-				}
-			}
-		}
-
-		// If a search term was not generated yet, just search by name. Either the graph doesn't represent a
-		// function or we failed to resolve a dependency for generating a query.
-		if (!bSearchTermGenerated)
-		{
-			SearchTerm = GraphAction->FuncName.ToString();
-		}
-	}
-	else if (FEdGraphSchemaAction_K2Var* VarAction = SelectionAsVar())
-	{
-		bool bSearchTermGenerated = false;
-		if (EnumHasAnyFlags(Flags, EGetFindReferenceSearchStringFlags::UseSearchSyntax))
-		{
-			// Attempt to resolve property, then generate search term from it
-			if (const FProperty* Property = VarAction->GetProperty())
-			{
-				FMemberReference MemberReference;
-				MemberReference.SetFromField<FProperty>(Property, true, Property->GetOwnerClass());
-				SearchTerm = MemberReference.GetReferenceSearchString(Property->GetOwnerClass());
-				bSearchTermGenerated = true;
-				bUseQuotes = false;
-			}
-		}
-
-		// If a search term was not generated yet, just search by variable name
-		if (!bSearchTermGenerated)
-		{
-			SearchTerm = VarAction->GetVariableName().ToString();
-		}
-	}
-	else if (FEdGraphSchemaAction_K2LocalVar* LocalVarAction = SelectionAsLocalVar())
-	{
-		SearchTerm = FString::Printf(TEXT("Nodes(VariableReference(MemberName=+\"%s\" && MemberScope=+\"%s\"))"), *LocalVarAction->GetVariableName().ToString(), *LocalVarAction->GetVariableScope()->GetName());
-		bUseQuotes = false;
-	}
-	else if (FEdGraphSchemaAction_K2Delegate* DelegateAction = SelectionAsDelegate())
-	{
-		SearchTerm = DelegateAction->GetDelegateName().ToString();
-	}
-	else if (FEdGraphSchemaAction_K2Enum* EnumAction = SelectionAsEnum())
-	{
-		SearchTerm = EnumAction->Enum->GetName();
-	}
-	else if (FEdGraphSchemaAction_K2Struct* StructAction = SelectionAsStruct())
-	{
-		SearchTerm = StructAction->Struct->GetName();
-	}
-	else if (FEdGraphSchemaAction_K2Event* EventAction = SelectionAsEvent())
-	{
-		bool bSearchTermGenerated = false;
-		if (EnumHasAnyFlags(Flags, EGetFindReferenceSearchStringFlags::UseSearchSyntax))
-		{
-			if (const UK2Node_Event* EventNode = Cast<UK2Node_Event>(EventAction->NodeTemplate))
-			{
-				SearchTerm = EventNode->GetFindReferenceSearchString(Flags);
-				bSearchTermGenerated = true;
-				bUseQuotes = false;
-			}
-		}
-
-		if (!bSearchTermGenerated)
-		{
-			SearchTerm = EventAction->NodeTemplate->GetFindReferenceSearchString(EGetFindReferenceSearchStringFlags::None);
-		}
-	}
-	else if (FEdGraphSchemaAction_K2InputAction* InputAction = SelectionAsInputAction())
-	{
-		SearchTerm = InputAction->NodeTemplate ? 
-			InputAction->NodeTemplate->GetNodeTitle(ENodeTitleType::FullTitle).ToString() :
-			InputAction->GetMenuDescription().ToString();
-	}
-
-	if (!SearchTerm.IsEmpty())
-	{
-		if (bUseQuotes)
-		{
-			SearchTerm = FString::Printf(TEXT("\"%s\""), *SearchTerm);
-		}
-		
-		const bool bSetFindWithinBlueprint = !bSearchAllBlueprints;
-		BlueprintEditorPtr.Pin()->SummonSearchUI(bSetFindWithinBlueprint, SearchTerm);
-	}
-}
-
-bool SCadenceGraphDetailsTabWidget::CanFindReference() const
-{
-	// Nothing relevant to the category will ever be found, unless the name of the category overlaps with another item
-	if (SelectionIsCategory())
-	{
-		return false;
-	}
-
-	return true;
-}
-
-void SCadenceGraphDetailsTabWidget::OnFindAndReplaceReference()
-{
-	TSharedPtr<FBlueprintEditor> PinnedEditor = BlueprintEditorPtr.Pin();
-	if (PinnedEditor.IsValid())
-	{
-		if (FEdGraphSchemaAction_K2Var* VarAction = SelectionAsVar())
-		{
-			PinnedEditor->SummonFindAndReplaceUI();
-			if (PinnedEditor->GetReplaceReferencesWidget().IsValid())
-			{
-				PinnedEditor->GetReplaceReferencesWidget()->SetSourceVariable(VarAction->GetProperty());
-			}
-		}
-	}
-}
-
-bool SCadenceGraphDetailsTabWidget::CanFindAndReplaceReference() const
-{
-	return SelectionAsVar() != nullptr;
 }
 
 void SCadenceGraphDetailsTabWidget::OnDeleteGraph(UEdGraph* InGraph, EEdGraphSchemaAction_K2Graph::Type InGraphType)
@@ -3324,139 +1711,6 @@ void SCadenceGraphDetailsTabWidget::OnDuplicateAction()
 	}
 }
 
-void SCadenceGraphDetailsTabWidget::GotoNativeCodeVarDefinition()
-{
-	if( FEdGraphSchemaAction_K2Var* VarAction = SelectionAsVar() )
-	{
-		if( FProperty* VarProperty = VarAction->GetProperty() )
-		{
-			FSourceCodeNavigation::NavigateToProperty( VarProperty );
-		}
-	}
-}
-
-bool SCadenceGraphDetailsTabWidget::IsNativeVariable() const
-{
-	if( FEdGraphSchemaAction_K2Var* VarAction = SelectionAsVar() )
-	{
-		FProperty* VarProperty = VarAction->GetProperty();
-
-		if( VarProperty && VarProperty->IsNative())
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-void SCadenceGraphDetailsTabWidget::OnMoveToParent()
-{
-	if (UBlueprint* ParentBlueprint = UBlueprint::GetBlueprintFromClass(CadenceGraph->ParentClass))
-	{
-		if (FEdGraphSchemaAction_K2Var* VarAction = SelectionAsVar())
-		{
-			int32 VarIndex = FBlueprintEditorUtils::FindNewVariableIndex(CadenceGraph, VarAction->GetVariableName());
-			if (VarIndex != INDEX_NONE)
-			{
-				FScopedTransaction Transaction(LOCTEXT("MoveVarToParent", "Move Variable To Parent"));
-				CadenceGraph->Modify();
-				ParentBlueprint->Modify();
-
-				FBPVariableDescription VarDesc = CadenceGraph->NewVariables[VarIndex];
-				CadenceGraph->NewVariables.RemoveAt(VarIndex);
-
-				// We need to manually pull the DefaultValue from the FProperty to set it on the new parent class variable
-				{
-					// Grab property off blueprint's current CDO
-					UClass* GeneratedClass = CadenceGraph->GeneratedClass;
-					UObject* GeneratedCDO = GeneratedClass->GetDefaultObject();
-
-					if (FProperty* TargetProperty = FindFProperty<FProperty>(GeneratedClass, VarDesc.VarName))
-					{
-						if (void* OldPropertyAddr = TargetProperty->ContainerPtrToValuePtr<void>(GeneratedCDO))
-						{
-							// If there is a property for variable, it means the original default value was already copied, so it can be safely overridden
-							VarDesc.DefaultValue.Empty();
-							TargetProperty->ExportTextItem_Direct(VarDesc.DefaultValue, OldPropertyAddr, OldPropertyAddr, nullptr, PPF_SerializedAsImportText);
-						}
-					}
-				}
-
-				ParentBlueprint->NewVariables.Add(VarDesc);
-
-				FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(CadenceGraph);
-				FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(ParentBlueprint);
-				FBlueprintEditorUtils::ValidateBlueprintChildVariables(ParentBlueprint, VarDesc.VarName);
-			}
-		}
-		else if (FEdGraphSchemaAction_K2Graph* GraphAction = SelectionAsGraph())
-		{
-			TSharedPtr<FBlueprintEditor> PinnedEditor = BlueprintEditorPtr.Pin();
-			if (PinnedEditor.IsValid())
-			{
-				FScopedTransaction Transaction(LOCTEXT("MoveFuncToParent", "Move Function To Parent"));
-				CadenceGraph->Modify();
-				ParentBlueprint->Modify();
-
-				FBPGraphClipboardData CopiedGraph(GraphAction->EdGraph);
-				if (CopiedGraph.CreateAndPopulateGraph(ParentBlueprint, CopiedGraph.GetOriginalBlueprint(), PinnedEditor.Get(), GraphAction->GetCategory()))
-				{
-					PinnedEditor->CloseDocumentTab(GraphAction->EdGraph);
-					OnDeleteEntry();
-				}
-			}
-		}
-
-		// open editor for parent blueprint
-		if (UObject* ParentClass = CadenceGraph->ParentClass)
-		{
-			UBlueprintGeneratedClass* ParentBlueprintGeneratedClass = Cast<UBlueprintGeneratedClass>(ParentClass);
-			if (ParentBlueprintGeneratedClass != NULL)
-			{
-				GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(ParentBlueprintGeneratedClass->ClassGeneratedBy);
-			}
-		}
-	}
-}
-
-bool SCadenceGraphDetailsTabWidget::CanMoveVariableToParent() const
-{
-	bool bCanMove = false;
-
-	TSharedPtr<FBlueprintEditor> PinnedEditor = BlueprintEditorPtr.Pin();
-	if (PinnedEditor.IsValid() && PinnedEditor->IsParentClassABlueprint())
-	{
-		if (FEdGraphSchemaAction_K2Var* VarAction = SelectionAsVar())
-		{
-			// If this variable is new to this class
-			UBlueprint* SourceBlueprint;
-			int32 VarIndex = FBlueprintEditorUtils::FindNewVariableIndexAndBlueprint(CadenceGraph, VarAction->GetVariableName(), SourceBlueprint);
-			bCanMove = (VarIndex != INDEX_NONE) && (SourceBlueprint == CadenceGraph);
-		}
-	}
-
-	return bCanMove;
-}
-
-bool SCadenceGraphDetailsTabWidget::CanMoveFunctionToParent() const
-{
-	bool bCanMove = false;
-
-	TSharedPtr<FBlueprintEditor> PinnedEditor = BlueprintEditorPtr.Pin();
-	if (PinnedEditor.IsValid() && PinnedEditor->IsParentClassABlueprint())
-	{
-		if (FEdGraphSchemaAction_K2Graph* GraphAction = SelectionAsGraph())
-		{
-			if (CanDeleteEntry())
-			{
-				return PinnedEditor->IsGraphInCurrentBlueprint(GraphAction->EdGraph) && GraphAction->GraphType == EEdGraphSchemaAction_K2Graph::Function;
-			}
-		}
-	}
-
-	return bCanMove;
-}
-
 void SCadenceGraphDetailsTabWidget::OnCopy()
 {
 	FString OutputString;
@@ -3595,23 +1849,11 @@ void SCadenceGraphDetailsTabWidget::OnPasteGeneric()
 	{
 		OnPasteVariable();
 	}
-	else if (CanPasteLocalVariable())
-	{
-		OnPasteLocalVariable();
-	}
-	else if (CanPasteFunction())
-	{
-		OnPasteFunction();
-	}
-	else if (CanPasteMacro())
-	{
-		OnPasteMacro();
-	}
 }
 
 bool SCadenceGraphDetailsTabWidget::CanPasteGeneric()
 {
-	return CanPasteVariable() || CanPasteLocalVariable() || CanPasteFunction() || CanPasteMacro();
+	return CanPasteVariable();
 }
 
 void SCadenceGraphDetailsTabWidget::OnPasteVariable()
@@ -3648,59 +1890,6 @@ void SCadenceGraphDetailsTabWidget::OnPasteVariable()
 	}
 }
 
-void SCadenceGraphDetailsTabWidget::OnPasteLocalVariable()
-{
-	TSharedPtr<FBlueprintEditor> PinnedEditor = BlueprintEditorPtr.Pin();
-	if (PinnedEditor.IsValid())
-	{
-		UEdGraph* FocusedGraph = PinnedEditor->GetFocusedGraph();
-		if (FocusedGraph)
-		{
-			TArray<UK2Node_FunctionEntry*> FunctionEntry;
-			FocusedGraph->GetNodesOfClass<UK2Node_FunctionEntry>(FunctionEntry);
-
-			FString ClipboardText;
-			FPlatformApplicationMisc::ClipboardPaste(ClipboardText);
-			if (!ensure(ClipboardText.StartsWith(VAR_PREFIX, ESearchCase::CaseSensitive)))
-			{
-				return;
-			}
-
-			FBPVariableDescription Description;
-			FStringOutputDevice Errors;
-			const TCHAR* Import = ClipboardText.GetCharArray().GetData() + FCString::Strlen(VAR_PREFIX);
-			FBPVariableDescription::StaticStruct()->ImportText(Import, &Description, nullptr, 0, &Errors, FBPVariableDescription::StaticStruct()->GetName());
-			if (Errors.IsEmpty())
-			{
-				FBPVariableDescription NewVar = FBlueprintEditorUtils::DuplicateVariableDescription(CadenceGraph, Description);
-				if (NewVar.VarGuid.IsValid())
-				{
-					FScopedTransaction Transaction(FText::Format(LOCTEXT("PasteLocalVariable", "Paste Local Variable: {0}"), FText::FromName(NewVar.VarName)));
-
-					NewVar.Category = GetPasteCategory();
-
-
-					if (FunctionEntry.Num() == 1)
-					{
-						FunctionEntry[0]->Modify();
-						FunctionEntry[0]->LocalVariables.Add(NewVar);
-					}
-					else
-					{
-						BlueprintEditorPtr.Pin()->OnPasteNewLocalVariable(NewVar);
-					}
-
-					// Potentially adjust variable names for any child blueprints
-					FBlueprintEditorUtils::ValidateBlueprintChildVariables(CadenceGraph, NewVar.VarName);
-					FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(CadenceGraph);
-
-					SelectItemByName(NewVar.VarName);
-				}
-			}
-		}
-	}
-}
-
 bool SCadenceGraphDetailsTabWidget::CanPasteVariable() const
 {
 	TSharedPtr<FBlueprintEditor> PinnedEditor = BlueprintEditorPtr.Pin();
@@ -3719,162 +1908,6 @@ bool SCadenceGraphDetailsTabWidget::CanPasteVariable() const
 		FBPVariableDescription::StaticStruct()->ImportText(Import, &Description, nullptr, 0, &Errors, FBPVariableDescription::StaticStruct()->GetName());
 
 		return Errors.IsEmpty();
-	}
-
-	return false;
-}
-
-bool SCadenceGraphDetailsTabWidget::CanPasteLocalVariable() const
-{
-	TSharedPtr<FBlueprintEditor> PinnedEditor = BlueprintEditorPtr.Pin();
-	if (PinnedEditor.IsValid() && !PinnedEditor->NewDocument_IsVisibleForType(FBlueprintEditor::CGT_NewLocalVariable))
-	{
-		return false;
-	}
-
-	FString ClipboardText;
-	FPlatformApplicationMisc::ClipboardPaste(ClipboardText);
-	if (ClipboardText.StartsWith(VAR_PREFIX, ESearchCase::CaseSensitive))
-	{
-		FBPVariableDescription Description;
-		FStringOutputDevice Errors;
-		const TCHAR* Import = ClipboardText.GetCharArray().GetData() + FCString::Strlen(VAR_PREFIX);
-		FBPVariableDescription::StaticStruct()->ImportText(Import, &Description, nullptr, 0, &Errors, FBPVariableDescription::StaticStruct()->GetName());
-
-		return Errors.IsEmpty();
-	}
-	
-	return false;
-}
-
-void SCadenceGraphDetailsTabWidget::OnPasteFunction()
-{
-	FString ClipboardText;
-	FPlatformApplicationMisc::ClipboardPaste(ClipboardText);
-
-	if (CadenceGraph->TryImportGraphFromText(ClipboardText))
-	{
-		return;
-	}
-
-	if (!ensure(ClipboardText.StartsWith(GRAPH_PREFIX, ESearchCase::CaseSensitive)))
-	{
-		return;
-	}
-
-	FBPGraphClipboardData FuncData;
-	FStringOutputDevice Errors;
-	const TCHAR* Import = ClipboardText.GetCharArray().GetData() + FCString::Strlen(GRAPH_PREFIX);
-	FBPGraphClipboardData::StaticStruct()->ImportText(Import, &FuncData, nullptr, 0, &Errors, FBPGraphClipboardData::StaticStruct()->GetName());
-	if (Errors.IsEmpty() && FuncData.IsValid())
-	{
-		FScopedTransaction Transaction(LOCTEXT("PasteFunction", "Paste Function"));
-
-		TSharedPtr<FBlueprintEditor> PinnedEditor = BlueprintEditorPtr.Pin();
-		if (PinnedEditor.IsValid())
-		{
-			CadenceGraph->Modify();
-			UEdGraph* Graph = FuncData.CreateAndPopulateGraph(CadenceGraph, FuncData.GetOriginalBlueprint(), PinnedEditor.Get(), GetPasteCategory());
-
-			if (Graph)
-			{
-				PinnedEditor->OpenDocument(Graph, FDocumentTracker::OpenNewDocument);
-				SelectItemByName(Graph->GetFName());
-				Refresh();
-				OnRequestRenameOnActionNode();
-			}
-			else
-			{
-				Transaction.Cancel();
-			}
-		}
-	}
-}
-
-bool SCadenceGraphDetailsTabWidget::CanPasteFunction() const
-{
-	TSharedPtr<FBlueprintEditor> PinnedEditor = BlueprintEditorPtr.Pin();
-	if (PinnedEditor.IsValid() && !PinnedEditor->NewDocument_IsVisibleForType(FBlueprintEditor::CGT_NewFunctionGraph))
-	{
-		return false;
-	}
-
-	FString ClipboardText;
-	FPlatformApplicationMisc::ClipboardPaste(ClipboardText);
-
-	if (CadenceGraph->CanImportGraphFromText(ClipboardText))
-	{
-		return true;
-	}
-
-	if (ClipboardText.StartsWith(GRAPH_PREFIX, ESearchCase::CaseSensitive))
-	{
-		FBPGraphClipboardData FuncData;
-		FStringOutputDevice Errors;
-		const TCHAR* Import = ClipboardText.GetCharArray().GetData() + FCString::Strlen(GRAPH_PREFIX);
-		FBPGraphClipboardData::StaticStruct()->ImportText(Import, &FuncData, nullptr, 0, &Errors, FBPGraphClipboardData::StaticStruct()->GetName());
-
-		return Errors.IsEmpty() && FuncData.IsFunction();
-	}
-
-	return false;
-}
-
-void SCadenceGraphDetailsTabWidget::OnPasteMacro()
-{
-	FString ClipboardText;
-	FPlatformApplicationMisc::ClipboardPaste(ClipboardText);
-	if (!ensure(ClipboardText.StartsWith(GRAPH_PREFIX, ESearchCase::CaseSensitive)))
-	{
-		return;
-	}
-
-	FBPGraphClipboardData FuncData;
-	FStringOutputDevice Errors;
-	const TCHAR* Import = ClipboardText.GetCharArray().GetData() + FCString::Strlen(GRAPH_PREFIX);
-	FBPGraphClipboardData::StaticStruct()->ImportText(Import, &FuncData, nullptr, 0, &Errors, FBPGraphClipboardData::StaticStruct()->GetName());
-	if (Errors.IsEmpty() && FuncData.IsValid())
-	{
-		FScopedTransaction Transaction(LOCTEXT("PasteMacro", "Paste Macro"));
-
-		TSharedPtr<FBlueprintEditor> PinnedEditor = BlueprintEditorPtr.Pin();
-		if (PinnedEditor.IsValid())
-		{
-			CadenceGraph->Modify();
-			UEdGraph* Graph = FuncData.CreateAndPopulateGraph(CadenceGraph, FuncData.GetOriginalBlueprint(), PinnedEditor.Get(), GetPasteCategory());
-
-			if (Graph)
-			{
-				PinnedEditor->OpenDocument(Graph, FDocumentTracker::OpenNewDocument);
-				SelectItemByName(Graph->GetFName());
-				OnRequestRenameOnActionNode();
-			}
-			else
-			{
-				Transaction.Cancel();
-			}
-		}
-	}
-}
-
-bool SCadenceGraphDetailsTabWidget::CanPasteMacro() const
-{
-	TSharedPtr<FBlueprintEditor> PinnedEditor = BlueprintEditorPtr.Pin();
-	if (PinnedEditor.IsValid() && !PinnedEditor->NewDocument_IsVisibleForType(FBlueprintEditor::CGT_NewMacroGraph))
-	{
-		return false;
-	}
-
-	FString ClipboardText;
-	FPlatformApplicationMisc::ClipboardPaste(ClipboardText);
-	if (ClipboardText.StartsWith(GRAPH_PREFIX, ESearchCase::CaseSensitive))
-	{
-		FBPGraphClipboardData MacroData;
-		FStringOutputDevice Errors;
-		const TCHAR* Import = ClipboardText.GetCharArray().GetData() + FCString::Strlen(GRAPH_PREFIX);
-		FBPGraphClipboardData::StaticStruct()->ImportText(Import, &MacroData, nullptr, 0, &Errors, FBPGraphClipboardData::StaticStruct()->GetName());
-
-		return Errors.IsEmpty() && MacroData.IsMacro();
 	}
 
 	return false;
@@ -3926,16 +1959,6 @@ void SCadenceGraphDetailsTabWidget::UpdateNodeCreation()
 	{
 		BlueprintEditorPtr.Pin()->UpdateNodeCreationStats( ENodeCreateAction::MyBlueprintDragPlacement );
 	}
-}
-
-FReply SCadenceGraphDetailsTabWidget::OnAddNewLocalVariable()
-{
-	if( BlueprintEditorPtr.IsValid() )
-	{
-		BlueprintEditorPtr.Pin()->OnAddNewLocalVariable();
-	}
-
-	return FReply::Handled();
 }
 
 void SCadenceGraphDetailsTabWidget::OnFilterTextChanged( const FText& InFilterText )

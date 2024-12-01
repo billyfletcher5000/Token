@@ -26,16 +26,7 @@ namespace CadenceNodeSectionID
 	{
 		NONE = 0,
 		GRAPH,					// Graph
-		FUNCTION,				// Functions
-		FUNCTION_OVERRIDABLE,	// Overridable functions
-		INTERFACE,				// Interface
-		MACRO,					// Macros
 		VARIABLE,				// Variables
-		COMPONENT,				// Components
-		DELEGATE,				// Delegate/Event
-		USER_ENUM,				// User defined enums
-		LOCAL_VARIABLE,			// Local variables
-		USER_STRUCT,			// User defined structs
 		USER_SORTED				// User sorted categories
 	};
 }
@@ -52,12 +43,14 @@ public:
 	UCadenceGraphEditor* GetWorkingGraphEditor() const { return WorkingGraphEditor; }
 	TSharedPtr<SGraphEditor> GetSlateGraphEditor() const { return SlateGraphEditor.Pin(); }
 	TSharedPtr<FUICommandList> GetCommandList();
+	TSharedPtr<IDetailsView> GetSelectedDetailsView() const { return SelectedDetailsView.Pin(); }	
 
 	void SetSlateGraphEditor(const TSharedPtr<SGraphEditor>& InSlateGraphEditor) { SlateGraphEditor = InSlateGraphEditor; }
 	void SetSelectedDetailsView(const TSharedPtr<IDetailsView>& InDetailsView);
 	void SetGraphDetailsView(const TSharedPtr<IDetailsView>& InDetailsView);
 	
-	bool InEditingMode() const;
+	bool InEditingMode() const;	
+	bool IsSectionVisible(CadenceNodeSectionID::Type InSectionID) const { return true; }
 
 public: // FAssetEditorToolkit
 	virtual FName GetToolkitFName() const override { return ToolkitFName; }

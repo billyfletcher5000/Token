@@ -45,6 +45,9 @@ public:
 
 	virtual bool IsVisible() const { return bIsVisible; }
 	virtual void SetVisible(const bool& InValue) { bIsVisible = InValue; }
+
+	FText GetCategory() const { return Category; }
+	void SetCategory(const FText& InCategory) { Category = InCategory; }
 	
 	FGuid GetGUID()
 	{
@@ -62,6 +65,9 @@ protected:
 
 	UPROPERTY()
 	bool bIsVisible = true;
+
+	UPROPERTY()
+	FText Category;
 
 private:
 	UPROPERTY(VisibleAnywhere, NonPIEDuplicateTransient, TextExportTransient, NonTransactional)
