@@ -60,14 +60,9 @@ public:
 	void Construct(const FArguments& InArgs, TWeakPtr<FCadenceGraphApplication> InGraphApplication);
 	~SCadenceGraphDetailsTabWidget();
 
-	void SetInspector( TSharedPtr<SKismetInspector> InInspector ) { Inspector = InInspector ; }
-
 	/* SWidget interface */
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
-
-	/* Reset the last pin type settings to default. */
-	void ResetLastPinType();
 
 	/** Refreshes the graph action menu */
 	void Refresh();
@@ -82,20 +77,8 @@ public:
 	/** Accessor for determining if the current selection is a category*/
 	bool SelectionIsCategory() const;
 	
-	void EnsureLastPinTypeValid();
-
-	/** Gets the last pin type selected by this widget, or by the function editor */
-	FEdGraphPinType& GetLastPinTypeUsed() { EnsureLastPinTypeValid(); return LastPinType; }
-	FEdGraphPinType& GetLastFunctionPinTypeUsed() { EnsureLastPinTypeValid(); return LastFunctionPinType; }
-
 	UCadenceGraph* GetMainGraph() const { return CadenceGraph; }
 	TWeakPtr<FCadenceGraphApplication> GetGraphApplication() { return ApplicationPtr; }
-
-	/**
-	 * Fills the supplied array with the currently selected objects
-	 * @param OutSelectedItems The array to fill.
-	 */
-	void GetSelectedItemsForContextMenu(TArray<FComponentEventConstructionData>& OutSelectedItems) const;
 
 	/** Called to reset the search filter */
 	void OnResetItemFilter();
@@ -192,17 +175,11 @@ private:
 	/** Checks if the selected action has context menu */
 	bool SelectionHasContextMenu() const;
 
-	/** Update Node Create Analytic */
-	void UpdateNodeCreation();
-
 	/** Returns the displayed category, if any, of a graph */
 	FText GetGraphCategory(UEdGraph* InGraph) const;
 
 	/** Helper function to delete a graph in the MyBlueprint window */
 	void OnDeleteGraph(UEdGraph* InGraph, ECadenceGraphAction::Type);
-
-	/** Helper function to delete a delegate in the MyBlueprint window */
-	void OnDeleteDelegate(FEdGraphSchemaAction_K2Delegate* InDelegateAction);
 
 	UEdGraph* GetFocusedGraph() const;
 
@@ -211,9 +188,6 @@ private:
 
 	/** Helper function indicating whehter we're in editing mode, and can modify the target blueprint */
 	bool IsEditingMode() const;
-
-	/** Determine whether an FEdGraphSchemaAction is associated with an event */
-	static bool IsAnInterfaceEvent(FEdGraphSchemaAction_K2Graph* InAction);
 
 private:
 	/** List of UI Commands for this scope */
@@ -224,9 +198,6 @@ private:
 	
 	/** Graph Action Menu for displaying all our variables and functions */
 	TSharedPtr<class SGraphActionMenu> GraphActionMenu;
-
-	/** The last pin type used (including the function editor last pin type) */
-	FEdGraphPinType LastPinType;
 
 	/** The filter box that handles filtering for both graph action menus. */
 	TSharedPtr< SSearchBox > FilterBox;

@@ -43,7 +43,8 @@ public:
 	UCadenceGraphEditor* GetWorkingGraphEditor() const { return WorkingGraphEditor; }
 	TSharedPtr<SGraphEditor> GetSlateGraphEditor() const { return SlateGraphEditor.Pin(); }
 	TSharedPtr<FUICommandList> GetCommandList();
-	TSharedPtr<IDetailsView> GetSelectedDetailsView() const { return SelectedDetailsView.Pin(); }	
+	TSharedPtr<IDetailsView> GetSelectedDetailsView() const { return SelectedDetailsView.Pin(); }
+	TSharedPtr<FDocumentTracker> GetDocumentManager() const { return DocumentManager; }
 
 	void SetSlateGraphEditor(const TSharedPtr<SGraphEditor>& InSlateGraphEditor) { SlateGraphEditor = InSlateGraphEditor; }
 	void SetSelectedDetailsView(const TSharedPtr<IDetailsView>& InDetailsView);
@@ -103,7 +104,8 @@ private:
 	TWeakPtr<SGraphEditor> SlateGraphEditor = nullptr;
 	FDelegateHandle PreSaveDelegateHandle;
 	TWeakPtr<IDetailsView> SelectedDetailsView;
-	TWeakPtr<IDetailsView> GraphDetailsView;
+	TWeakPtr<IDetailsView> GraphDetailsView;	
+	TSharedPtr<FDocumentTracker> DocumentManager;
 };
 
 class FCadenceGraphApplicationMode : public FApplicationMode

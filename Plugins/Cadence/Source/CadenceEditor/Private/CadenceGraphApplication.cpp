@@ -29,11 +29,12 @@ const FString FCadenceGraphApplication::DocumentationLink = TEXT("https://github
 
 void FCadenceGraphApplication::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
 {
+	DocumentManager->SetTabManager(InTabManager);
 	FWorkflowCentricApplication::RegisterTabSpawners(InTabManager);
 }
 
 void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const TSharedPtr<IToolkitHost> InToolkitHost, UObject* InObject)
-{
+{	
 	WorkingAsset = Cast<UCadenceAsset>(InObject);
 	ensure(WorkingAsset);
 
@@ -52,6 +53,10 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 	
 	ensure(WorkingGraphEditor);
 	WorkingGraphEditor->SetRuntimeGraph(WorkingAsset->GetGraph());
+
+	DocumentManager = MakeShareable(new FDocumentTracker);	
+	TSharedPtr<FCadenceGraphApplication> ThisPtr(SharedThis(this));
+	DocumentManager->Initialize(ThisPtr);
 	
 	TArray<UObject*> ObjectsToEdit;
 	ObjectsToEdit.Add(InObject);

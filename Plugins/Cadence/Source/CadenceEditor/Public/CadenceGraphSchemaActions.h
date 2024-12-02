@@ -155,6 +155,8 @@ struct BLUEPRINTGRAPH_API FCadenceGraphAction : public FEdGraphSchemaAction
 	/** The type of graph that action is */
 	ECadenceGraphAction::Type GraphType;
 
+	UCadenceAsset* CadenceAsset;
+
 	/** The associated editor graph for this schema */
 	UEdGraph* EdGraph;
 
