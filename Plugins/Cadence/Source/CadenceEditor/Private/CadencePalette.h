@@ -5,8 +5,6 @@
 #include "CoreMinimal.h"
 #include "SGraphPalette.h"
 #include "UObject/Object.h"
-#include "CadencePalette.generated.h"
-
 
 class UCadenceAsset;
 class FCadenceGraphApplication;

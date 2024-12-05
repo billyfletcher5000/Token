@@ -7,8 +7,8 @@
 #include "UObject/Object.h"
 #include "WorkflowOrientedApp/WorkflowTabFactory.h"
 #include "WorkflowOrientedApp/WorkflowTabManager.h"
-#include "CadenceGraphDetailsTab.generated.h"
 
+struct FGraphActionSort;
 class UCadenceGraph;
 struct FCadenceVariableAction;
 struct FCadenceGraphAction;

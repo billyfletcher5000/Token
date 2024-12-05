@@ -6,6 +6,8 @@
 
 #include "CadenceGraphSchema.generated.h"
 
+class UCadenceAsset;
+class UCadenceUserVariableSetterNode;
 class UCadenceVariable;
 /**
  * 
@@ -34,6 +36,11 @@ public:
 	virtual FText GetPinDisplayName(const UEdGraphPin* Pin) const override;
 
 	virtual bool ConvertVariableToPinType(const UCadenceVariable* InVariable, FEdGraphPinType& OutPinType) const;
+
+	virtual UCadenceUserVariableGetterNode* SpawnVariableGetNode(const FVector2D InGraphPosition, UCadenceGraph* InGraph, UCadenceVariable* InVariable) const;
+	virtual UCadenceUserVariableSetterNode* SpawnVariableSetNode(const FVector2D InGraphPosition, UCadenceGraph* InGraph, UCadenceVariable* InVariable) const;
+	bool IsExecPin(const UEdGraphPin& EdGraphPin) const;
+	bool ArePinTypesCompatible(const FEdGraphPinType& InPinTypeA, const FEdGraphPinType& InPinTypeB) const;
 
 public:
 	static const FName PC_Variable;

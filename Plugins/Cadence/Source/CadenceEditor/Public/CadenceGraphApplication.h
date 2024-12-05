@@ -53,6 +53,8 @@ public:
 	bool InEditingMode() const;	
 	bool IsSectionVisible(CadenceNodeSectionID::Type InSectionID) const { return true; }
 
+	void Refresh();
+
 public: // FAssetEditorToolkit
 	virtual FName GetToolkitFName() const override { return ToolkitFName; }
 	virtual FText GetBaseToolkitName() const override { return BaseToolkitName; }

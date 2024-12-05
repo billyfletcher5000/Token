@@ -128,6 +128,12 @@ bool FCadenceGraphApplication::InEditingMode() const
 	return true;
 }
 
+void FCadenceGraphApplication::Refresh()
+{
+	WorkingGraphEditor->Nodes.Empty();
+	ReconstructEditorGraph();
+}
+
 void FCadenceGraphApplication::OnToolkitHostingStarted(const TSharedRef<IToolkit>& Toolkit)
 {
 }

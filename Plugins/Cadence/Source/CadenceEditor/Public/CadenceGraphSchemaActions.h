@@ -45,6 +45,8 @@ public:
 	{		
 	}
 	
+	static UCadenceUserVariableGetterNode* CreateGetterNode(UCadenceGraph* InGraph, UCadenceVariable* InVariable, const FVector2D& InLocation);
+	
 protected:
 	virtual UCadenceGraphNode* CreateCadenceGraphNode(UCadenceGraph* RuntimeGraph, const FVector2D& Location) override;
 	
@@ -64,6 +66,8 @@ public:
 	: FNewNodeAction(nullptr, InNodeCategory, InMenuDesc, InToolTip, InGrouping), NamedVariable(InNamedVariable)
 	{		
 	}
+
+	static UCadenceUserVariableSetterNode* CreateSetterNode(UCadenceGraph* InGraph, UCadenceVariable* InVariable, const FVector2D& InLocation);
 	
 protected:
 	virtual UCadenceGraphNode* CreateCadenceGraphNode(UCadenceGraph* RuntimeGraph, const FVector2D& Location) override;
@@ -141,7 +145,7 @@ namespace ECadenceGraphAction
 
 /** Reference to a function, macro, event graph, or timeline (only used in 'docked' palette) */
 USTRUCT()
-struct BLUEPRINTGRAPH_API FCadenceGraphAction : public FEdGraphSchemaAction
+struct FCadenceGraphAction : public FEdGraphSchemaAction
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -160,15 +164,18 @@ struct BLUEPRINTGRAPH_API FCadenceGraphAction : public FEdGraphSchemaAction
 	/** The associated editor graph for this schema */
 	UEdGraph* EdGraph;
 
-	FCadenceGraphAction() 
-		: FEdGraphSchemaAction()
-	{}
+	FCadenceGraphAction()
+		: FEdGraphSchemaAction(), GraphType(), CadenceAsset(nullptr), EdGraph(nullptr)
+	{
+	}
 
 	FCadenceGraphAction(ECadenceGraphAction::Type InType, FText InNodeCategory, FText InMenuDesc, FText InToolTip, const int32 InGrouping, const int32 InSectionID = 0)
 		: FEdGraphSchemaAction(MoveTemp(InNodeCategory), MoveTemp(InMenuDesc), MoveTemp(InToolTip), InGrouping, FText(), InSectionID)
-		, GraphType(InType)
-		, EdGraph(nullptr)
-	{}
+		  , GraphType(InType)
+		  , CadenceAsset(nullptr)
+	      , EdGraph(nullptr)
+	{
+	}
 
 	// FEdGraphSchemaAction interface
 	virtual bool IsParentable() const override { return true; }

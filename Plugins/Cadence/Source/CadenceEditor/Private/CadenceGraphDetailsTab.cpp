@@ -4,10 +4,8 @@
 #include "CadenceGraphDetailsTab.h"
 
 #include "CadenceGraphApplication.h"
-#include "CadenceGraphSchema.h"
 #include "CadenceGraphSchemaActions.h"
 #include "CadencePalette.h"
-#include "DetailLayoutBuilder.h"
 #include "EditorCategoryUtils.h"
 #include "GraphActionNode.h"
 #include "GraphEditorDragDropAction.h"

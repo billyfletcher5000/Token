@@ -82,24 +82,34 @@ UCadenceGraphNode* FNewNodeAction::CreateCadenceGraphNode(UCadenceGraph* Runtime
 	return Node;
 }
 
-UCadenceGraphNode* FNewVariableGetterNodeAction::CreateCadenceGraphNode(UCadenceGraph* RuntimeGraph, const FVector2D& Location)
+UCadenceUserVariableGetterNode* FNewVariableGetterNodeAction::CreateGetterNode(UCadenceGraph* InGraph, UCadenceVariable* InVariable, const FVector2D& InLocation)
 {
-	UCadenceGraphNode* Node = RuntimeGraph->CreateNode(UCadenceUserVariableGetterNode::StaticClass(), Location);
+	UCadenceGraphNode* Node = InGraph->CreateNode(UCadenceUserVariableGetterNode::StaticClass(), InLocation);
 	UCadenceUserVariableGetterNode* GetterNode = Cast<UCadenceUserVariableGetterNode>(Node);
-	GetterNode->SetSourceVariable(NamedVariable.Variable);
+	GetterNode->SetSourceVariable(InVariable);
 	GetterNode->CreateInputPins();
 	GetterNode->CreateOutputPins();
-	return Node;
+	return GetterNode;
+}
+
+UCadenceGraphNode* FNewVariableGetterNodeAction::CreateCadenceGraphNode(UCadenceGraph* RuntimeGraph, const FVector2D& Location)
+{
+	return CreateGetterNode(RuntimeGraph, NamedVariable.Variable, Location);
+}
+
+UCadenceUserVariableSetterNode* FNewVariableSetterNodeAction::CreateSetterNode(UCadenceGraph* InGraph, UCadenceVariable* InVariable, const FVector2D& InLocation)
+{	
+	UCadenceGraphNode* Node = InGraph->CreateNode(UCadenceUserVariableSetterNode::StaticClass(), InLocation);
+	UCadenceUserVariableSetterNode* SetterNode = Cast<UCadenceUserVariableSetterNode>(Node);
+	SetterNode->SetSourceVariable(InVariable);
+	SetterNode->CreateInputPins();
+	SetterNode->CreateOutputPins();	
+	return SetterNode;
 }
 
 UCadenceGraphNode* FNewVariableSetterNodeAction::CreateCadenceGraphNode(UCadenceGraph* RuntimeGraph, const FVector2D& Location)
 {
-	UCadenceGraphNode* Node = RuntimeGraph->CreateNode(UCadenceUserVariableSetterNode::StaticClass(), Location);
-	UCadenceUserVariableSetterNode* SetterNode = Cast<UCadenceUserVariableSetterNode>(Node);
-	SetterNode->SetSourceVariable(NamedVariable.Variable);
-	SetterNode->CreateInputPins();
-	SetterNode->CreateOutputPins();	
-	return Node;
+	return CreateSetterNode(RuntimeGraph, NamedVariable.Variable, Location);
 }
 
 FEdGraphPinType FCadenceVariableAction::GetPinType() const

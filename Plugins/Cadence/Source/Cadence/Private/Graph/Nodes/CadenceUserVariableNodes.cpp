@@ -23,6 +23,11 @@ ECadenceNodeExecuteResult UCadenceUserVariableGetterNode::Execute(UCadenceContex
 	return ECadenceNodeExecuteResult::Complete;
 }
 
+UCadenceGraphNodePin* UCadenceUserVariableGetterNode::GetVariableOutputPin() const
+{
+	return GetOutputPin(FCadencePinConstants::Pin_Value);
+}
+
 FText UCadenceUserVariableGetterNode::GetNodeTitle() const
 {
 	return FText::FromName(SourceVariable->GetUserVariableName());
@@ -43,6 +48,16 @@ void UCadenceUserVariableSetterNode::CreateOutputPins()
 {
 	Super::CreateOutputPins();
 	AddOutputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable->GetClass());
+}
+
+UCadenceGraphNodePin* UCadenceUserVariableSetterNode::GetVariableInputPin() const
+{
+	return GetInputPin(FCadencePinConstants::Pin_Value);
+}
+
+UCadenceGraphNodePin* UCadenceUserVariableSetterNode::GetVariableOutputPin() const
+{
+	return GetOutputPin(FCadencePinConstants::Pin_Value);
 }
 
 ECadenceNodeExecuteResult UCadenceUserVariableSetterNode::Execute(UCadenceContext* InContext)

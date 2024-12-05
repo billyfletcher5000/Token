@@ -3,6 +3,7 @@
 
 #include "CadenceGraphSchema.h"
 
+#include "CadenceAsset.h"
 #include "CadenceEditorCommon.h"
 #include "Graph/CadenceGraph.h"
 #include "CadenceGraphEditor.h"
@@ -415,6 +416,28 @@ bool UCadenceGraphSchema::ConvertVariableToPinType(const UCadenceVariable* InVar
 	OutPinType.ContainerType = InVariable->IsArray() ? EPinContainerType::Array : EPinContainerType::None;
 
 	return true;
+}
+
+UCadenceUserVariableGetterNode* UCadenceGraphSchema::SpawnVariableGetNode(const FVector2D InGraphPosition, UCadenceGraph* InGraph, UCadenceVariable* InVariable) const
+{
+	UCadenceUserVariableGetterNode* Node = FNewVariableGetterNodeAction::CreateGetterNode(InGraph, InVariable, InGraphPosition);
+	return Node;
+}
+
+UCadenceUserVariableSetterNode* UCadenceGraphSchema::SpawnVariableSetNode(const FVector2D InGraphPosition, UCadenceGraph* InGraph, UCadenceVariable* InVariable) const
+{
+	UCadenceUserVariableSetterNode* Node = FNewVariableSetterNodeAction::CreateSetterNode(InGraph, InVariable, InGraphPosition);
+	return Node;
+}
+
+bool UCadenceGraphSchema::IsExecPin(const UEdGraphPin& EdGraphPin) const
+{
+	return EdGraphPin.PinType.PinCategory == PC_Exec;
+}
+
+bool UCadenceGraphSchema::ArePinTypesCompatible(const FEdGraphPinType& InPinTypeA, const FEdGraphPinType& InPinTypeB) const
+{
+	return InPinTypeA.PinCategory == InPinTypeB.PinCategory && InPinTypeA.PinSubCategory == InPinTypeB.PinSubCategory && InPinTypeA.ContainerType == InPinTypeB.ContainerType;
 }
 
 bool UCadenceGraphSchema::IsVariablePinCategory(const FName& InPinCategory)

@@ -61,6 +61,8 @@ public:
 
 	virtual bool IsPure() const override { return true; }
 
+	UCadenceGraphNodePin* GetVariableOutputPin() const;
+
 	virtual FText GetNodeTitle() const override;
 	virtual FText GetNodeMenuName() const override;
 	virtual FText GetNodeCategory() const override { return FCadenceUserVariableConstants::NodeCategory; }
@@ -76,6 +78,9 @@ public:
 	virtual void CreateInputPins() override;
 	virtual void CreateOutputPins() override;
 	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+	
+	UCadenceGraphNodePin* GetVariableInputPin() const;
+	UCadenceGraphNodePin* GetVariableOutputPin() const;
 
 	virtual FText GetNodeTitle() const override;
 	virtual FText GetNodeMenuName() const override;

@@ -731,6 +731,7 @@ void SCadencePalette::Construct(const FArguments& InArgs, TWeakPtr<FCadenceGraph
 	bool bUseLegacyLayout = false;
 	GConfig->GetBool(*CadencePalette::ConfigSection, TEXT("bUseLegacyLayout"), bUseLegacyLayout, GEditorIni);
 
+	
 	SlowTask.EnterProgressFrame();
 	TSharedRef<SWidget> FavoritesContent = SNew(SBlueprintFavoritesPalette, InCadenceApplication);
 
