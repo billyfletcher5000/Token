@@ -5,14 +5,13 @@
 #include "CoreMinimal.h"
 #include "GraphEditorDragDropAction.h"
 #include "UObject/Object.h"
-#include "CadenceItemDragDropAction.generated.h"
 
 class FCadenceGraphApplication;
 class UCadenceGraph;
 class UCadenceVariable;
 class UCadenceAsset;
 
-class KISMET_API FCadenceItemDragDropAction : public FGraphSchemaActionDragDropAction
+class FCadenceItemDragDropAction : public FGraphSchemaActionDragDropAction
 {
 public:
 	DRAG_DROP_OPERATOR_TYPE(FCadenceItemDragDropAction, FGraphSchemaActionDragDropAction)
@@ -82,7 +81,7 @@ public:
 	virtual FReply DroppedOnPanel(const TSharedRef< class SWidget >& Panel, FVector2D ScreenPosition, FVector2D GraphPosition, UEdGraph& Graph) override;
 	// End of FGraphEditorDragDropAction
 
-	static TSharedRef<FCadenceVariableItemDragDropAction> New(TSharedPtr<FEdGraphSchemaAction> InAction, UCadenceVariable* InVariable, UCadenceAsset* InAsset, FCadenceGraphApplication* InApplication);
+	static TSharedRef<FCadenceVariableItemDragDropAction> New(TSharedPtr<FEdGraphSchemaAction> InAction, UCadenceVariable* InVariable, UCadenceAsset* InAsset, TSharedPtr<FCadenceGraphApplication> InApplication);
 
 	UCadenceVariable* GetVariable()
 	{
@@ -131,5 +130,5 @@ protected:
 
 	TWeakObjectPtr<UCadenceAsset> Asset;
 
-	TWeakObjectPtr<FCadenceGraphApplication> Application;
+	TWeakPtr<FCadenceGraphApplication> Application;
 };

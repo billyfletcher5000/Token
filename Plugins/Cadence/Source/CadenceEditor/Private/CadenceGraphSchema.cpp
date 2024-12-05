@@ -440,6 +440,10 @@ bool UCadenceGraphSchema::ArePinTypesCompatible(const FEdGraphPinType& InPinType
 	return InPinTypeA.PinCategory == InPinTypeB.PinCategory && InPinTypeA.PinSubCategory == InPinTypeB.PinSubCategory && InPinTypeA.ContainerType == InPinTypeB.ContainerType;
 }
 
+void UCadenceGraphSchema::GetVariableTypeTree(TArray<FPinTypeTreeItem>& OutTypeTreeArray, ETypeTreeFilter InTreeFilter) const
+{
+}
+
 bool UCadenceGraphSchema::IsVariablePinCategory(const FName& InPinCategory)
 {
 	return InPinCategory != PC_Exec;

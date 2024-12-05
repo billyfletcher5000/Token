@@ -689,7 +689,6 @@ void SCadenceGraphDetailsTabWidget::GetChildGraphs(UEdGraph* InEdGraph, int32 co
 
 void SCadenceGraphDetailsTabWidget::CollectAllActions(FGraphActionListBuilderBase& OutAllActions)
 {
-	UCadenceGraph* CadenceGraph = GetMainGraph();
 	check(CadenceGraph);
 
 	TSharedPtr<FCadenceGraphApplication> CadenceApplication = ApplicationPtr.Pin();
@@ -1027,7 +1026,7 @@ namespace Cadence::Private
 
 	FName FindUniqueName(const UCadenceGraph* InGraph, const FName& InBaseName)
 	{
-		if(InBaseName.ToString.IsEmpty())
+		if(InBaseName.ToString().IsEmpty())
 			return NAME_None;
 		
 		int32 Count = 0;
@@ -1252,7 +1251,7 @@ void SCadenceGraphDetailsTabWidget::OnCopy()
 
 	if (!OutputString.IsEmpty())
 	{
-		FPlatformApplicationMisc::ClipboardCopy(OutputString.GetCharArray().GetData());
+		//FPlatformApplicationMisc::ClipboardCopy(*OutputString);
 	}
 }
 
@@ -1313,7 +1312,7 @@ FText SCadenceGraphDetailsTabWidget::GetPasteCategory() const
 		}
 	}
 	
-	return UEdGraphSchema_K2::VR_DefaultCategory;
+	return LOCTEXT("Default", "Default");
 }
 
 void SCadenceGraphDetailsTabWidget::OnResetItemFilter()

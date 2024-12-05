@@ -23,7 +23,12 @@
 		{
 			"Name": "CadenceEditor",
 			"Type": "Editor",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms" :
+			[
+				"Win64",
+				"Win32"
+			]
 		}
 	],
 	"Plugins": [

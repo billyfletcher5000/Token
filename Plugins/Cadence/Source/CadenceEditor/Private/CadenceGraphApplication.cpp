@@ -18,7 +18,7 @@
 #include "IDetailsView.h"
 #include "Graph/Nodes/CadenceGridNodes.h"
 #include "SequencerTrack/CadenceSequencerSection.h"
-#include "Windows/WindowsPlatformApplicationMisc.h"
+#include "Runtime/ApplicationCore/Public/HAL/PlatformApplicationMisc.h"
 
 
 const FName FCadenceGraphApplication::ToolkitFName = FName(TEXT("CadenceGraphApplication"));
@@ -181,10 +181,10 @@ FSlateBrush const* FCadenceGraphApplication::GetVarIconAndColorFromVariable(cons
 FSlateBrush const* FCadenceGraphApplication::GetVarIconAndColorFromPinType(const FEdGraphPinType& PinType,
 	FSlateColor& IconColorOut, FSlateBrush const*& SecondaryBrushOut, FSlateColor& SecondaryColorOut)
 {
-	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
-	IconColorOut = K2Schema->GetPinTypeColor(PinType);
+	const UCadenceGraphSchema* CadenceGraphSchema = GetDefault<UCadenceGraphSchema>();
+	IconColorOut = CadenceGraphSchema->GetPinTypeColor(PinType);
 	SecondaryBrushOut = FBlueprintEditorUtils::GetSecondaryIconFromPin(PinType);
-	SecondaryColorOut = K2Schema->GetSecondaryPinTypeColor(PinType);
+	SecondaryColorOut = CadenceGraphSchema->GetSecondaryPinTypeColor(PinType);
 	return FBlueprintEditorUtils::GetIconFromPin(PinType);
 }
 
@@ -311,7 +311,7 @@ void FCadenceGraphApplication::CopySelectedNodes()
 
 		FString ExportedText;
 		FEdGraphUtilities::ExportNodesToText(SelectedNodes, ExportedText);
-		FPlatformApplicationMisc::ClipboardCopy(*ExportedText);
+		//FPlatformApplicationMisc::ClipboardCopy(*ExportedText);
 
 		for (UObject* SelectedNode : SelectedNodes)
 		{

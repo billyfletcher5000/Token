@@ -240,7 +240,7 @@ FReply SCadenceSubPalette::OnActionDragged( const TArray< TSharedPtr<FEdGraphSch
 			if (UCadenceVariable* Var = VarAction->GetVariable())
 			{
 				FCadenceGraphApplication* App = ApplicationPtr.Pin().Get();
-				return FReply::Handled().BeginDragDrop(FCadenceVariableItemDragDropAction::New(InAction, Var, App->GetWorkingAsset(), App));
+				return FReply::Handled().BeginDragDrop(FCadenceVariableItemDragDropAction::New(InAction, Var, App->GetWorkingAsset(), ApplicationPtr.Pin()));
 			}
 		}
 		else

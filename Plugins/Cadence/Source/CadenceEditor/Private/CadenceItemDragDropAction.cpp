@@ -184,13 +184,13 @@ FCadenceVariableItemDragDropAction::FCadenceVariableItemDragDropAction()
 {
 }
 
-TSharedRef<FCadenceVariableItemDragDropAction> FCadenceVariableItemDragDropAction::New(TSharedPtr<FEdGraphSchemaAction> InAction, UCadenceVariable* InVariable, UCadenceAsset* InAsset, FCadenceGraphApplication* InApplication)
+TSharedRef<FCadenceVariableItemDragDropAction> FCadenceVariableItemDragDropAction::New(TSharedPtr<FEdGraphSchemaAction> InAction, UCadenceVariable* InVariable, UCadenceAsset* InAsset, TSharedPtr<FCadenceGraphApplication> InApplication)
 {
 	TSharedRef<FCadenceVariableItemDragDropAction> Operation = MakeShareable(new FCadenceVariableItemDragDropAction);
 	Operation->Variable = InVariable;
 	Operation->Asset = InAsset;
 	Operation->SourceAction = InAction;
-	Operation->Application = InApplication;
+	Operation->Application = InApplication.ToWeakPtr();
 	Operation->Construct();
 	return Operation;
 }
@@ -202,8 +202,8 @@ UCadenceAsset* FCadenceVariableItemDragDropAction::GetSourceAsset() const
 
 void FCadenceVariableItemDragDropAction::HoverTargetChanged()
 {
-	UCadenceVariable* Variable = GetVariable();
-	if (Variable == nullptr)
+	UCadenceVariable* Var = GetVariable();
+	if (Var == nullptr)
 	{
 		return;
 	}
@@ -218,11 +218,11 @@ void FCadenceVariableItemDragDropAction::HoverTargetChanged()
 	if (TheHoveredGraph)
 	{
 		FNodeConstructionParams NewNodeParams;
-		NewNodeParams.Variable = Variable;
-		NewNodeParams.Graph = Application->GetWorkingGraph();		
+		NewNodeParams.Variable = Var;
+		NewNodeParams.Graph = Application.Pin()->GetWorkingGraph();		
 		NewNodeParams.EdGraph = TheHoveredGraph;
 		
-		bCanMakeSetter = CanExecuteMakeSetter(NewNodeParams, Variable);
+		bCanMakeSetter = CanExecuteMakeSetter(NewNodeParams, Var);
 	}
 
 	if (PinUnderCursor)
@@ -231,7 +231,7 @@ void FCadenceVariableItemDragDropAction::HoverTargetChanged()
 		Args.Add(TEXT("PinUnderCursor"), FText::FromName(PinUnderCursor->PinName));
 		Args.Add(TEXT("VariableName"), FText::FromName(Variable->GetUserVariableName()));
 
-		if (CanVariableBeDropped(Variable, *PinUnderCursor->GetOwningNode()->GetGraph()))
+		if (CanVariableBeDropped(Var, *PinUnderCursor->GetOwningNode()->GetGraph()))
 		{
 			if (PinUnderCursor->bOrphanedPin)
 			{
@@ -246,7 +246,7 @@ void FCadenceVariableItemDragDropAction::HoverTargetChanged()
 				const bool bCanWriteIfNeeded = bIsRead || bWritableProperty;
 
 				FEdGraphPinType VariablePinType;
-				Schema->ConvertVariableToPinType(Variable, VariablePinType);
+				Schema->ConvertVariableToPinType(Var, VariablePinType);
 				const bool bTypeMatch = Schema->ArePinTypesCompatible(VariablePinType, PinUnderCursor->PinType) || bIsExecPin;
 				
 				Args.Add(TEXT("PinUnderCursor"), FText::FromName(PinUnderCursor->PinName));
@@ -323,7 +323,7 @@ FReply FCadenceVariableItemDragDropAction::DroppedOnPin(FVector2D ScreenPosition
 					{
 						if(bIsRead)
 						{
-							UCadenceUserVariableGetterNode* Node = FNewVariableGetterNodeAction::CreateGetterNode(Application->GetWorkingGraph(), Variable.Get(), ScreenPosition);
+							UCadenceUserVariableGetterNode* Node = FNewVariableGetterNodeAction::CreateGetterNode(Application.Pin()->GetWorkingGraph(), Variable.Get(), ScreenPosition);
 							UCadenceGraphNodePin* RuntimePin = RuntimeNode->GetOutputPin(TargetPin->PinName);
 							UCadenceGraphNodePin* GetterPin = Node->GetVariableOutputPin();
 
@@ -335,7 +335,7 @@ FReply FCadenceVariableItemDragDropAction::DroppedOnPin(FVector2D ScreenPosition
 						}
 						else
 						{
-							UCadenceUserVariableSetterNode* Node = FNewVariableSetterNodeAction::CreateSetterNode(Application->GetWorkingGraph(), Variable.Get(), ScreenPosition);
+							UCadenceUserVariableSetterNode* Node = FNewVariableSetterNodeAction::CreateSetterNode(Application.Pin()->GetWorkingGraph(), Variable.Get(), ScreenPosition);
 
 							UCadenceGraphNodePin* RuntimePin = RuntimeNode->GetOutputPin(TargetPin->PinName);
 							UCadenceGraphNodePin* SetterPin = Node->GetVariableInputPin();
@@ -395,7 +395,7 @@ FReply FCadenceVariableItemDragDropAction::DroppedOnPanel( const TSharedRef< SWi
 		{			
 			FNodeConstructionParams NewNodeParams;
 			NewNodeParams.Variable = Variable.Get();
-			NewNodeParams.Graph = Application->GetWorkingGraph();
+			NewNodeParams.Graph = Application.Pin()->GetWorkingGraph();
 			NewNodeParams.EdGraph = &Graph;
 			NewNodeParams.GraphPosition = GraphPosition;
 

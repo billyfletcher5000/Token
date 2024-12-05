@@ -9,6 +9,8 @@
 #include "Graph/CadenceVariable.h"
 #include "CadenceGraphSchemaActions.generated.h"
 
+class UCadenceUserVariableSetterNode;
+class UCadenceUserVariableGetterNode;
 class UCadenceGraphNode;
 
 USTRUCT()

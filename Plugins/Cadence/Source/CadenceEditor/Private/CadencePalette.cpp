@@ -151,7 +151,7 @@ private:
 		
 		this->ChildSlot
 		[
-			SNew(SPinTypeSelector, FGetPinTypeTree::CreateUObject(GetDefault<UEdGraphSchema_K2>(), &UEdGraphSchema_K2::GetVariableTypeTree))
+			SNew(SPinTypeSelector, FGetPinTypeTree::CreateUObject(GetDefault<UCadenceGraphSchema>(), &UCadenceGraphSchema::GetVariableTypeTree))
 			.Schema(Schema)
 			.SchemaAction(ActionPtr)
 			.TargetPinType(this, &SPinTypeSelectorHelper::OnGetVarType)
@@ -430,7 +430,7 @@ void SCadencePaletteItem::Construct(const FArguments& InArgs, FCreateWidgetForAc
 		}
 		if (Variable)
 		{
-			IconWidget = SNew(SPinTypeSelectorHelper, Action, Variable, ApplicationPtr)
+			IconWidget = SNew(SPinTypeSelectorHelper, Action)
 				.IsEnabled(bIsEditingEnabled);
 
 			ActionAccessSpecifier = Variable->IsVisible() ? EAccessSpecifier::Public : EAccessSpecifier::Private;
@@ -731,7 +731,7 @@ void SCadencePalette::Construct(const FArguments& InArgs, TWeakPtr<FCadenceGraph
 	bool bUseLegacyLayout = false;
 	GConfig->GetBool(*CadencePalette::ConfigSection, TEXT("bUseLegacyLayout"), bUseLegacyLayout, GEditorIni);
 
-	
+	/*
 	SlowTask.EnterProgressFrame();
 	TSharedRef<SWidget> FavoritesContent = SNew(SBlueprintFavoritesPalette, InCadenceApplication);
 
@@ -772,7 +772,7 @@ void SCadencePalette::Construct(const FArguments& InArgs, TWeakPtr<FCadenceGraph
 				LibraryContent
 			]
 		];
-	}	
+	}	*/
 }
 
 //------------------------------------------------------------------------------

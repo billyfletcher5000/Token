@@ -26,7 +26,8 @@ public class CadenceEditor : ModuleRules
 			new string[]
 			{
 				"Core", 
-				"Cadence",
+				"Cadence", 
+				"KismetWidgets",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -52,7 +53,7 @@ public class CadenceEditor : ModuleRules
 				"SequencerCore",
 				"MovieScene",
 				"MovieSceneTracks",
-				"KismetWidgets",
+				"ToolWidgets"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
