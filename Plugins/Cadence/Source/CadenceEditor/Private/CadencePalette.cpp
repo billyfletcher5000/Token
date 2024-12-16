@@ -459,7 +459,7 @@ void SCadencePaletteItem::Construct(const FArguments& InArgs, FCreateWidgetForAc
 	}
 
 	// Calculate a color so that the text gets brighter the more accessible the action is
-	const bool AccessSpecifierEnabled = (ActionAccessSpecifier != EAccessSpecifier::None);
+	const bool AccessSpecifierEnabled = false;//(ActionAccessSpecifier != EAccessSpecifier::None);
 
 	// Create the widget with an icon
 	TSharedRef<SHorizontalBox> ActionBox = SNew(SHorizontalBox);
@@ -476,11 +476,11 @@ void SCadencePaletteItem::Construct(const FArguments& InArgs, FCreateWidgetForAc
 			[
 				SNew(STextBlock)
 				// Will only display text if we have a modifier level
-			.IsEnabled(AccessSpecifierEnabled)
-			.Text(AccessModifierText)
-			.ColorAndOpacity(FSlateColor::UseSubduedForeground())
-			// Bold if public
-			.TextStyle(FAppStyle::Get(), ActionAccessSpecifier == EAccessSpecifier::Public ? "BlueprintEditor.AccessModifier.Public" : "BlueprintEditor.AccessModifier.Default")
+				.IsEnabled(AccessSpecifierEnabled)
+				.Text(AccessModifierText)
+				.ColorAndOpacity(FSlateColor::UseSubduedForeground())
+				// Bold if public
+				.TextStyle(FAppStyle::Get(), ActionAccessSpecifier == EAccessSpecifier::Public ? "BlueprintEditor.AccessModifier.Public" : "BlueprintEditor.AccessModifier.Default")
 			];
 	};
 
@@ -613,7 +613,7 @@ TSharedRef<SWidget> SCadencePaletteItem::CreateTextSlotWidget(FCreateWidgetForAc
 
 	InCreateData->OnRenameRequest->BindSP(InlineRenameWidget.Get(), &SInlineEditableTextBlock::EnterEditingMode);
 
-	if (ActionPtr.IsValid())
+	if (false && ActionPtr.IsValid())
 	{
 		check(InlineRenameWidget.IsValid());
 		TSharedPtr<IToolTip> ExistingToolTip = InlineRenameWidget->GetToolTip();
@@ -632,6 +632,12 @@ TSharedRef<SWidget> SCadencePaletteItem::CreateTextSlotWidget(FCreateWidgetForAc
 //------------------------------------------------------------------------------
 FText SCadencePaletteItem::GetDisplayText() const
 {
+	if(ActionPtr.Pin()->GetTypeId() == FCadenceVariableAction::StaticGetTypeId())
+	{		
+		FCadenceVariableAction* VarAction = (FCadenceVariableAction*)ActionPtr.Pin().Get();
+		return FText::FromName(VarAction->GetVariableName());
+	}
+	
 	const UCadenceGraphSchema* CadenceGraphSchema = GetDefault<UCadenceGraphSchema>();
 	if (MenuDescriptionCache.IsOutOfDate(CadenceGraphSchema))
 	{
@@ -665,6 +671,8 @@ void SCadencePaletteItem::OnNameTextCommitted(const FText& NewText, ETextCommit:
 	{
 		FCadenceVariableAction* VarAction = (FCadenceVariableAction*)ActionPtr.Pin().Get();
 		VarAction->GetVariable()->SetUserVariableName(NewName);
+
+		ApplicationPtr.Pin()->Refresh();
 	}
 }
 
@@ -695,6 +703,29 @@ FText SCadencePaletteItem::GetToolTipText() const
 	}
 
 	return ToolTipText;
+}
+
+bool SCadencePaletteItem::IsSelected()
+{
+	TSharedPtr<FCadenceGraphApplication> GraphApplication = ApplicationPtr.Pin();
+	TSharedPtr<FEdGraphSchemaAction> Action = ActionPtr.Pin();
+	
+	if (GraphApplication.IsValid() && Action.IsValid())
+	{
+		if (Action->GetTypeId() == FCadenceVariableAction::StaticGetTypeId())
+		{
+			FCadenceVariableAction* VarAction = (FCadenceVariableAction*)Action.Get();
+			UCadenceVariable* Var = VarAction->GetVariable();
+			
+			return GraphApplication->GetSelectedDetailsView()->GetSelectedObjects().Contains(Var);
+		}
+		else if (Action->GetTypeId() == FCadenceGraphAction::StaticGetTypeId())
+		{
+			FCadenceGraphAction* GraphAction = (FCadenceGraphAction*)Action.Get();
+		}
+	}
+
+	return false;
 }
 
 TSharedPtr<SToolTip> SCadencePaletteItem::ConstructToolTipWidget() const

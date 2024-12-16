@@ -18,7 +18,7 @@
 #include "IDetailsView.h"
 #include "Graph/Nodes/CadenceGridNodes.h"
 #include "SequencerTrack/CadenceSequencerSection.h"
-#include "Runtime/ApplicationCore/Public/HAL/PlatformApplicationMisc.h"
+#include "HAL/PlatformApplicationMisc.h"
 
 
 const FName FCadenceGraphApplication::ToolkitFName = FName(TEXT("CadenceGraphApplication"));
@@ -311,7 +311,7 @@ void FCadenceGraphApplication::CopySelectedNodes()
 
 		FString ExportedText;
 		FEdGraphUtilities::ExportNodesToText(SelectedNodes, ExportedText);
-		//FPlatformApplicationMisc::ClipboardCopy(*ExportedText);
+		FPlatformApplicationMisc::ClipboardCopy(*ExportedText);
 
 		for (UObject* SelectedNode : SelectedNodes)
 		{

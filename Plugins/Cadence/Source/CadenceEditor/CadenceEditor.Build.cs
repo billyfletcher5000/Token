@@ -53,7 +53,8 @@ public class CadenceEditor : ModuleRules
 				"SequencerCore",
 				"MovieScene",
 				"MovieSceneTracks",
-				"ToolWidgets"
+				"ToolWidgets",
+				"BlueprintGraph"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

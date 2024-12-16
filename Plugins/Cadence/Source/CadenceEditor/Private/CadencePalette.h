@@ -54,6 +54,8 @@ private:
 
 	/** Returns the up-to-date tooltip for the item */
 	FText GetToolTipText() const;
+	
+	bool IsSelected();
 private:
 	/** True if the class should be displayed in the tooltip */
 	bool bShowClassInTooltip;

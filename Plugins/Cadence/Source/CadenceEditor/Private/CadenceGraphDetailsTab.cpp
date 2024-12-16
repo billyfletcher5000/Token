@@ -12,7 +12,7 @@
 #include "SGraphActionMenu.h"
 #include "SPositiveActionButton.h"
 #include "UnrealExporter.h"
-#include "Android/AndroidPlatformApplicationMisc.h"
+#include "HAL/PlatformApplicationMisc.h"
 #include "Dialogs/Dialogs.h"
 #include "Exporters/Exporter.h"
 #include "Framework/Commands/GenericCommands.h"
@@ -53,12 +53,14 @@ TSharedRef<SWidget> FCadenceGraphDetailsTabFactory::CreateTabBody(const FWorkflo
 	GraphDetailsView->SetObject(App->GetWorkingGraph());
 	App->SetGraphDetailsView(GraphDetailsView);
 
+	TSharedPtr<SWidget> GraphDetailsWidget = SNew(SCadenceGraphDetailsTabWidget, Application);
+
 	return SNew(SVerticalBox)
 				+ SVerticalBox::Slot()
-				.FillHeight(1.0f)
+				.FillHeight(0.5f)
 				.HAlign(HAlign_Fill)
 				[
-					GraphDetailsView.ToSharedRef()	
+					GraphDetailsWidget.ToSharedRef()	
 				];		
 }
 
@@ -87,6 +89,7 @@ void FCadenceGraphDetailsCommands::RegisterCommands()
 	UI_COMMAND( DeleteEntry, "Delete", "Deletes this variable from this cadence graph.", EUserInterfaceActionType::Button, FInputChord(EKeys::Delete), FInputChord(EKeys::BackSpace));
 	UI_COMMAND( PasteVariable, "Paste Variable", "Pastes the variable to this cadence graph.", EUserInterfaceActionType::Button, FInputChord());
 	UI_COMMAND( GotoNativeVarDefinition, "Goto Code Definition", "Goto the native code definition of this variable", EUserInterfaceActionType::Button, FInputChord() );
+	UI_COMMAND( AddNewVariable, "Add New Variable", "Adds a new variable to this cadence graph.", EUserInterfaceActionType::Button, FInputChord());
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -266,6 +269,8 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 		CommandList = MakeShareable(new FUICommandList);
 		
 		CommandList->Append(ApplicationPtr.Pin()->GetToolkitCommands());
+
+		FCadenceGraphDetailsCommands::Register();
 
 		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().OpenExternalGraph,
 			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnOpenExternalGraph),
@@ -632,6 +637,7 @@ void SCadenceGraphDetailsTabWidget::Refresh()
 
 TSharedRef<SWidget> SCadenceGraphDetailsTabWidget::OnCreateWidgetForAction(FCreateWidgetForActionData* const InCreateData)
 {
+	//InCreateData->bHandleMouseButtonDown = true;
 	return SNew(SCadencePaletteItem, InCreateData, ApplicationPtr.Pin());
 }
 
@@ -700,7 +706,8 @@ void SCadenceGraphDetailsTabWidget::CollectAllActions(FGraphActionListBuilderBas
 		UCadenceVariable* Var = NamedVar.Variable;
 
 		const FString UserCategoryName = Var->GetCategory().ToString();
-		TSharedPtr<FCadenceVariableAction> NewVarAction = MakeShareable(new FCadenceVariableAction());
+		TSharedPtr<FCadenceVariableAction> NewVarAction = MakeShareable(new FCadenceVariableAction(Var));
+		NewVarAction->SectionID = CadenceNodeSectionID::VARIABLE;
 		SortList.AddAction( UserCategoryName, NewVarAction );
 	}
 
@@ -1251,7 +1258,7 @@ void SCadenceGraphDetailsTabWidget::OnCopy()
 
 	if (!OutputString.IsEmpty())
 	{
-		//FPlatformApplicationMisc::ClipboardCopy(*OutputString);
+		FPlatformApplicationMisc::ClipboardCopy(*OutputString);
 	}
 }
 

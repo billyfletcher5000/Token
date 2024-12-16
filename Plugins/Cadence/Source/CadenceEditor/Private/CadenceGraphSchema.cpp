@@ -442,6 +442,32 @@ bool UCadenceGraphSchema::ArePinTypesCompatible(const FEdGraphPinType& InPinType
 
 void UCadenceGraphSchema::GetVariableTypeTree(TArray<FPinTypeTreeItem>& OutTypeTreeArray, ETypeTreeFilter InTreeFilter) const
 {
+	TArray<TObjectPtr<UClass>> ValidVariableTypes;
+
+	for (TObjectIterator<UClass> It; It; ++It)
+	{
+		UClass* Class = *It;
+
+		if (Class->IsChildOf(UCadenceVariable::StaticClass()) &&
+			!Class->HasAnyClassFlags(CLASS_Abstract | CLASS_Deprecated | CLASS_Hidden))
+		{
+			ValidVariableTypes.Add(Class);
+		}
+	}
+
+	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
+
+	for(TObjectPtr<UClass> VariableType : ValidVariableTypes)
+	{
+		UCadenceVariable* VariableCDO = VariableType->GetDefaultObject<UCadenceVariable>();
+		FName VariableDisplayName = VariableCDO->GetDisplayName();		
+		FName VariableCategory = VariableCDO->GetPinCategory();
+
+		if(VariableDisplayName == NAME_None)
+			VariableDisplayName = VariableCategory;
+		
+		OutTypeTreeArray.Add( MakeShareable( new UEdGraphSchema_K2::FPinTypeTreeInfo(FText::FromName(VariableDisplayName), VariableCategory, K2Schema, FText::FromName(VariableDisplayName)) ) );
+	}
 }
 
 bool UCadenceGraphSchema::IsVariablePinCategory(const FName& InPinCategory)

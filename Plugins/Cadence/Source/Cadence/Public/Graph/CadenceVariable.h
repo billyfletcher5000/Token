@@ -40,7 +40,17 @@ public:
 	virtual void SetFromString(const FString& InStringValue) { }
 	virtual FString ConvertToValueString() const { return FString(); }
 
-	virtual void SetUserVariableName(const FName& InName) { UserVariableName = InName; }
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnUserVariableNameChanged, const FName& /* InName */);
+
+	FOnUserVariableNameChanged OnUserVariableNameChanged;
+	virtual void SetUserVariableName(const FName& InName)
+	{
+		if(UserVariableName != InName)
+		{
+			UserVariableName = InName;
+			OnUserVariableNameChanged.Broadcast(UserVariableName);
+		}
+	}
 	virtual FName GetUserVariableName() const { return UserVariableName; }
 
 	virtual bool IsVisible() const { return bIsVisible; }

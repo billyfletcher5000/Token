@@ -92,11 +92,11 @@ static bool CanPaletteItemBePlaced(TSharedPtr<FEdGraphSchemaAction> DropActionIn
 * FBlueprintPaletteCommands
 *******************************************************************************/
 
-class FBlueprintPaletteCommands : public TCommands<FBlueprintPaletteCommands>
+class FCadencePaletteCommands : public TCommands<FCadencePaletteCommands>
 {
 public:
-	FBlueprintPaletteCommands() : TCommands<FBlueprintPaletteCommands>
-		( "BlueprintPalette"
+	FCadencePaletteCommands() : TCommands<FCadencePaletteCommands>
+		( "CadencePalette"
 		, LOCTEXT("PaletteContext", "Palette")
 		, NAME_None
 		, FAppStyle::GetAppStyleSetName() )
@@ -255,8 +255,8 @@ FReply SCadenceSubPalette::OnActionDragged( const TArray< TSharedPtr<FEdGraphSch
 //------------------------------------------------------------------------------
 void SCadenceSubPalette::BindCommands(TSharedPtr<FUICommandList> CommandListIn) const
 {
-	FBlueprintPaletteCommands::Register();
-	FBlueprintPaletteCommands const& PaletteCommands = FBlueprintPaletteCommands::Get();
+	FCadencePaletteCommands::Register();
+	FCadencePaletteCommands const& PaletteCommands = FCadencePaletteCommands::Get();
 
 	CommandListIn->MapAction(
 		PaletteCommands.RefreshPalette,
@@ -275,7 +275,7 @@ TSharedPtr<SWidget> SCadenceSubPalette::ConstructContextMenuWidget() const
 //------------------------------------------------------------------------------
 void SCadenceSubPalette::GenerateContextMenuEntries(FMenuBuilder& MenuBuilder) const
 {
-	FBlueprintPaletteCommands const& PaletteCommands = FBlueprintPaletteCommands::Get();
+	FCadencePaletteCommands const& PaletteCommands = FCadencePaletteCommands::Get();
 	MenuBuilder.AddMenuEntry(PaletteCommands.RefreshPalette);
 }
 
