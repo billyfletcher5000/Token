@@ -449,6 +449,7 @@ FCadenceGraphApplicationMode::FCadenceGraphApplicationMode(TSharedPtr<FCadenceGr
 	Tabs.RegisterFactory(MakeShareable(new FCadenceGraphPrimaryTabFactory(InApplication)));
 	Tabs.RegisterFactory(MakeShareable(new FCadenceGraphNodeDetailsTabFactory(InApplication)));
 	Tabs.RegisterFactory(MakeShareable(new FCadenceGraphDetailsTabFactory(InApplication)));
+	Tabs.RegisterFactory(MakeShareable(new FCadenceGraphVariablesTabFactory(InApplication)));
 
 	TabLayout = FTabManager::NewLayout(LayoutName)
 	->AddArea
@@ -460,10 +461,23 @@ FCadenceGraphApplicationMode::FCadenceGraphApplicationMode(TSharedPtr<FCadenceGr
 			->SetOrientation(Orient_Horizontal)
 			->Split
 			(
-				FTabManager::NewStack()
-				->SetSizeCoefficient(0.25f)
-				->AddTab(
-					FCadenceGraphDetailsTabFactory::Identifier, ETabState::OpenedTab
+				FTabManager::NewSplitter()
+				->SetOrientation(Orient_Vertical)
+				->Split
+				(
+						FTabManager::NewStack()
+						->SetSizeCoefficient(0.5f)
+						->AddTab(
+							FCadenceGraphDetailsTabFactory::Identifier, ETabState::OpenedTab
+						)	
+				)
+				->Split
+				(
+						FTabManager::NewStack()
+						->SetSizeCoefficient(0.5f)
+						->AddTab(
+							FCadenceGraphVariablesTabFactory::Identifier, ETabState::OpenedTab
+						)	
 				)
 			)
 			->Split

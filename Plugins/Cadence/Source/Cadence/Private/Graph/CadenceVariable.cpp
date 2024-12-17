@@ -2,6 +2,9 @@
 
 
 #include "Graph/CadenceVariable.h"
+
+#include "Cadence.h"
+#include "Actors/CadenceActorLifetime.h"
 #include "Graph/CadenceGraphNode.h"
 
 void UCadenceVariableInt::SetFromString(const FString& InStringValue)

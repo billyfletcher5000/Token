@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Cadence.h"
 #include "CadenceContext.h"
 #include "Actors/CadenceActorLifetime.h"
 #include "Graph/CadenceGraphNode.h"

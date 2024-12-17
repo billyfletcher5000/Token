@@ -30,6 +30,21 @@ public:
 	static const FName Identifier;
 };
 
+class FCadenceGraphVariablesTabFactory : public FWorkflowTabFactory
+{
+public:
+	FCadenceGraphVariablesTabFactory(TSharedPtr<FCadenceGraphApplication> InApplication);
+
+	virtual TSharedRef<SWidget> CreateTabBody(const FWorkflowTabSpawnInfo& Info) const override;
+	virtual FText GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const override;
+
+private:
+	TWeakPtr<FCadenceGraphApplication> Application;
+
+public:
+	static const FName Identifier;
+};
+
 class FCadenceGraphDetailsCommands : public TCommands<FCadenceGraphDetailsCommands>
 {
 public:
@@ -52,14 +67,14 @@ public:
 	virtual void RegisterCommands() override;
 };
 
-class SCadenceGraphDetailsTabWidget : public SCompoundWidget
+class SCadenceGraphVariablesTabWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS( SCadenceGraphDetailsTabWidget ) {}
+	SLATE_BEGIN_ARGS( SCadenceGraphVariablesTabWidget ) {}
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, TWeakPtr<FCadenceGraphApplication> InGraphApplication);
-	~SCadenceGraphDetailsTabWidget();
+	~SCadenceGraphVariablesTabWidget();
 
 	/* SWidget interface */
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;

@@ -67,10 +67,8 @@ void FCadenceEditorModule::StartupModule()
 
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 
-	PropertyModule.RegisterCustomPropertyTypeLayout(FCadenceGraphUserVariableSet::StaticStruct()->GetFName(),
-		FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceGraphUserVariableSetCustomization::MakeInstance ) );
-	PropertyModule.RegisterCustomPropertyTypeLayout(FCadenceNamedVariable::StaticStruct()->GetFName(),
-	FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceGraphNamedVariableCustomization::MakeInstance ) );
+	PropertyModule.RegisterCustomClassLayout(UCadenceGraph::StaticClass()->GetFName(),
+		FOnGetDetailCustomizationInstance::CreateStatic( &FCadenceGraphCustomization::MakeInstance ) );
 	
 	PropertyModule.NotifyCustomizationModuleChanged();
 

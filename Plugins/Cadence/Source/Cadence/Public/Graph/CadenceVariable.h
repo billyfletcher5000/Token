@@ -3,9 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Cadence.h"
 #include "CadenceContext.h"
-#include "Actors/CadenceActorLifetime.h"
 #include "UObject/Object.h"
 #include "CadencePinConstants.h"
 #include "CadenceVariable.generated.h"
@@ -97,8 +95,9 @@ public:
 
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
-		UCadenceVariableInt* IntVariable = Cast<UCadenceVariableInt>(OtherVariable);
-		Value = IntVariable->GetValue();
+		UCadenceVariableInt* CastedVariable = Cast<UCadenceVariableInt>(OtherVariable);
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 
 	int32 GetValue() const { return Value; }
@@ -127,7 +126,8 @@ public:
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableFloat* CastedVariable = Cast<UCadenceVariableFloat>(OtherVariable);
-		Value = CastedVariable->GetValue();
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 	
 	float GetValue() const { return Value; }
@@ -156,7 +156,8 @@ public:
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableDouble* CastedVariable = Cast<UCadenceVariableDouble>(OtherVariable);
-		Value = CastedVariable->GetValue();
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 	
 	double GetValue() const { return Value; }
@@ -184,7 +185,8 @@ public:
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableBool* CastedVariable = Cast<UCadenceVariableBool>(OtherVariable);
-		Value = CastedVariable->GetValue();
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 	
 	bool GetValue() const { return Value; }
@@ -212,7 +214,8 @@ public:
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableVector* CastedVariable = Cast<UCadenceVariableVector>(OtherVariable);
-		Value = CastedVariable->GetValue();
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 	
 	FVector GetValue() const { return Value; }
@@ -242,7 +245,8 @@ public:
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableVector2D* CastedVariable = Cast<UCadenceVariableVector2D>(OtherVariable);
-		Value = CastedVariable->GetValue();
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 	
 	FVector2D GetValue() const { return Value; }
@@ -270,7 +274,8 @@ public:
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableRotator* CastedVariable = Cast<UCadenceVariableRotator>(OtherVariable);
-		Value = CastedVariable->GetValue();
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 	
 	FRotator GetValue() const { return Value; }
@@ -298,7 +303,8 @@ public:
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableString* CastedVariable = Cast<UCadenceVariableString>(OtherVariable);
-		Value = CastedVariable->GetValue();
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 	
 	FString GetValue() const { return Value; }
@@ -326,7 +332,8 @@ public:
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableName* CastedVariable = Cast<UCadenceVariableName>(OtherVariable);
-		Value = CastedVariable->GetValue();
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 	
 	FName GetValue() const { return Value; }
@@ -354,7 +361,8 @@ public:
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableText* CastedVariable = Cast<UCadenceVariableText>(OtherVariable);
-		Value = CastedVariable->GetValue();
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 	
 	FText GetValue() const { return Value; }
@@ -382,7 +390,8 @@ public:
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableUObject* CastedVariable = Cast<UCadenceVariableUObject>(OtherVariable);
-		Value = CastedVariable->GetValue();
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 	
 	TObjectPtr<UObject> GetValue() const { return Value; }
@@ -407,7 +416,8 @@ public:
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableUObjectArray* CastedVariable = Cast<UCadenceVariableUObjectArray>(OtherVariable);
-		Value = CastedVariable->GetValue();
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 
 	virtual bool IsArray() const override { return true; }	
@@ -434,7 +444,8 @@ public:
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableEnum* CastedVariable = Cast<UCadenceVariableEnum>(OtherVariable);
-		Value = CastedVariable->GetValue();
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 
 	virtual bool IsEnum() const override { return true; }
@@ -506,7 +517,8 @@ public:
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
 		UCadenceVariableTrigger* CastedVariable = Cast<UCadenceVariableTrigger>(OtherVariable);
-		Value = CastedVariable->GetValue();
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
 	}
 	
 	TObjectPtr<UCadenceTriggerData> GetValue() const { return Value; }

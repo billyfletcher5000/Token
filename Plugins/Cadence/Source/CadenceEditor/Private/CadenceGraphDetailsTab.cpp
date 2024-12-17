@@ -25,6 +25,7 @@
 #define LOCTEXT_NAMESPACE "CadenceGraphDetails"
 
 const FName FCadenceGraphDetailsTabFactory::Identifier = FName(TEXT("FCadenceGraphDetailsTab"));
+const FName FCadenceGraphVariablesTabFactory::Identifier = FName(TEXT("FCadenceGraphVariablesTab"));
 
 FCadenceGraphDetailsTabFactory::FCadenceGraphDetailsTabFactory(TSharedPtr<FCadenceGraphApplication> InApplication)
 : FWorkflowTabFactory(Identifier, InApplication)
@@ -55,20 +56,47 @@ TSharedRef<SWidget> FCadenceGraphDetailsTabFactory::CreateTabBody(const FWorkflo
 	GraphDetailsView->SetObject(App->GetWorkingGraph());
 	App->SetGraphDetailsView(GraphDetailsView);
 
-	TSharedPtr<SWidget> GraphDetailsWidget = SNew(SCadenceGraphDetailsTabWidget, Application);
-
 	return SNew(SVerticalBox)
 				+ SVerticalBox::Slot()
-				.FillHeight(0.5f)
+				.FillHeight(1.0f)
 				.HAlign(HAlign_Fill)
 				[
-					GraphDetailsWidget.ToSharedRef()	
+					GraphDetailsView.ToSharedRef()	
 				];		
 }
 
 FText FCadenceGraphDetailsTabFactory::GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const
 {
 	return FText::FromString(TEXT("Cadence Graph Details View"));
+}
+
+FCadenceGraphVariablesTabFactory::FCadenceGraphVariablesTabFactory(TSharedPtr<FCadenceGraphApplication> InApplication)
+: FWorkflowTabFactory(Identifier, InApplication)
+{
+	Application = InApplication;
+
+	TabLabel = FText::FromString(TEXT("Graph Variables"));
+	ViewMenuDescription = FText::FromString(TEXT("Displays the variables view of a Cadence Graph"));
+	ViewMenuTooltip = FText::FromString(TEXT("Show the Graph Variables view."));
+}
+
+TSharedRef<SWidget> FCadenceGraphVariablesTabFactory::CreateTabBody(const FWorkflowTabSpawnInfo& Info) const
+{
+	TSharedPtr<FCadenceGraphApplication> App = Application.Pin();
+	TSharedPtr<SWidget> GraphDetailsWidget = SNew(SCadenceGraphVariablesTabWidget, Application);
+
+	return SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				.FillHeight(1.0f)
+				.HAlign(HAlign_Fill)
+				[
+					GraphDetailsWidget.ToSharedRef()	
+				];	
+}
+
+FText FCadenceGraphVariablesTabFactory::GetTabToolTipText(const FWorkflowTabSpawnInfo& Info) const
+{
+	return FText::FromString(TEXT("Cadence Graph Variables View"));
 }
 
 
@@ -142,7 +170,7 @@ public:
 	virtual FReply DroppedOnCategory(FText OnCategory) override
 	{
 		// Get MyBlueprint via MyBlueprintPtr
-		TSharedPtr<SCadenceGraphDetailsTabWidget> GraphDetailsTabWidget = GraphDetailsPtr.Pin();
+		TSharedPtr<SCadenceGraphVariablesTabWidget> GraphDetailsTabWidget = GraphDetailsPtr.Pin();
 		if(GraphDetailsTabWidget.IsValid())
 		{
 			// Move the category in the blueprint category sort list
@@ -152,7 +180,7 @@ public:
 		return FReply::Handled();
 	}
 
-	static TSharedRef<FCadenceGraphCategoryDragDropAction> New(const FText& InCategory, TSharedPtr<SCadenceGraphDetailsTabWidget> InGraphDetailsWidget)
+	static TSharedRef<FCadenceGraphCategoryDragDropAction> New(const FText& InCategory, TSharedPtr<SCadenceGraphVariablesTabWidget> InGraphDetailsWidget)
 	{
 		TSharedRef<FCadenceGraphCategoryDragDropAction> Operation = MakeShareable(new FCadenceGraphCategoryDragDropAction);
 		Operation->DraggedCategory = InCategory;
@@ -164,7 +192,7 @@ public:
 	/** Category we were dragging */
 	FText DraggedCategory;
 	/** MyBlueprint widget we dragged from */
-	TWeakPtr<SCadenceGraphDetailsTabWidget>	GraphDetailsPtr;
+	TWeakPtr<SCadenceGraphVariablesTabWidget>	GraphDetailsPtr;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -255,7 +283,7 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr<FCadenceGraphApplication> InGraphApplication)
+void SCadenceGraphVariablesTabWidget::Construct(const FArguments& InArgs, TWeakPtr<FCadenceGraphApplication> InGraphApplication)
 {
 	bNeedsRefresh = false;
 
@@ -276,52 +304,52 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 		FCadenceGraphDetailsCommands::Register();
 
 		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().OpenExternalGraph,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnOpenExternalGraph),
+			FExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::OnOpenExternalGraph),
 			FCanExecuteAction(), FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanOpenExternalGraph) );
+			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphVariablesTabWidget::CanOpenExternalGraph) );
 		
 		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().FocusNode,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnFocusNode),
+			FExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::OnFocusNode),
 			FCanExecuteAction(), FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanFocusOnNode) );
+			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphVariablesTabWidget::CanFocusOnNode) );
 
 		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().AddNewVariable,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnAddNewVariable),
-			FCanExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanAddNewVariable) );
+			FExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::OnAddNewVariable),
+			FCanExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::CanAddNewVariable) );
 		
 		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().DeleteEntry,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnDeleteEntry),
-			FCanExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanDeleteEntry) );
+			FExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::OnDeleteEntry),
+			FCanExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::CanDeleteEntry) );
 
 		CommandList->MapAction( FGenericCommands::Get().Duplicate,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnDuplicateAction),
-			FCanExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanDuplicateAction),
+			FExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::OnDuplicateAction),
+			FCanExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::CanDuplicateAction),
 			FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::IsDuplicateActionVisible) );
+			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphVariablesTabWidget::IsDuplicateActionVisible) );
 
 		ToolbarBuilderWidget = SNullWidget::NullWidget;
 	
 		CommandList->MapAction(FGenericCommands::Get().Rename,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnRequestRenameOnActionNode),
-			FCanExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanRequestRenameOnActionNode));
+			FExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::OnRequestRenameOnActionNode),
+			FCanExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::CanRequestRenameOnActionNode));
 
 		CommandList->MapAction(FGenericCommands::Get().Copy,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnCopy),
-			FCanExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanCopy));
+			FExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::OnCopy),
+			FCanExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::CanCopy));
 		
 		CommandList->MapAction(FGenericCommands::Get().Cut,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnCut),
-			FCanExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanCut));
+			FExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::OnCut),
+			FCanExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::CanCut));
 
 		CommandList->MapAction(FGenericCommands::Get().Paste,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnPasteGeneric),
+			FExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::OnPasteGeneric),
 			FCanExecuteAction(), FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanPasteGeneric));
+			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphVariablesTabWidget::CanPasteGeneric));
 
 		CommandList->MapAction(FCadenceGraphDetailsCommands::Get().PasteVariable,
-			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnPasteVariable),
+			FExecuteAction::CreateSP(this, &SCadenceGraphVariablesTabWidget::OnPasteVariable),
 			FCanExecuteAction(), FIsActionChecked(),
-			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanPasteVariable));
+			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphVariablesTabWidget::CanPasteVariable));
 	}
 
 	TSharedPtr<SWidget> AddNewMenu = SNew(SPositiveActionButton)
@@ -329,8 +357,8 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 		.Icon(FAppStyle::Get().GetBrush("Icons.Plus"))
 		.Text(LOCTEXT("AddNewLabel", "Add"))
 		.ToolTipText(LOCTEXT("AddNewToolTip", "Add a new Variable."))
-		.IsEnabled(this, &SCadenceGraphDetailsTabWidget::IsEditingMode)
-		.OnGetMenuContent(this, &SCadenceGraphDetailsTabWidget::CreateAddNewMenuWidget);
+		.IsEnabled(this, &SCadenceGraphVariablesTabWidget::IsEditingMode)
+		.OnGetMenuContent(this, &SCadenceGraphVariablesTabWidget::CreateAddNewMenuWidget);
 
 	FMenuBuilder ViewOptions(true, nullptr);	
 
@@ -339,9 +367,9 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 		LOCTEXT("ShowEmptySectionsTooltip", "Should we show empty sections?"),
 		FSlateIcon(),
 		FUIAction( 
-			FExecuteAction::CreateSP( this, &SCadenceGraphDetailsTabWidget::OnToggleShowEmptySections ),
+			FExecuteAction::CreateSP( this, &SCadenceGraphVariablesTabWidget::OnToggleShowEmptySections ),
 			FCanExecuteAction(),
-			FIsActionChecked::CreateSP(this, &SCadenceGraphDetailsTabWidget::IsShowingEmptySections)
+			FIsActionChecked::CreateSP(this, &SCadenceGraphVariablesTabWidget::IsShowingEmptySections)
 		),
 		NAME_None,
 		EUserInterfaceActionType::ToggleButton,
@@ -349,24 +377,24 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 	);
 
 	SAssignNew(FilterBox, SSearchBox)
-		.OnTextChanged( this, &SCadenceGraphDetailsTabWidget::OnFilterTextChanged );
+		.OnTextChanged( this, &SCadenceGraphVariablesTabWidget::OnFilterTextChanged );
 
 	// create the main action list piece of this widget
 	SAssignNew(GraphActionMenu, SGraphActionMenu, false)
-		.OnGetFilterText(this, &SCadenceGraphDetailsTabWidget::GetFilterText)
-		.OnCreateWidgetForAction(this, &SCadenceGraphDetailsTabWidget::OnCreateWidgetForAction)
-		.OnCollectAllActions(this, &SCadenceGraphDetailsTabWidget::CollectAllActions)
-		.OnCollectStaticSections(this, &SCadenceGraphDetailsTabWidget::CollectStaticSections)
-		.OnActionDragged(this, &SCadenceGraphDetailsTabWidget::OnActionDragged)
-		.OnCategoryDragged(this, &SCadenceGraphDetailsTabWidget::OnCategoryDragged)
-		.OnActionSelected(this, &SCadenceGraphDetailsTabWidget::OnGlobalActionSelected)
-		.OnActionDoubleClicked(this, &SCadenceGraphDetailsTabWidget::OnActionDoubleClicked)
-		.OnContextMenuOpening(this, &SCadenceGraphDetailsTabWidget::OnContextMenuOpening)
-		.OnCategoryTextCommitted(this, &SCadenceGraphDetailsTabWidget::OnCategoryNameCommitted)
-		.OnCanRenameSelectedAction(this, &SCadenceGraphDetailsTabWidget::CanRequestRenameOnActionNode)
-		.OnGetSectionTitle(this, &SCadenceGraphDetailsTabWidget::OnGetSectionTitle)
-		.OnGetSectionWidget(this, &SCadenceGraphDetailsTabWidget::OnGetSectionWidget)
-		.OnActionMatchesName(this, &SCadenceGraphDetailsTabWidget::HandleActionMatchesName)
+		.OnGetFilterText(this, &SCadenceGraphVariablesTabWidget::GetFilterText)
+		.OnCreateWidgetForAction(this, &SCadenceGraphVariablesTabWidget::OnCreateWidgetForAction)
+		.OnCollectAllActions(this, &SCadenceGraphVariablesTabWidget::CollectAllActions)
+		.OnCollectStaticSections(this, &SCadenceGraphVariablesTabWidget::CollectStaticSections)
+		.OnActionDragged(this, &SCadenceGraphVariablesTabWidget::OnActionDragged)
+		.OnCategoryDragged(this, &SCadenceGraphVariablesTabWidget::OnCategoryDragged)
+		.OnActionSelected(this, &SCadenceGraphVariablesTabWidget::OnGlobalActionSelected)
+		.OnActionDoubleClicked(this, &SCadenceGraphVariablesTabWidget::OnActionDoubleClicked)
+		.OnContextMenuOpening(this, &SCadenceGraphVariablesTabWidget::OnContextMenuOpening)
+		.OnCategoryTextCommitted(this, &SCadenceGraphVariablesTabWidget::OnCategoryNameCommitted)
+		.OnCanRenameSelectedAction(this, &SCadenceGraphVariablesTabWidget::CanRequestRenameOnActionNode)
+		.OnGetSectionTitle(this, &SCadenceGraphVariablesTabWidget::OnGetSectionTitle)
+		.OnGetSectionWidget(this, &SCadenceGraphVariablesTabWidget::OnGetSectionWidget)
+		.OnActionMatchesName(this, &SCadenceGraphVariablesTabWidget::HandleActionMatchesName)
 		.DefaultRowExpanderBaseIndentLevel(1)
 		.AlphaSortItems(false)
 		.UseSectionStyling(true);
@@ -450,15 +478,15 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 
 	GraphActionMenu->SetSectionExpansion(ExpandedSections);
 
-	FCoreUObjectDelegates::OnObjectPropertyChanged.AddRaw(this, &SCadenceGraphDetailsTabWidget::OnObjectPropertyChanged);
+	FCoreUObjectDelegates::OnObjectPropertyChanged.AddRaw(this, &SCadenceGraphVariablesTabWidget::OnObjectPropertyChanged);
 }
 
-SCadenceGraphDetailsTabWidget::~SCadenceGraphDetailsTabWidget()
+SCadenceGraphVariablesTabWidget::~SCadenceGraphVariablesTabWidget()
 {
 	FCoreUObjectDelegates::OnObjectPropertyChanged.RemoveAll(this);
 }
 
-void SCadenceGraphDetailsTabWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+void SCadenceGraphVariablesTabWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
 	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
 
@@ -468,7 +496,7 @@ void SCadenceGraphDetailsTabWidget::Tick(const FGeometry& AllottedGeometry, cons
 	}
 }
 
-FReply SCadenceGraphDetailsTabWidget::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
+FReply SCadenceGraphVariablesTabWidget::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
 {
 	if (CommandList.IsValid() && CommandList->ProcessCommandBindings(InKeyEvent))
 	{
@@ -477,7 +505,7 @@ FReply SCadenceGraphDetailsTabWidget::OnKeyDown(const FGeometry& MyGeometry, con
 	return FReply::Unhandled();
 }
 
-void SCadenceGraphDetailsTabWidget::OnCategoryNameCommitted(const FText& InNewText, ETextCommit::Type InTextCommit, TWeakPtr< FGraphActionNode > InAction )
+void SCadenceGraphVariablesTabWidget::OnCategoryNameCommitted(const FText& InNewText, ETextCommit::Type InTextCommit, TWeakPtr< FGraphActionNode > InAction )
 {
 	// Remove excess whitespace and prevent categories with just spaces
 	FText CategoryName = FText::TrimPrecedingAndTrailing(InNewText);
@@ -509,7 +537,7 @@ void SCadenceGraphDetailsTabWidget::OnCategoryNameCommitted(const FText& InNewTe
 	}
 }
 
-FText SCadenceGraphDetailsTabWidget::OnGetSectionTitle( int32 InSectionID )
+FText SCadenceGraphVariablesTabWidget::OnGetSectionTitle( int32 InSectionID )
 {
 	FText SeparatorTitle;
 	/* Setup an appropriate name for the section for this node */
@@ -529,7 +557,7 @@ FText SCadenceGraphDetailsTabWidget::OnGetSectionTitle( int32 InSectionID )
 	return SeparatorTitle;
 }
 
-TSharedRef<SWidget> SCadenceGraphDetailsTabWidget::OnGetSectionWidget(TSharedRef<SWidget> RowWidget, int32 InSectionID)
+TSharedRef<SWidget> SCadenceGraphVariablesTabWidget::OnGetSectionWidget(TSharedRef<SWidget> RowWidget, int32 InSectionID)
 {
 	TWeakPtr<SWidget> WeakRowWidget = RowWidget;
 
@@ -549,13 +577,13 @@ TSharedRef<SWidget> SCadenceGraphDetailsTabWidget::OnGetSectionWidget(TSharedRef
 	return CreateAddToSectionButton(InSectionID, WeakRowWidget, AddNewText, MetaDataTag);
 }
 
-TSharedRef<SWidget> SCadenceGraphDetailsTabWidget::CreateAddToSectionButton(int32 InSectionID, TWeakPtr<SWidget> WeakRowWidget, FText AddNewText, FName MetaDataTag)
+TSharedRef<SWidget> SCadenceGraphVariablesTabWidget::CreateAddToSectionButton(int32 InSectionID, TWeakPtr<SWidget> WeakRowWidget, FText AddNewText, FName MetaDataTag)
 {
 	return 
 		SNew(SButton)
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-		.OnClicked(this, &SCadenceGraphDetailsTabWidget::OnAddButtonClickedOnSection, InSectionID)
-		.IsEnabled(this, &SCadenceGraphDetailsTabWidget::CanAddNewElementToSection, InSectionID)
+		.OnClicked(this, &SCadenceGraphVariablesTabWidget::OnAddButtonClickedOnSection, InSectionID)
+		.IsEnabled(this, &SCadenceGraphVariablesTabWidget::CanAddNewElementToSection, InSectionID)
 		.ContentPadding(FMargin(1, 0))
 		.AddMetaData<FTagMetaData>(FTagMetaData(MetaDataTag))
 		.ToolTipText(AddNewText)
@@ -566,7 +594,7 @@ TSharedRef<SWidget> SCadenceGraphDetailsTabWidget::CreateAddToSectionButton(int3
 		];
 }
 
-FReply SCadenceGraphDetailsTabWidget::OnAddButtonClickedOnSection(int32 InSectionID)
+FReply SCadenceGraphVariablesTabWidget::OnAddButtonClickedOnSection(int32 InSectionID)
 {
 	switch ( InSectionID )
 	{
@@ -578,7 +606,7 @@ FReply SCadenceGraphDetailsTabWidget::OnAddButtonClickedOnSection(int32 InSectio
 	return FReply::Handled();
 }
 
-bool SCadenceGraphDetailsTabWidget::CanAddNewElementToSection(int32 InSectionID) const
+bool SCadenceGraphVariablesTabWidget::CanAddNewElementToSection(int32 InSectionID) const
 {
 	if (!IsEditingMode())
 	{
@@ -594,12 +622,12 @@ bool SCadenceGraphDetailsTabWidget::CanAddNewElementToSection(int32 InSectionID)
 	return false;
 }
 
-bool SCadenceGraphDetailsTabWidget::HandleActionMatchesName(FEdGraphSchemaAction* InAction, const FName& InName) const
+bool SCadenceGraphVariablesTabWidget::HandleActionMatchesName(FEdGraphSchemaAction* InAction, const FName& InName) const
 {
 	return false;
 }
 
-EVisibility SCadenceGraphDetailsTabWidget::OnGetSectionTextVisibility(TWeakPtr<SWidget> RowWidget, int32 InSectionID) const
+EVisibility SCadenceGraphVariablesTabWidget::OnGetSectionTextVisibility(TWeakPtr<SWidget> RowWidget, int32 InSectionID) const
 {
 	// If the row is currently hovered, or a menu is being displayed for a button, keep the button expanded.
 	if ( RowWidget.Pin()->IsHovered() )
@@ -612,7 +640,7 @@ EVisibility SCadenceGraphDetailsTabWidget::OnGetSectionTextVisibility(TWeakPtr<S
 	}
 }
 
-bool SCadenceGraphDetailsTabWidget::CanRequestRenameOnActionNode(TWeakPtr<FGraphActionNode> InSelectedNode) const
+bool SCadenceGraphVariablesTabWidget::CanRequestRenameOnActionNode(TWeakPtr<FGraphActionNode> InSelectedNode) const
 {
 	bool bIsReadOnly = true;
 
@@ -635,20 +663,20 @@ bool SCadenceGraphDetailsTabWidget::CanRequestRenameOnActionNode(TWeakPtr<FGraph
 	return IsEditingMode() && !bIsReadOnly;
 }
 
-void SCadenceGraphDetailsTabWidget::Refresh()
+void SCadenceGraphVariablesTabWidget::Refresh()
 {
 	bNeedsRefresh = false;
 
 	GraphActionMenu->RefreshAllActions(/*bPreserveExpansion=*/ true);
 }
 
-TSharedRef<SWidget> SCadenceGraphDetailsTabWidget::OnCreateWidgetForAction(FCreateWidgetForActionData* const InCreateData)
+TSharedRef<SWidget> SCadenceGraphVariablesTabWidget::OnCreateWidgetForAction(FCreateWidgetForActionData* const InCreateData)
 {
 	//InCreateData->bHandleMouseButtonDown = true;
-	return SNew(SCadencePaletteItem, InCreateData, ApplicationPtr.Pin()).OnRefreshRequested(this, &SCadenceGraphDetailsTabWidget::Refresh);
+	return SNew(SCadencePaletteItem, InCreateData, ApplicationPtr.Pin()).OnRefreshRequested(this, &SCadenceGraphVariablesTabWidget::Refresh);
 }
 
-void SCadenceGraphDetailsTabWidget::GetChildGraphs(UEdGraph* InEdGraph, int32 const SectionId, FGraphActionSort& SortList, const FText& ParentCategory) const
+void SCadenceGraphVariablesTabWidget::GetChildGraphs(UEdGraph* InEdGraph, int32 const SectionId, FGraphActionSort& SortList, const FText& ParentCategory) const
 {
 	check(InEdGraph);
 
@@ -700,7 +728,7 @@ void SCadenceGraphDetailsTabWidget::GetChildGraphs(UEdGraph* InEdGraph, int32 co
 	}
 }
 
-void SCadenceGraphDetailsTabWidget::CollectAllActions(FGraphActionListBuilderBase& OutAllActions)
+void SCadenceGraphVariablesTabWidget::CollectAllActions(FGraphActionListBuilderBase& OutAllActions)
 {
 	check(CadenceGraph);
 
@@ -723,7 +751,7 @@ void SCadenceGraphDetailsTabWidget::CollectAllActions(FGraphActionListBuilderBas
 	SortList.GetAllActions(OutAllActions);
 }
 
-void SCadenceGraphDetailsTabWidget::CollectStaticSections(TArray<int32>& StaticSectionIDs)
+void SCadenceGraphVariablesTabWidget::CollectStaticSections(TArray<int32>& StaticSectionIDs)
 {
 	TSharedPtr<FCadenceGraphApplication> CadenceGraphApplication = ApplicationPtr.Pin();
 	const bool bIsEditor = CadenceGraphApplication.IsValid();
@@ -741,18 +769,18 @@ void SCadenceGraphDetailsTabWidget::CollectStaticSections(TArray<int32>& StaticS
 	}
 }
 
-void SCadenceGraphDetailsTabWidget::OnToggleShowEmptySections()
+void SCadenceGraphVariablesTabWidget::OnToggleShowEmptySections()
 {
 	bIsShowingEmptySections = !bIsShowingEmptySections;
 	Refresh();
 }
 
-bool SCadenceGraphDetailsTabWidget::IsShowingEmptySections() const
+bool SCadenceGraphVariablesTabWidget::IsShowingEmptySections() const
 {
 	return bIsShowingEmptySections;
 }
 
-FReply SCadenceGraphDetailsTabWidget::OnActionDragged( const TArray< TSharedPtr<FEdGraphSchemaAction> >& InActions, const FPointerEvent& MouseEvent )
+FReply SCadenceGraphVariablesTabWidget::OnActionDragged( const TArray< TSharedPtr<FEdGraphSchemaAction> >& InActions, const FPointerEvent& MouseEvent )
 {
 	if (!ApplicationPtr.IsValid())
 	{
@@ -781,13 +809,13 @@ FReply SCadenceGraphDetailsTabWidget::OnActionDragged( const TArray< TSharedPtr<
 	return FReply::Unhandled();
 }
 
-FReply SCadenceGraphDetailsTabWidget::OnCategoryDragged(const FText& InCategory, const FPointerEvent& MouseEvent)
+FReply SCadenceGraphVariablesTabWidget::OnCategoryDragged(const FText& InCategory, const FPointerEvent& MouseEvent)
 {
 	TSharedRef<FCadenceGraphCategoryDragDropAction> DragOperation = FCadenceGraphCategoryDragDropAction::New(InCategory, SharedThis(this));
 	return FReply::Handled().BeginDragDrop(DragOperation);
 }
 
-void SCadenceGraphDetailsTabWidget::OnGlobalActionSelected(const TArray< TSharedPtr<FEdGraphSchemaAction> >& InActions, ESelectInfo::Type InSelectionType)
+void SCadenceGraphVariablesTabWidget::OnGlobalActionSelected(const TArray< TSharedPtr<FEdGraphSchemaAction> >& InActions, ESelectInfo::Type InSelectionType)
 {
 	if (InSelectionType == ESelectInfo::OnMouseClick  || InSelectionType == ESelectInfo::OnKeyPress || InSelectionType == ESelectInfo::OnNavigation || InActions.Num() == 0)
 	{
@@ -795,13 +823,13 @@ void SCadenceGraphDetailsTabWidget::OnGlobalActionSelected(const TArray< TShared
 	}
 }
 
-void SCadenceGraphDetailsTabWidget::OnActionSelected( const TArray< TSharedPtr<FEdGraphSchemaAction> >& InActions )
+void SCadenceGraphVariablesTabWidget::OnActionSelected( const TArray< TSharedPtr<FEdGraphSchemaAction> >& InActions )
 {
 	TSharedPtr<FEdGraphSchemaAction> InAction(InActions.Num() > 0 ? InActions[0] : NULL);
 	OnActionSelectedHelper(InAction);
 }
 
-void SCadenceGraphDetailsTabWidget::OnActionSelectedHelper(TSharedPtr<FEdGraphSchemaAction> InAction)
+void SCadenceGraphVariablesTabWidget::OnActionSelectedHelper(TSharedPtr<FEdGraphSchemaAction> InAction)
 {
 	TSharedPtr<FCadenceGraphApplication> GraphApplication = ApplicationPtr.Pin();
 	
@@ -821,7 +849,7 @@ void SCadenceGraphDetailsTabWidget::OnActionSelectedHelper(TSharedPtr<FEdGraphSc
 	}
 }
 
-void SCadenceGraphDetailsTabWidget::OnActionDoubleClicked(const TArray< TSharedPtr<FEdGraphSchemaAction> >& InActions)
+void SCadenceGraphVariablesTabWidget::OnActionDoubleClicked(const TArray< TSharedPtr<FEdGraphSchemaAction> >& InActions)
 {
 	if ( !ApplicationPtr.IsValid() )
 	{
@@ -832,7 +860,7 @@ void SCadenceGraphDetailsTabWidget::OnActionDoubleClicked(const TArray< TSharedP
 	ExecuteAction(InAction);
 }
 
-void SCadenceGraphDetailsTabWidget::ExecuteAction(TSharedPtr<FEdGraphSchemaAction> InAction)
+void SCadenceGraphVariablesTabWidget::ExecuteAction(TSharedPtr<FEdGraphSchemaAction> InAction)
 {
 	if(InAction.IsValid())
 	{		
@@ -859,34 +887,34 @@ template<class SchemaActionType> SchemaActionType* SelectionAsType( const TShare
 	return Selection;
 }
 
-FCadenceGraphAction* SCadenceGraphDetailsTabWidget::SelectionAsGraph() const
+FCadenceGraphAction* SCadenceGraphVariablesTabWidget::SelectionAsGraph() const
 {
 	return SelectionAsType<FCadenceGraphAction>( GraphActionMenu );
 }
 
-FCadenceVariableAction* SCadenceGraphDetailsTabWidget::SelectionAsVar() const
+FCadenceVariableAction* SCadenceGraphVariablesTabWidget::SelectionAsVar() const
 {
 	return SelectionAsType<FCadenceVariableAction>( GraphActionMenu );
 }
 
-bool SCadenceGraphDetailsTabWidget::SelectionIsCategory() const
+bool SCadenceGraphVariablesTabWidget::SelectionIsCategory() const
 {
 	return !SelectionHasContextMenu();
 }
 
-bool SCadenceGraphDetailsTabWidget::SelectionHasContextMenu() const
+bool SCadenceGraphVariablesTabWidget::SelectionHasContextMenu() const
 {
 	TArray<TSharedPtr<FEdGraphSchemaAction> > SelectedActions;
 	GraphActionMenu->GetSelectedActions(SelectedActions);
 	return SelectedActions.Num() > 0;
 }
 
-FText SCadenceGraphDetailsTabWidget::GetGraphCategory(UEdGraph* InGraph) const
+FText SCadenceGraphVariablesTabWidget::GetGraphCategory(UEdGraph* InGraph) const
 {
 	return FText::GetEmpty();
 }
 
-TSharedPtr<SWidget> SCadenceGraphDetailsTabWidget::OnContextMenuOpening()
+TSharedPtr<SWidget> SCadenceGraphVariablesTabWidget::OnContextMenuOpening()
 {
 	if( !ApplicationPtr.IsValid() )
 	{
@@ -923,7 +951,7 @@ TSharedPtr<SWidget> SCadenceGraphDetailsTabWidget::OnContextMenuOpening()
 	return MenuBuilder.MakeWidget();
 }
 
-TSharedRef<SWidget> SCadenceGraphDetailsTabWidget::CreateAddNewMenuWidget()
+TSharedRef<SWidget> SCadenceGraphVariablesTabWidget::CreateAddNewMenuWidget()
 {
 	const bool bShouldCloseWindowAfterMenuSelection = true;
 	FMenuBuilder MenuBuilder(bShouldCloseWindowAfterMenuSelection, CommandList);
@@ -933,7 +961,7 @@ TSharedRef<SWidget> SCadenceGraphDetailsTabWidget::CreateAddNewMenuWidget()
 	return MenuBuilder.MakeWidget();
 }
 
-void SCadenceGraphDetailsTabWidget::BuildAddNewMenu(FMenuBuilder& MenuBuilder)
+void SCadenceGraphVariablesTabWidget::BuildAddNewMenu(FMenuBuilder& MenuBuilder)
 {
 	MenuBuilder.BeginSection("AddNewItem", LOCTEXT("AddOperations", "Add New"));
 
@@ -943,14 +971,14 @@ void SCadenceGraphDetailsTabWidget::BuildAddNewMenu(FMenuBuilder& MenuBuilder)
 	MenuBuilder.EndSection();
 }
 
-bool SCadenceGraphDetailsTabWidget::CanOpenExternalGraph() const 
+bool SCadenceGraphVariablesTabWidget::CanOpenExternalGraph() const 
 {
 	const FCadenceGraphAction* GraphAction = SelectionAsGraph();
 	const bool bGraph = GraphAction && GraphAction->EdGraph;
 	return bGraph;
 }
 
-void SCadenceGraphDetailsTabWidget::OpenGraph(FDocumentTracker::EOpenDocumentCause InCause, bool bOpenExternalGraphInNewEditor)
+void SCadenceGraphVariablesTabWidget::OpenGraph(FDocumentTracker::EOpenDocumentCause InCause, bool bOpenExternalGraphInNewEditor)
 {
 	UCadenceAsset* GraphToOpen = nullptr;
 
@@ -974,21 +1002,21 @@ void SCadenceGraphDetailsTabWidget::OpenGraph(FDocumentTracker::EOpenDocumentCau
 }
 
 
-void SCadenceGraphDetailsTabWidget::OnOpenExternalGraph()
+void SCadenceGraphVariablesTabWidget::OnOpenExternalGraph()
 {
 	OpenGraph(FDocumentTracker::OpenNewDocument, true);
 }
 
-bool SCadenceGraphDetailsTabWidget::CanFocusOnNode() const
+bool SCadenceGraphVariablesTabWidget::CanFocusOnNode() const
 {
 	return false;
 }
 
-void SCadenceGraphDetailsTabWidget::OnFocusNode()
+void SCadenceGraphVariablesTabWidget::OnFocusNode()
 {
 }
 
-void SCadenceGraphDetailsTabWidget::OnAddNewVariable()
+void SCadenceGraphVariablesTabWidget::OnAddNewVariable()
 {
 	TSharedPtr<FCadenceGraphApplication> App = ApplicationPtr.Pin();
 	UClass* LastChosenVariableClass = App->GetLastUsedVariableClass();
@@ -1004,12 +1032,12 @@ void SCadenceGraphDetailsTabWidget::OnAddNewVariable()
 	Refresh();
 }
 
-bool SCadenceGraphDetailsTabWidget::CanAddNewVariable() const
+bool SCadenceGraphVariablesTabWidget::CanAddNewVariable() const
 {
 	return true;
 }
 
-void SCadenceGraphDetailsTabWidget::OnDeleteGraph(UEdGraph* InGraph, ECadenceGraphAction::Type InGraphType)
+void SCadenceGraphVariablesTabWidget::OnDeleteGraph(UEdGraph* InGraph, ECadenceGraphAction::Type InGraphType)
 {
 	if (InGraph && InGraph->bAllowDeletion)
 	{
@@ -1017,12 +1045,12 @@ void SCadenceGraphDetailsTabWidget::OnDeleteGraph(UEdGraph* InGraph, ECadenceGra
 	}
 }
 
-UEdGraph* SCadenceGraphDetailsTabWidget::GetFocusedGraph() const
+UEdGraph* SCadenceGraphVariablesTabWidget::GetFocusedGraph() const
 {
 	return EdGraph;
 }
 
-void SCadenceGraphDetailsTabWidget::OnObjectPropertyChanged(UObject* InObject, FPropertyChangedEvent& InPropertyChangedEvent)
+void SCadenceGraphVariablesTabWidget::OnObjectPropertyChanged(UObject* InObject, FPropertyChangedEvent& InPropertyChangedEvent)
 {
 	if (InObject == CadenceGraph && (InPropertyChangedEvent.ChangeType != EPropertyChangeType::ValueSet && InPropertyChangedEvent.ChangeType != EPropertyChangeType::ArrayClear))
 	{
@@ -1030,7 +1058,7 @@ void SCadenceGraphDetailsTabWidget::OnObjectPropertyChanged(UObject* InObject, F
 	}
 }
 
-bool SCadenceGraphDetailsTabWidget::IsEditingMode() const
+bool SCadenceGraphVariablesTabWidget::IsEditingMode() const
 {
 	TSharedPtr<FCadenceGraphApplication> App = ApplicationPtr.Pin();
 	return App.IsValid() && App->InEditingMode();
@@ -1106,7 +1134,7 @@ namespace Cadence::Private
 	}
 }
 
-void SCadenceGraphDetailsTabWidget::OnDeleteEntry()
+void SCadenceGraphVariablesTabWidget::OnDeleteEntry()
 {
 	if (FCadenceGraphAction* GraphAction = SelectionAsGraph())
 	{
@@ -1184,7 +1212,7 @@ void SCadenceGraphDetailsTabWidget::OnDeleteEntry()
 }
 
 
-bool SCadenceGraphDetailsTabWidget::CanDeleteEntry() const
+bool SCadenceGraphVariablesTabWidget::CanDeleteEntry() const
 {
 	// Cannot delete entries while not in editing mode
 	if(!IsEditingMode())
@@ -1212,7 +1240,7 @@ bool SCadenceGraphDetailsTabWidget::CanDeleteEntry() const
 	return false;
 }
 
-bool SCadenceGraphDetailsTabWidget::IsDuplicateActionVisible() const
+bool SCadenceGraphVariablesTabWidget::IsDuplicateActionVisible() const
 {
 	if (SelectionAsVar())
 	{
@@ -1221,7 +1249,7 @@ bool SCadenceGraphDetailsTabWidget::IsDuplicateActionVisible() const
 	return false;
 }
 
-bool SCadenceGraphDetailsTabWidget::CanDuplicateAction() const
+bool SCadenceGraphVariablesTabWidget::CanDuplicateAction() const
 {
 	// Cannot delete entries while not in editing mode
 	if (!IsEditingMode())
@@ -1245,7 +1273,7 @@ bool SCadenceGraphDetailsTabWidget::CanDuplicateAction() const
 	return false;
 }
 
-void SCadenceGraphDetailsTabWidget::OnDuplicateAction()
+void SCadenceGraphVariablesTabWidget::OnDuplicateAction()
 {
 	FName DuplicateActionName = NAME_None;
 
@@ -1274,7 +1302,7 @@ void SCadenceGraphDetailsTabWidget::OnDuplicateAction()
 	}
 }
 
-void SCadenceGraphDetailsTabWidget::OnCopy()
+void SCadenceGraphVariablesTabWidget::OnCopy()
 {
 	FString OutputString;
 
@@ -1290,7 +1318,7 @@ void SCadenceGraphDetailsTabWidget::OnCopy()
 	}
 }
 
-bool SCadenceGraphDetailsTabWidget::CanCopy() const
+bool SCadenceGraphVariablesTabWidget::CanCopy() const
 {
 	if (FCadenceVariableAction* VarAction = SelectionAsVar())
 	{
@@ -1300,18 +1328,18 @@ bool SCadenceGraphDetailsTabWidget::CanCopy() const
 	return false;
 }
 
-void SCadenceGraphDetailsTabWidget::OnCut()
+void SCadenceGraphVariablesTabWidget::OnCut()
 {
 	OnCopy();
 	OnDeleteEntry();
 }
 
-bool SCadenceGraphDetailsTabWidget::CanCut() const
+bool SCadenceGraphVariablesTabWidget::CanCut() const
 {
 	return CanCopy() && CanDeleteEntry();
 }
 
-void SCadenceGraphDetailsTabWidget::OnPasteGeneric()
+void SCadenceGraphVariablesTabWidget::OnPasteGeneric()
 {
 	// prioritize pasting as a member variable if possible
 	if (CanPasteVariable())
@@ -1320,23 +1348,23 @@ void SCadenceGraphDetailsTabWidget::OnPasteGeneric()
 	}
 }
 
-bool SCadenceGraphDetailsTabWidget::CanPasteGeneric()
+bool SCadenceGraphVariablesTabWidget::CanPasteGeneric()
 {
 	return CanPasteVariable();
 }
 
-void SCadenceGraphDetailsTabWidget::OnPasteVariable()
+void SCadenceGraphVariablesTabWidget::OnPasteVariable()
 {
 	// TODO
 }
 
-bool SCadenceGraphDetailsTabWidget::CanPasteVariable() const
+bool SCadenceGraphVariablesTabWidget::CanPasteVariable() const
 {
 	// TODO
 	return false;
 }
 
-FText SCadenceGraphDetailsTabWidget::GetPasteCategory() const
+FText SCadenceGraphVariablesTabWidget::GetPasteCategory() const
 {
 	if (SelectionIsCategory() && GraphActionMenu.IsValid())
 	{
@@ -1350,28 +1378,28 @@ FText SCadenceGraphDetailsTabWidget::GetPasteCategory() const
 	return LOCTEXT("Default", "Default");
 }
 
-void SCadenceGraphDetailsTabWidget::OnResetItemFilter()
+void SCadenceGraphVariablesTabWidget::OnResetItemFilter()
 {
 	FilterBox->SetText(FText::GetEmpty());
 }
 
-void SCadenceGraphDetailsTabWidget::OnFilterTextChanged( const FText& InFilterText )
+void SCadenceGraphVariablesTabWidget::OnFilterTextChanged( const FText& InFilterText )
 {
 	GraphActionMenu->GenerateFilteredItems(false);
 }
 
-FText SCadenceGraphDetailsTabWidget::GetFilterText() const
+FText SCadenceGraphVariablesTabWidget::GetFilterText() const
 {
 	return FilterBox->GetText();
 }
 
-void SCadenceGraphDetailsTabWidget::OnRequestRenameOnActionNode()
+void SCadenceGraphVariablesTabWidget::OnRequestRenameOnActionNode()
 {
 	// Attempt to rename in both menus, only one of them will have anything selected
 	GraphActionMenu->OnRequestRenameOnActionNode();
 }
 
-bool SCadenceGraphDetailsTabWidget::CanRequestRenameOnActionNode() const
+bool SCadenceGraphVariablesTabWidget::CanRequestRenameOnActionNode() const
 {
 	TArray<TSharedPtr<FEdGraphSchemaAction> > SelectedActions;
 	GraphActionMenu->GetSelectedActions(SelectedActions);
@@ -1384,7 +1412,7 @@ bool SCadenceGraphDetailsTabWidget::CanRequestRenameOnActionNode() const
 	return false;
 }
 
-void SCadenceGraphDetailsTabWidget::SelectItemByName(const FName& ItemName, ESelectInfo::Type SelectInfo, int32 SectionId/* = INDEX_NONE*/, bool bIsCategory/* = false*/)
+void SCadenceGraphVariablesTabWidget::SelectItemByName(const FName& ItemName, ESelectInfo::Type SelectInfo, int32 SectionId/* = INDEX_NONE*/, bool bIsCategory/* = false*/)
 {
 	// Check if the graph action menu is being told to clear
 	if(ItemName == NAME_None)
@@ -1406,17 +1434,17 @@ void SCadenceGraphDetailsTabWidget::SelectItemByName(const FName& ItemName, ESel
 	}
 }
 
-void SCadenceGraphDetailsTabWidget::ClearGraphActionMenuSelection()
+void SCadenceGraphVariablesTabWidget::ClearGraphActionMenuSelection()
 {
 	GraphActionMenu->SelectItemByName(NAME_None);
 }
 
-void SCadenceGraphDetailsTabWidget::ExpandCategory(const FText& CategoryName)
+void SCadenceGraphVariablesTabWidget::ExpandCategory(const FText& CategoryName)
 {
 	GraphActionMenu->ExpandCategory(CategoryName);
 }
 
-bool SCadenceGraphDetailsTabWidget::MoveCategoryBeforeCategory(const FText& InCategoryToMove, const FText& InTargetCategory)
+bool SCadenceGraphVariablesTabWidget::MoveCategoryBeforeCategory(const FText& InCategoryToMove, const FText& InTargetCategory)
 {
 	bool bResult = false;
 
