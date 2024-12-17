@@ -67,6 +67,8 @@ public:
 	virtual FText GetNodeMenuName() const override;
 	virtual FText GetNodeCategory() const override { return FCadenceUserVariableConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceUserVariableConstants::NodeTitleColor; }
+	
+	virtual void SetSourceVariable(UCadenceVariable* InVariable) override;
 };
 
 UCLASS()
@@ -86,4 +88,6 @@ public:
 	virtual FText GetNodeMenuName() const override;
 	virtual FText GetNodeCategory() const override { return FCadenceUserVariableConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceUserVariableConstants::NodeTitleColor; }
+	
+	virtual void SetSourceVariable(UCadenceVariable* InVariable) override;
 };

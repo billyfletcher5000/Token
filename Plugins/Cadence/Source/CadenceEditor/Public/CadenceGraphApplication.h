@@ -53,6 +53,11 @@ public:
 	bool InEditingMode() const;	
 	bool IsSectionVisible(CadenceNodeSectionID::Type InSectionID) const { return true; }
 
+	UClass* GetLastUsedVariableClass() const { return LastUsedVariableClass; }
+	void SetLastUsedVariableClass(UClass* InClass) { LastUsedVariableClass = InClass; }
+
+	void ChangeVariableType(UCadenceVariable* InVar, UCadenceAsset* InAsset, const FEdGraphPinType& InNewPinType);
+
 	void Refresh();
 
 public: // FAssetEditorToolkit
@@ -108,6 +113,7 @@ private:
 	TWeakPtr<IDetailsView> SelectedDetailsView;
 	TWeakPtr<IDetailsView> GraphDetailsView;	
 	TSharedPtr<FDocumentTracker> DocumentManager;
+	UClass* LastUsedVariableClass = nullptr;
 };
 
 class FCadenceGraphApplicationMode : public FApplicationMode

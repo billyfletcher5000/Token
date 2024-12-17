@@ -120,11 +120,6 @@ FEdGraphPinType FCadenceVariableAction::GetPinType() const
 	return OutType;
 }
 
-void FCadenceVariableAction::ChangeVariableType(const FEdGraphPinType& NewPinType)
-{
-	// TODO: Access graph, delete current variable, create new one, have it update appropriately somehow
-}
-
 bool FCadenceVariableAction::IsValidName(const FName& NewName, FText& OutErrorMessage) const
 {
 	return true;

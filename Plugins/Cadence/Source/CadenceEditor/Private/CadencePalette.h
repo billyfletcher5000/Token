@@ -9,6 +9,8 @@
 class UCadenceAsset;
 class FCadenceGraphApplication;
 
+DECLARE_DELEGATE(FOnRefreshRequested)
+
 /** Widget for displaying a single item  */
 class SCadencePaletteItem : public SGraphPaletteItem
 {
@@ -18,6 +20,7 @@ public:
 		{}
 
 		SLATE_ARGUMENT(bool, ShowClassInTooltip)
+		SLATE_EVENT(FOnRefreshRequested, OnRefreshRequested);
 	SLATE_END_ARGS()
 
 	/**
@@ -56,6 +59,9 @@ private:
 	FText GetToolTipText() const;
 	
 	bool IsSelected();
+
+	void OnPinTypeChanged(const FEdGraphPinType&);
+	
 private:
 	/** True if the class should be displayed in the tooltip */
 	bool bShowClassInTooltip;
@@ -67,6 +73,8 @@ private:
 
 	/** Cache for the MenuDescription to be displayed for this item */
 	FNodeTextCache MenuDescriptionCache;
+
+	FOnRefreshRequested OnRefreshRequested;
 };
 
 

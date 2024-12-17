@@ -129,9 +129,12 @@ public:
 		SLATE_EVENT(FOnPinTypeChanged, OnTypeChanged)
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, TWeakPtr<FCadenceVariableAction> InAction)
+	void Construct(const FArguments& InArgs, TWeakPtr<FCadenceVariableAction> InAction, UCadenceAsset* InAsset, TWeakPtr<FCadenceGraphApplication> InCadenceApplication)
 	{
 		ActionPtr = InAction;
+		Asset = InAsset;
+		ApplicationPtr = InCadenceApplication;
+		
 		Variable = nullptr;
 		if (ActionPtr.IsValid())
 		{
@@ -182,12 +185,9 @@ private:
 	{
 		if (UCadenceVariable* Var = Variable.Get())
 		{
-			// TODO: Variable type changing
+			TSharedPtr<FCadenceGraphApplication> App = ApplicationPtr.Pin();
+			App->ChangeVariableType(Var, Asset.Get(), InNewPinType);
 		}
-		else if(ActionPtr.IsValid())
-		{
-			ActionPtr.Pin()->ChangeVariableType(InNewPinType);
-		}		
 
 		if (OnTypeChanged.IsBound())
 		{
@@ -201,6 +201,9 @@ private:
 
 	/** Variable Property to change the type of */
 	TWeakObjectPtr<UCadenceVariable> Variable;
+
+	TWeakObjectPtr<UCadenceAsset> Asset;
+	TWeakPtr<FCadenceGraphApplication> ApplicationPtr;
 
 	/** Event when type has changed */
 	FOnPinTypeChanged OnTypeChanged;
@@ -368,6 +371,8 @@ void SCadencePaletteItem::Construct(const FArguments& InArgs, FCreateWidgetForAc
 
 void SCadencePaletteItem::Construct(const FArguments& InArgs, FCreateWidgetForActionData* const InCreateData, UCadenceAsset* InAsset, TWeakPtr<FCadenceGraphApplication> InCadenceApplication)
 {
+	OnRefreshRequested = InArgs._OnRefreshRequested;
+	
 	check(InCreateData->Action.IsValid());
 	check(InAsset);
 
@@ -430,8 +435,9 @@ void SCadencePaletteItem::Construct(const FArguments& InArgs, FCreateWidgetForAc
 		}
 		if (Variable)
 		{
-			IconWidget = SNew(SPinTypeSelectorHelper, Action)
-				.IsEnabled(bIsEditingEnabled);
+			IconWidget = SNew(SPinTypeSelectorHelper, Action, Asset, ApplicationPtr)
+				.IsEnabled(bIsEditingEnabled)
+				.OnTypeChanged(this, &SCadencePaletteItem::OnPinTypeChanged);
 
 			ActionAccessSpecifier = Variable->IsVisible() ? EAccessSpecifier::Public : EAccessSpecifier::Private;
 		}
@@ -726,6 +732,11 @@ bool SCadencePaletteItem::IsSelected()
 	}
 
 	return false;
+}
+
+void SCadencePaletteItem::OnPinTypeChanged(const FEdGraphPinType&)
+{
+	OnRefreshRequested.ExecuteIfBound();
 }
 
 TSharedPtr<SToolTip> SCadencePaletteItem::ConstructToolTipWidget() const

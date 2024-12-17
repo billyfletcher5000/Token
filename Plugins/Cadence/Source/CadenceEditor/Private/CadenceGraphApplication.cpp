@@ -128,6 +128,17 @@ bool FCadenceGraphApplication::InEditingMode() const
 	return true;
 }
 
+void FCadenceGraphApplication::ChangeVariableType(UCadenceVariable* InVar, UCadenceAsset* InAsset, const FEdGraphPinType& InNewPinType)
+{
+	check(GetWorkingAsset() == InAsset);
+	const UCadenceGraphSchema* Schema = Cast<UCadenceGraphSchema>(GetWorkingGraphEditor()->GetSchema());
+	if(UClass* UsedVarClass = Schema->ChangeVariableType(InVar, GetWorkingGraph(), GetWorkingGraphEditor(), InNewPinType))
+	{
+		LastUsedVariableClass = UsedVarClass; 
+		Refresh();
+	}
+}
+
 void FCadenceGraphApplication::Refresh()
 {
 	WorkingGraphEditor->Nodes.Empty();

@@ -37,6 +37,7 @@ public:
 	virtual TSubclassOf<UCadenceVariable> GetArrayVariableType() const { return nullptr; }
 	
 	virtual bool SupportsDefault() const { return false; }
+	virtual bool CanCreateUserVariableOfType() const { return true; }
 	virtual void SetFromString(const FString& InStringValue) { }
 	virtual FString ConvertToValueString() const { return FString(); }
 
@@ -449,6 +450,7 @@ public:
 	UEnum* GetEnumType() const { return EnumType; }
 
 	virtual bool SupportsDefault() const override { return true; }
+	virtual bool CanCreateUserVariableOfType() const override { return EnumType != nullptr; }
 	
 	virtual void SetFromString(const FString& InStringValue) override;
 	virtual FString ConvertToValueString() const override;
@@ -459,7 +461,7 @@ private:
 
 protected:
 	UPROPERTY()
-	UEnum* EnumType;
+	UEnum* EnumType = nullptr;
 };
 
 UCLASS()

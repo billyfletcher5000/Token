@@ -4,6 +4,8 @@
 #include "CadenceGraphDetailsTab.h"
 
 #include "CadenceGraphApplication.h"
+#include "CadenceGraphEditor.h"
+#include "CadenceGraphSchema.h"
 #include "CadenceGraphSchemaActions.h"
 #include "CadencePalette.h"
 #include "EditorCategoryUtils.h"
@@ -265,6 +267,7 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 	if( ApplicationPtr.IsValid() )
 	{
 		CadenceGraph = ApplicationPtr.Pin()->GetWorkingGraph();
+		EdGraph = ApplicationPtr.Pin()->GetWorkingGraphEditor();
 
 		CommandList = MakeShareable(new FUICommandList);
 		
@@ -281,7 +284,11 @@ void SCadenceGraphDetailsTabWidget::Construct(const FArguments& InArgs, TWeakPtr
 			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnFocusNode),
 			FCanExecuteAction(), FIsActionChecked(),
 			FIsActionButtonVisible::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanFocusOnNode) );
-			
+
+		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().AddNewVariable,
+			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnAddNewVariable),
+			FCanExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanAddNewVariable) );
+		
 		CommandList->MapAction( FCadenceGraphDetailsCommands::Get().DeleteEntry,
 			FExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::OnDeleteEntry),
 			FCanExecuteAction::CreateSP(this, &SCadenceGraphDetailsTabWidget::CanDeleteEntry) );
@@ -638,7 +645,7 @@ void SCadenceGraphDetailsTabWidget::Refresh()
 TSharedRef<SWidget> SCadenceGraphDetailsTabWidget::OnCreateWidgetForAction(FCreateWidgetForActionData* const InCreateData)
 {
 	//InCreateData->bHandleMouseButtonDown = true;
-	return SNew(SCadencePaletteItem, InCreateData, ApplicationPtr.Pin());
+	return SNew(SCadencePaletteItem, InCreateData, ApplicationPtr.Pin()).OnRefreshRequested(this, &SCadenceGraphDetailsTabWidget::Refresh);
 }
 
 void SCadenceGraphDetailsTabWidget::GetChildGraphs(UEdGraph* InEdGraph, int32 const SectionId, FGraphActionSort& SortList, const FText& ParentCategory) const
@@ -979,6 +986,27 @@ bool SCadenceGraphDetailsTabWidget::CanFocusOnNode() const
 
 void SCadenceGraphDetailsTabWidget::OnFocusNode()
 {
+}
+
+void SCadenceGraphDetailsTabWidget::OnAddNewVariable()
+{
+	TSharedPtr<FCadenceGraphApplication> App = ApplicationPtr.Pin();
+	UClass* LastChosenVariableClass = App->GetLastUsedVariableClass();
+	
+	if(LastChosenVariableClass == nullptr)
+		LastChosenVariableClass = UCadenceVariableBool::StaticClass();
+
+	const UCadenceGraphSchema* Schema = Cast<UCadenceGraphSchema>(EdGraph->GetSchema());
+	if(Schema->AddNewUserVariable(LastChosenVariableClass, CadenceGraph))	
+		App->SetLastUsedVariableClass(LastChosenVariableClass);
+
+	App->Refresh();
+	Refresh();
+}
+
+bool SCadenceGraphDetailsTabWidget::CanAddNewVariable() const
+{
+	return true;
 }
 
 void SCadenceGraphDetailsTabWidget::OnDeleteGraph(UEdGraph* InGraph, ECadenceGraphAction::Type InGraphType)

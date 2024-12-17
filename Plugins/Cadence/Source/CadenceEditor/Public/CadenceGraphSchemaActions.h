@@ -117,8 +117,6 @@ public:
 
 	virtual FEdGraphPinType GetPinType() const;
 
-	virtual void ChangeVariableType(const FEdGraphPinType& NewPinType);
-
 	virtual void RenameVariable(const FName& NewName) { Variable->SetUserVariableName(NewName); }
 
 	virtual bool IsValidName(const FName& NewName, FText& OutErrorMessage) const;

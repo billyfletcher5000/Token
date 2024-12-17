@@ -20,9 +20,8 @@
 #include "Graph/Nodes/CadenceRerouteNodes.h"
 
 const FName UCadenceGraphSchema::PC_Exec = TEXT("exec");
-const FName UCadenceGraphSchema::PC_Variable = TEXT("variable");
-const FName UCadenceGraphSchema::PC_Int = TEXT("int");
 const FName UCadenceGraphSchema::PC_Wildcard = TEXT("wildcard");
+const FString UCadenceGraphSchema::DefaultVariableNameBase = TEXT("NewVar"); 
 
 UCadenceGraphSchema::UCadenceGraphSchema()
 {
@@ -442,24 +441,13 @@ bool UCadenceGraphSchema::ArePinTypesCompatible(const FEdGraphPinType& InPinType
 
 void UCadenceGraphSchema::GetVariableTypeTree(TArray<FPinTypeTreeItem>& OutTypeTreeArray, ETypeTreeFilter InTreeFilter) const
 {
-	TArray<TObjectPtr<UClass>> ValidVariableTypes;
-
-	for (TObjectIterator<UClass> It; It; ++It)
-	{
-		UClass* Class = *It;
-
-		if (Class->IsChildOf(UCadenceVariable::StaticClass()) &&
-			!Class->HasAnyClassFlags(CLASS_Abstract | CLASS_Deprecated | CLASS_Hidden))
-		{
-			ValidVariableTypes.Add(Class);
-		}
-	}
-
 	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
 
-	for(TObjectPtr<UClass> VariableType : ValidVariableTypes)
+	OutTypeTreeArray.Empty();
+
+	TArray<UCadenceVariable*> VariableCDOs = GetVariableTypeCDOs(true);
+	for(UCadenceVariable* VariableCDO : VariableCDOs)
 	{
-		UCadenceVariable* VariableCDO = VariableType->GetDefaultObject<UCadenceVariable>();
 		FName VariableDisplayName = VariableCDO->GetDisplayName();		
 		FName VariableCategory = VariableCDO->GetPinCategory();
 
@@ -470,6 +458,84 @@ void UCadenceGraphSchema::GetVariableTypeTree(TArray<FPinTypeTreeItem>& OutTypeT
 	}
 }
 
+UClass* UCadenceGraphSchema::GetVariableClassFromPinType(const FEdGraphPinType& EdGraphPin) const
+{	
+	TArray<UCadenceVariable*> VariableCDOs = GetVariableTypeCDOs(true);
+	for(UCadenceVariable* VariableCDO : VariableCDOs)
+	{
+		if(VariableCDO->GetPinCategory() == EdGraphPin.PinCategory)
+			return VariableCDO->GetClass();
+	}
+
+	return nullptr;
+}
+
+UClass* UCadenceGraphSchema::ChangeVariableType(UCadenceVariable* InVar, UCadenceGraph* InGraph, UCadenceGraphEditor* InEditorGraph, const FEdGraphPinType& InEdGraphPinType) const
+{
+	const FScopedTransaction Transaction(*FCadenceEditorCommon::ContextIdentifier, FText::FromString("Change Variable Type"), InGraph);
+	
+	FCadenceNamedVariable* NamedVariable = InGraph->UserVariables.Variables.FindByPredicate([InVar] (const FCadenceNamedVariable& TestNamedVar) { return TestNamedVar.Variable == InVar; });
+	if(!NamedVariable)
+		return nullptr; // TODO: Error	
+	
+	UClass* NewVariableType = GetVariableClassFromPinType(InEdGraphPinType);
+	UCadenceVariable* NewVariable = NewObject<UCadenceVariable>(InGraph, NewVariableType);
+
+	NewVariable->SetUserVariableName(InVar->GetUserVariableName());
+
+	for(UCadenceGraphNode* Node : InGraph->Nodes)
+	{
+		if(UCadenceUserVariableAccessNode* AccessNode = Cast<UCadenceUserVariableAccessNode>(Node))
+		{
+			if(AccessNode->GetSourceVariable() == InVar)
+				AccessNode->SetSourceVariable(NewVariable);
+		}
+	}
+	
+	NamedVariable->Variable = NewVariable;
+
+	return NewVariableType;
+}
+
+UCadenceVariable* UCadenceGraphSchema::AddNewUserVariable(TSubclassOf<UCadenceVariable> InClass, UCadenceGraph* InGraph) const
+{	
+	const FScopedTransaction Transaction(*FCadenceEditorCommon::ContextIdentifier, FText::FromString("Add New Variable"), InGraph);
+	
+	UCadenceVariable* NewVariable = NewObject<UCadenceVariable>(InGraph, InClass);
+	NewVariable->SetUserVariableName(GetUniqueDefaultVariableName(InGraph->UserVariables.Variables));
+
+	InGraph->UserVariables.Variables.Add(FCadenceNamedVariable(NewVariable));
+
+	return NewVariable;
+}
+
+bool UCadenceGraphSchema::VariableAlreadyExistsWithName(TArray<FCadenceNamedVariable>& UserVariableArray, const FName& InName) const
+{
+	if(InName == NAME_None)
+		return false;
+	
+	for(FCadenceNamedVariable& Variable : UserVariableArray)
+	{
+		if(Variable.Variable && Variable.Variable->GetUserVariableName() == InName)
+			return true;
+	}
+
+	return false;
+}
+
+FName UCadenceGraphSchema::GetUniqueDefaultVariableName(TArray<FCadenceNamedVariable>& UserVariableArray) const
+{
+	FName CurrentTestName = FName(DefaultVariableNameBase);
+	uint32 VariableCopyIndex = 1;
+	while(VariableAlreadyExistsWithName(UserVariableArray, CurrentTestName))
+	{
+		VariableCopyIndex++;
+		CurrentTestName = FName(DefaultVariableNameBase + " " + FString::FromInt(VariableCopyIndex));
+	}
+
+	return CurrentTestName;
+}
+
 bool UCadenceGraphSchema::IsVariablePinCategory(const FName& InPinCategory)
 {
 	return InPinCategory != PC_Exec;
@@ -477,26 +543,35 @@ bool UCadenceGraphSchema::IsVariablePinCategory(const FName& InPinCategory)
 
 void UCadenceGraphSchema::GenerateColorMap()
 {
-	TArray<TObjectPtr<UClass>> ValidCadenceVariableTypes;
+	PinCategoryToColor.Add(FCadencePinCategoryConstants::PC_Exec, FLinearColor::Gray);
+	PinCategoryToColor.Add(FCadencePinCategoryConstants::PC_Wildcard, FLinearColor(0.5f, 0.5f, 0.5f));
 
+	TArray<UCadenceVariable*> VariableCDOs = GetVariableTypeCDOs();
+	for(UCadenceVariable* VariableDefault : VariableCDOs)
+	{
+		if(!PinCategoryToColor.Contains(VariableDefault->GetPinCategory()))
+			PinCategoryToColor.Add(VariableDefault->GetPinCategory(), VariableDefault->GetPinColor());
+	}
+}
+
+TArray<UCadenceVariable*> UCadenceGraphSchema::GetVariableTypeCDOs(bool InFilterForCreate) const
+{
+	TArray<UCadenceVariable*> VariableCDOs;
 	for (TObjectIterator<UClass> It; It; ++It)
 	{
 		UClass* Class = *It;
 
 		if (Class->IsChildOf(UCadenceVariable::StaticClass()) &&
 			!Class->HasAnyClassFlags(CLASS_Abstract | CLASS_Deprecated | CLASS_Hidden))
-		{
-			ValidCadenceVariableTypes.Add(Class);
+		{			
+			UCadenceVariable* VariableCDO = Class->GetDefaultObject<UCadenceVariable>();
+
+			if(InFilterForCreate && !VariableCDO->CanCreateUserVariableOfType())
+				continue;
+
+			VariableCDOs.Add(VariableCDO);
 		}
 	}
 
-	PinCategoryToColor.Add(FCadencePinCategoryConstants::PC_Exec, FLinearColor::Gray);
-	PinCategoryToColor.Add(FCadencePinCategoryConstants::PC_Wildcard, FLinearColor(0.5f, 0.5f, 0.5f));
-
-	for(TObjectPtr<UClass> CadenceVariableType : ValidCadenceVariableTypes)
-	{
-		UCadenceVariable* VariableDefault = CadenceVariableType->GetDefaultObject<UCadenceVariable>();
-		if(!PinCategoryToColor.Contains(VariableDefault->GetPinCategory()))
-			PinCategoryToColor.Add(VariableDefault->GetPinCategory(), VariableDefault->GetPinColor());
-	}
+	return VariableCDOs;
 }

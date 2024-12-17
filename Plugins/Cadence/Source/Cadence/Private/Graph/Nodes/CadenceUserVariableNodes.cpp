@@ -38,6 +38,20 @@ FText UCadenceUserVariableGetterNode::GetNodeMenuName() const
 	return FCadenceUserVariableHelper::GetGetterNodeMenuName(SourceVariable);
 }
 
+void UCadenceUserVariableGetterNode::SetSourceVariable(UCadenceVariable* InVariable)
+{
+	if(SourceVariable != InVariable)
+	{
+		Super::SetSourceVariable(InVariable);
+		
+		if(UCadenceGraphNodePin* Pin = GetVariableOutputPin())
+		{
+			Pin->ClearConnections();
+			Pin->SetVariableClass(InVariable->GetClass());
+		}
+	}
+}
+
 void UCadenceUserVariableSetterNode::CreateInputPins()
 {
 	Super::CreateInputPins();	
@@ -91,4 +105,24 @@ FText UCadenceUserVariableSetterNode::GetNodeTitle() const
 FText UCadenceUserVariableSetterNode::GetNodeMenuName() const
 {
 	return FCadenceUserVariableHelper::GetSetterNodeMenuName(SourceVariable);
+}
+
+void UCadenceUserVariableSetterNode::SetSourceVariable(UCadenceVariable* InVariable)
+{
+	if(SourceVariable != InVariable)
+	{
+		Super::SetSourceVariable(InVariable);
+		
+		if(UCadenceGraphNodePin* Pin = GetVariableInputPin())
+		{
+			Pin->ClearConnections();
+			Pin->SetVariableClass(InVariable->GetClass());
+		}
+		
+		if(UCadenceGraphNodePin* Pin = GetVariableOutputPin())
+		{
+			Pin->ClearConnections();
+			Pin->SetVariableClass(InVariable->GetClass());
+		}
+	}
 }

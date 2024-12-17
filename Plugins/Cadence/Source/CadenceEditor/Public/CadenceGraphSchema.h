@@ -3,10 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CadenceGraphDetailsTab.h"
 #include "SPinTypeSelector.h"
+#include "Graph/CadenceGraph.h"
 
 #include "CadenceGraphSchema.generated.h"
 
+class UCadenceGraphEditor;
 class UCadenceGraph;
 class UCadenceAsset;
 class UCadenceUserVariableGetterNode;
@@ -45,17 +48,28 @@ public:
 	bool IsExecPin(const UEdGraphPin& EdGraphPin) const;
 	bool ArePinTypesCompatible(const FEdGraphPinType& InPinTypeA, const FEdGraphPinType& InPinTypeB) const;
 	void GetVariableTypeTree(TArray<FPinTypeTreeItem>& OutTypeTreeArray, ETypeTreeFilter InTreeFilter) const;
+	UClass* GetVariableClassFromPinType(const FEdGraphPinType& EdGraphPin) const;
+
+	// Returns variable type class used
+	// TODO: Fix whatever this is, it could be an out param but it all feels bad
+	UClass* ChangeVariableType(UCadenceVariable* InVar, UCadenceGraph* InGraph, UCadenceGraphEditor* InEditorGraph, const FEdGraphPinType& InEdGraphPinType) const;
+	
+	UCadenceVariable* AddNewUserVariable(TSubclassOf<UCadenceVariable> InClass, UCadenceGraph* InGraph) const;
+	
+	bool VariableAlreadyExistsWithName(TArray<FCadenceNamedVariable>& UserVariableArray, const FName& InName) const;
+	FName GetUniqueDefaultVariableName(TArray<FCadenceNamedVariable>& UserVariableArray) const;
 
 public:
-	static const FName PC_Variable;
-	static const FName PC_Int;
 	static const FName PC_Exec;
 	static const FName PC_Wildcard;
 
 	static bool IsVariablePinCategory(const FName& InPinCategory);
 	
 private:
+	static const FString DefaultVariableNameBase;
+	
 	void GenerateColorMap();
+	TArray<UCadenceVariable*> GetVariableTypeCDOs(bool InFilterForCreate = true) const;
 	
 private:
 	TMap<FName, FLinearColor> PinCategoryToColor;

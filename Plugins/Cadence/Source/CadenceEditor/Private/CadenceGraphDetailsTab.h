@@ -8,6 +8,7 @@
 #include "WorkflowOrientedApp/WorkflowTabFactory.h"
 #include "WorkflowOrientedApp/WorkflowTabManager.h"
 
+class UCadenceGraphEditor;
 struct FGraphActionSort;
 class UCadenceGraph;
 struct FCadenceVariableAction;
@@ -66,7 +67,6 @@ public:
 
 	/** Refreshes the graph action menu */
 	void Refresh();
-	void SetFocusedGraph(UEdGraph* InEdGraph) { EdGraph = InEdGraph; }
 	
 	/** Accessor for getting the current selection as a cadence graph */
 	FCadenceGraphAction* SelectionAsGraph() const;
@@ -150,6 +150,8 @@ private:
 	bool CanOpenExternalGraph() const;
 	bool CanFocusOnNode() const;
 	void OnFocusNode();
+	void OnAddNewVariable();
+	bool CanAddNewVariable() const;
 	void OnDeleteEntry();
 	bool CanDeleteEntry() const;
 	bool CanRequestRenameOnActionNode() const;
@@ -206,7 +208,8 @@ private:
 	UCadenceGraph* CadenceGraph = nullptr;
 
 	/** The Ed Graph being displayed: */
-	UEdGraph* EdGraph = nullptr;
+	UCadenceGraphEditor* EdGraph = nullptr;
+
 
 	/** The Kismet Inspector used to display properties: */
 	//TWeakPtr<SKismetInspector> Inspector;
