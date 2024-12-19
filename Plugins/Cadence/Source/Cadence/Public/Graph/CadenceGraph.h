@@ -58,9 +58,16 @@ public:
 
 	TArray<UCadenceSequencerTrack*> GetTracks() const;
 	TArray<UCadenceSequencerSection*> GetSections() const;
-	
+
 	UPROPERTY()
 	TArray<FName> CategorySorting;
+
+#if WITH_EDITOR
+	DECLARE_MULTICAST_DELEGATE(FOnPinTypesChanged);
+
+	FOnPinTypesChanged OnPinTypesChanged;
+	void NotifyPinTypesChanged() const { OnPinTypesChanged.Broadcast(); }
+#endif
 	
 private:
 	void GatherRootExecNodes(TArray<TObjectPtr<UCadenceGraphNode>>& InRootNodeList, UCadenceGraphNode* InNode) const;

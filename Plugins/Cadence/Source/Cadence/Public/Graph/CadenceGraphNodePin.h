@@ -64,6 +64,9 @@ public:
 
 	void OverrideVariable(UCadenceVariable* InVariable) { VariableOverride = InVariable; }
 	void ClearOverrideVariable() { VariableOverride = nullptr; }
+
+	int32 GetWildcardId() const { return WildcardId; }
+	void SetWildcardId(const int32& InWildcardId) { WildcardId = InWildcardId; }
 	
 private:
 	UPROPERTY()
@@ -86,6 +89,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UCadenceVariable> Variable;
+
+	UPROPERTY()
+	int32 WildcardId = -1;
 
 	TWeakObjectPtr<UCadenceVariable> VariableOverride;
 };

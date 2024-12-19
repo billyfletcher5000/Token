@@ -88,9 +88,14 @@ protected:
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputExecPin(const FName& InPinName);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputExecPin(const FName& InPinName);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId = -1, const bool& InIsMaster = true);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId = -1, const bool& InIsMaster = true);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const bool& bInOptional = false);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId = -1);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateExecPin(const FName& InPinName);	
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
+	virtual TObjectPtr<UCadenceGraphNodePin> CreateVariableWildcardPin(const FName& InPinName, const int32& InWildcardId = -1, const bool& InIsMaster = false, const bool InIsArray = false);
 	virtual bool RemoveInputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
 	virtual bool RemoveOutputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
 	virtual void RemoveAllInputPins();
@@ -119,6 +124,9 @@ protected:
 
 private:
 	static TObjectPtr<UCadenceGraphNodePin> GetPinFromArray(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName);
+
+	void OnPinConnectedToWildcardMaster(UCadenceGraphNodePin* InConnectedPin, UCadenceGraphNodePin* InMasterPin);
+	void OnPinConnectionsClearedFromWildcardMaster(UCadenceGraphNodePin* InMasterPin);
 	
 public:
 	UPROPERTY()
@@ -139,4 +147,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	FString DebugName;
+
+	UPROPERTY()
+	TMap<int32, TObjectPtr<UCadenceGraphNodePin>> WildcardIdToMasterPin;
 };

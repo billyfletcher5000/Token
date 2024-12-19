@@ -8,16 +8,14 @@
 void UCadenceForEachNode::CreateInputPins()
 {
 	Super::CreateInputPins();
-	UCadenceGraphNodePin* Pin = AddInputVariablePin(FCadencePinConstants::Pin_Array, UCadenceVariableArray::StaticClass());
-	Pin->OnPinConnected.AddUObject(this, &UCadenceForEachNode::OnInputPinConnected);
-	Pin->OnConnectionsCleared.AddUObject(this, &UCadenceForEachNode::OnInputPinConnectionsCleared);
+	AddInputVariableWildcardArrayPin(FCadencePinConstants::Pin_Array, 0, true);
 }
 
 void UCadenceForEachNode::CreateOutputPins()
 {
 	Super::CreateOutputPins();
 	AddOutputExecPin(FCadencePinConstants::Pin_LoopBody);
-	AddOutputVariablePin(FCadencePinConstants::Pin_ArrayElement, nullptr);
+	AddOutputVariableWildcardPin(FCadencePinConstants::Pin_ArrayElement, 0);
 	AddOutputVariablePin(FCadencePinConstants::Pin_Index, UCadenceVariableInt::StaticClass());
 	AddOutputExecPin(FCadencePinConstants::Pin_Completed);
 }
@@ -67,24 +65,101 @@ TArray<UCadenceGraphNodePin*> UCadenceForEachNode::GetActuatingOutputExecPins() 
 	return { CurrentActuatingOutputExecPin.Get() };
 }
 
-void UCadenceForEachNode::OnInputPinConnected(UCadenceGraphNodePin* InConnectedPin)
+void UCadenceArraySizeNode::CreateInputPins()
 {
-	UCadenceVariable* ConnectedVar = InConnectedPin->GetVariable(false);
-	if(ensure(ConnectedVar))
-	{
-		UCadenceVariableArray* ConnectedArray = Cast<UCadenceVariableArray>(ConnectedVar);
-
-		UCadenceGraphNodePin* ArrayInputPin = GetInputPin(FCadencePinConstants::Pin_Array);
-		UCadenceVariableArray* ArrayInputVariable = ArrayInputPin->GetVariable<UCadenceVariableArray>();
-		ArrayInputVariable->SetVariableClass(ConnectedArray->GetVariableClass());
-		
-		UCadenceGraphNodePin* ArrayElementOutputPin = GetOutputPin(FCadencePinConstants::Pin_ArrayElement);
-		ArrayElementOutputPin->SetVariableClass(ConnectedArray->GetVariableClass());
-	}
+	Super::CreateInputPins();
+	AddInputVariablePin(FCadencePinConstants::Pin_Array, UCadenceVariableArray::StaticClass());
 }
 
-void UCadenceForEachNode::OnInputPinConnectionsCleared()
-{	
-	UCadenceGraphNodePin* ArrayElementOutputPin = GetOutputPin(FCadencePinConstants::Pin_ArrayElement);
-	ArrayElementOutputPin->SetVariableClass(nullptr);
+void UCadenceArraySizeNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+}
+
+ECadenceNodeExecuteResult UCadenceArraySizeNode::Execute(UCadenceContext* InContext)
+{
+	return Super::Execute(InContext);
+}
+
+void UCadenceArrayFindIndexNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+	AddInputVariableWildcardArrayPin(FCadencePinConstants::Pin_Array, 0, true);
+	AddInputVariableWildcardPin(FCadencePinConstants::Pin_Item, 0, false);
+}
+
+void UCadenceArrayFindIndexNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+	AddOutputVariablePin(FCadencePinConstants::Pin_Index, UCadenceVariableInt::StaticClass());
+}
+
+ECadenceNodeExecuteResult UCadenceArrayFindIndexNode::Execute(UCadenceContext* InContext)
+{
+	
+	
+	UCadenceGraphNodePin* OutIndexPin = GetOutputPin(FCadencePinConstants::Pin_Index);
+	UCadenceVariableInt* OutIndexVar = OutIndexPin->GetVariable<UCadenceVariableInt>();
+	
+	return Super::Execute(InContext);
+}
+
+void UCadenceArrayContainsNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+}
+
+void UCadenceArrayContainsNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+}
+
+ECadenceNodeExecuteResult UCadenceArrayContainsNode::Execute(UCadenceContext* InContext)
+{
+	return Super::Execute(InContext);
+}
+
+void UCadenceArrayAddItemNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+}
+
+void UCadenceArrayAddItemNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+}
+
+ECadenceNodeExecuteResult UCadenceArrayAddItemNode::Execute(UCadenceContext* InContext)
+{
+	return Super::Execute(InContext);
+}
+
+void UCadenceArrayRemoveItemNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+}
+
+void UCadenceArrayRemoveItemNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+}
+
+ECadenceNodeExecuteResult UCadenceArrayRemoveItemNode::Execute(UCadenceContext* InContext)
+{
+	return Super::Execute(InContext);
+}
+
+void UCadenceArrayRemoveByIndexNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+}
+
+void UCadenceArrayRemoveByIndexNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+}
+
+ECadenceNodeExecuteResult UCadenceArrayRemoveByIndexNode::Execute(UCadenceContext* InContext)
+{
+	return Super::Execute(InContext);
 }

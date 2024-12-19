@@ -3,6 +3,7 @@
 
 #include "Graph/CadenceGraphNode.h"
 
+#include "Algo/ForEach.h"
 #include "Graph/CadenceGraph.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadencePinConstants.h"
@@ -127,12 +128,40 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePin(const FN
 	return Pin;
 }
 
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId, const bool& InIsMaster)
+{
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, InIsMaster);
+	InputPins.Add(Pin);
+	return Pin;
+}
+
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId, const bool& InIsMaster)
+{
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, InIsMaster, true);
+	InputPins.Add(Pin);
+	return Pin;
+}
+
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const bool& bInOptional)
 {
 	if(!ensureMsgf(GetOutputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin")))
 		return nullptr;
 		
 	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariablePin(InPinName, InVariableClass);
+	OutputPins.Add(Pin);
+	return Pin;
+}
+
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId)
+{
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, false);
+	OutputPins.Add(Pin);
+	return Pin;
+}
+
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId)
+{
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, false, true);
 	OutputPins.Add(Pin);
 	return Pin;
 }
@@ -159,6 +188,30 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariablePin(const FNam
 	Pin->SetVariableClass(InVariableClass);
 	Pin->GenerateGUID();
 
+	return Pin;
+}
+
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariableWildcardPin(const FName& InPinName, const int32& InWildcardId, const bool& InIsMaster, const bool InIsArray)
+{
+	UCadenceGraphNodePin* Pin = NewObject<UCadenceGraphNodePin>(this);
+
+	Pin->SetParentNode(this);
+	Pin->SetPinName(InPinName);
+	Pin->SetIsExec(false);
+	Pin->SetVariableClass(InIsArray ? UCadenceVariableArray::StaticClass() : nullptr);
+	Pin->SetWildcardId(InWildcardId);
+	Pin->GenerateGUID();
+
+	if(InIsMaster)
+	{
+		ensureMsgf(InWildcardId >= 0, TEXT("Wildcard Id must be a positive number, negative numbers are reserved for initialisation checks"));
+		ensureMsgf(!WildcardIdToMasterPin.Contains(InWildcardId), TEXT("Master pin already exists for wildcard ID: %d"), InWildcardId);
+		WildcardIdToMasterPin.Add(InWildcardId, Pin);
+
+		Pin->OnPinConnected.AddUObject(this, &UCadenceGraphNode::OnPinConnectedToWildcardMaster, Pin);
+		Pin->OnConnectionsCleared.AddUObject(this, &UCadenceGraphNode::OnPinConnectionsClearedFromWildcardMaster, Pin);
+	}
+	
 	return Pin;
 }
 
@@ -219,4 +272,84 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::GetPinFromArray(const TArray
 		return *Result;
 
 	return nullptr;
+}
+
+void UCadenceGraphNode::OnPinConnectedToWildcardMaster(UCadenceGraphNodePin* InConnectedPin, UCadenceGraphNodePin* InMasterPin)
+{
+	if(!ensure(InConnectedPin))
+		return;
+
+	if(!ensure(InMasterPin))
+		return;
+
+	UClass* TargetClass = nullptr;
+	if(InConnectedPin->GetVariableClass() == UCadenceVariableArray::StaticClass())
+	{
+		UCadenceVariable* ConnectedVar = InConnectedPin->GetVariable(false);
+		if(ensure(ConnectedVar))
+		{
+			UCadenceVariableArray* ConnectedArray = Cast<UCadenceVariableArray>(ConnectedVar);
+			TargetClass = ConnectedArray->GetVariableClass();
+		}
+	}
+	else
+	{
+		TargetClass = InConnectedPin->GetVariableClass();
+	}
+
+	if(!ensure(TargetClass))
+		return;
+
+	int32 MasterWildcardId = InMasterPin->GetWildcardId();
+
+	auto SetClassLambda = [&MasterWildcardId, &TargetClass] (UCadenceGraphNodePin* Pin)
+	{
+		if(Pin->GetWildcardId() == MasterWildcardId)
+		{
+			if(Pin->GetVariableClass() == UCadenceVariableArray::StaticClass())
+			{
+				UCadenceVariableArray* PinArray = Pin->GetVariable<UCadenceVariableArray>();
+				PinArray->SetVariableClass(TargetClass);
+			}
+			else
+			{
+				Pin->SetVariableClass(TargetClass);
+			}
+		}
+	};
+	
+	Algo::ForEach(InputPins, SetClassLambda);
+	Algo::ForEach(OutputPins, SetClassLambda);
+
+#if WITH_EDITOR
+	GetParentGraph()->NotifyPinTypesChanged();
+#endif
+}
+
+void UCadenceGraphNode::OnPinConnectionsClearedFromWildcardMaster(UCadenceGraphNodePin* InMasterPin)
+{
+	int32 MasterWildcardId = InMasterPin->GetWildcardId();
+
+	auto SetClassLambda = [&MasterWildcardId] (UCadenceGraphNodePin* Pin)
+	{
+		if(Pin->GetWildcardId() == MasterWildcardId)
+		{
+			if(Pin->GetVariableClass() == UCadenceVariableArray::StaticClass())
+			{
+				UCadenceVariableArray* PinArray = Pin->GetVariable<UCadenceVariableArray>();
+				PinArray->SetVariableClass(nullptr);
+			}
+			else
+			{
+				Pin->SetVariableClass(nullptr);
+			}
+		}
+	};
+	
+	Algo::ForEach(InputPins, SetClassLambda);
+	Algo::ForEach(OutputPins, SetClassLambda);
+
+#if WITH_EDITOR
+	GetParentGraph()->NotifyPinTypesChanged();
+#endif
 }
