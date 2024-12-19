@@ -9,6 +9,8 @@
 
 void FCadenceVariableInlineWidgetFunctions::RegisterAll(VariableInlineWidgetFuncMap& VariableToInlineWidgetFunc)
 {
+	VariableToInlineWidgetFunc.Add(UCadenceVariableArray::StaticClass()->GetFName(),
+	FVariableCreateInlineWidgetFunc::CreateStatic(&FCadenceVariableInlineWidgetFunctions::CreateInlineEditWidgetNoDefaultValue));
 	VariableToInlineWidgetFunc.Add(UCadenceVariableInt::StaticClass()->GetFName(),
 	FVariableCreateInlineWidgetFunc::CreateStatic(&FCadenceVariableInlineWidgetFunctions::CreateInlineEditWidgetInt));
 	VariableToInlineWidgetFunc.Add(UCadenceVariableFloat::StaticClass()->GetFName(),
@@ -22,8 +24,6 @@ void FCadenceVariableInlineWidgetFunctions::RegisterAll(VariableInlineWidgetFunc
 	VariableToInlineWidgetFunc.Add(UCadenceVariableVector2D::StaticClass()->GetFName(),
 	FVariableCreateInlineWidgetFunc::CreateStatic(&FCadenceVariableInlineWidgetFunctions::CreateInlineEditWidgetVector2D));
 	VariableToInlineWidgetFunc.Add(UCadenceVariableUObject::StaticClass()->GetFName(),
-	FVariableCreateInlineWidgetFunc::CreateStatic(&FCadenceVariableInlineWidgetFunctions::CreateInlineEditWidgetNoDefaultValue));
-	VariableToInlineWidgetFunc.Add(UCadenceVariableUObjectArray::StaticClass()->GetFName(),
 	FVariableCreateInlineWidgetFunc::CreateStatic(&FCadenceVariableInlineWidgetFunctions::CreateInlineEditWidgetNoDefaultValue));
 	VariableToInlineWidgetFunc.Add(UCadenceVariableTrigger::StaticClass()->GetFName(),
 	FVariableCreateInlineWidgetFunc::CreateStatic(&FCadenceVariableInlineWidgetFunctions::CreateInlineEditWidgetNoDefaultValue));

@@ -15,6 +15,9 @@
 
 TSharedPtr<SGraphPin> FCadenceGraphEditorPanelPinFactory::CreatePin(UEdGraphPin* InPin) const
 {
+	if (InPin->PinType.IsArray())
+		return SNew(SGraphPin, InPin);
+	
 	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Exec)	
 		return SNew(SGraphPinExec, InPin);	
 

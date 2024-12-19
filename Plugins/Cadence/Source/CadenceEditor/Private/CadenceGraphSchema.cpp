@@ -121,7 +121,14 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 		UCadenceGraphNodePin* RuntimePinA = A->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeA->GetInputPin(A->PinName) : RuntimeNodeA->GetOutputPin(A->PinName);
 		UCadenceGraphNodePin* RuntimePinB = B->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeB->GetInputPin(B->PinName) : RuntimeNodeB->GetOutputPin(B->PinName);
 
-		if(RuntimePinA && RuntimePinB && !RuntimePinA->GetVariableClass()->IsChildOf(RuntimePinB->GetVariableClass()) && !RuntimePinB->GetVariableClass()->IsChildOf(RuntimePinA->GetVariableClass()))
+		TSubclassOf<UCadenceVariable> RuntimePinAVarClass = RuntimePinA->GetVariableClass();
+		TSubclassOf<UCadenceVariable> RuntimePinBVarClass = RuntimePinB->GetVariableClass();
+		
+		if(RuntimePinA && RuntimePinB
+			&& IsValid(RuntimePinAVarClass) // If null/invalid, it's a wildcard and can be connected to anything, including other wildcards (for now) 
+			&& IsValid(RuntimePinBVarClass) // If null/invalid, it's a wildcard and can be connected to anything, including other wildcards (for now)
+			&& !RuntimePinAVarClass->IsChildOf(RuntimePinB->GetVariableClass())
+			&& !RuntimePinBVarClass->IsChildOf(RuntimePinA->GetVariableClass()))
 		{
 			return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Pins must be of same type or convertible!"));
 		}

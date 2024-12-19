@@ -17,10 +17,18 @@ class CADENCE_API UCadenceGraphNodePin : public UObject
 public:
 	const TArray<TObjectPtr<UCadenceGraphNodePin>>& GetConnectedPins() const { return ConnectedPins; }
 	void SetConnectedPins(TArray<TObjectPtr<UCadenceGraphNodePin>> InPins) { ConnectedPins = InPins; }
+
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnPinConnection, UCadenceGraphNodePin* InPin);
+	DECLARE_MULTICAST_DELEGATE(FOnConnectionsCleared);
 	
 	void ConnectPin(UCadenceGraphNodePin* InPin);	
 	void DisconnectPin(UCadenceGraphNodePin* InPin);
 	void ClearConnections();
+
+	FOnPinConnection OnPinConnected;
+	FOnPinConnection OnPinDisconnected;
+	FOnConnectionsCleared OnConnectionsCleared;
+	
 	void PruneConnections();
 	bool HasConnections() const { return ConnectedPins.Num() > 0; }
 
@@ -44,10 +52,12 @@ public:
 	void SetIsExec(const bool& InIsExec) { bIsExec = InIsExec; }
 	
 	TSubclassOf<UCadenceVariable> GetVariableClass() const { return VariableClass; }
-	void SetVariableClass(const TSubclassOf<UCadenceVariable>& InVariableClass) { VariableClass = InVariableClass; }
+	void SetVariableClass(const TSubclassOf<UCadenceVariable>& InVariableClass);
 
 	template<typename T = UCadenceVariable>
 	T* GetVariable(bool AutoCreate = true);
+
+	void SetVariable(UCadenceVariable* InVariable);
 
 	template<typename T = UCadenceVariable>
 	T* CreateVariable();

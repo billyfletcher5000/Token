@@ -196,9 +196,9 @@ void UCadenceGraphEditorNode::CreatePinInternal(const EEdGraphPinDirection& InDi
 	{
 		PinCategory = UCadenceGraphSchema::PC_Exec;
 	}
-	else
+	else if(TSubclassOf<UCadenceVariable> VarClass = InPin->GetVariableClass())
 	{
-		UCadenceVariable* CDO = InPin->GetVariableClass()->GetDefaultObject<UCadenceVariable>();
+		UCadenceVariable* CDO = VarClass->GetDefaultObject<UCadenceVariable>();
 		PinCategory = CDO->GetPinCategory();
 		PinSubCategory = CDO->GetPinSubCategory();
 		PinSubCategoryObject = CDO->GetPinSubCategoryObject();
@@ -213,6 +213,10 @@ void UCadenceGraphEditorNode::CreatePinInternal(const EEdGraphPinDirection& InDi
 				PinSubCategoryObject = CDO->GetPinSubCategoryObject();
 			}
 		}
+	}
+	else
+	{
+		PinCategory = UCadenceGraphSchema::PC_Wildcard;
 	}
 	
 	UEdGraphPin* EdPin = CreatePin(

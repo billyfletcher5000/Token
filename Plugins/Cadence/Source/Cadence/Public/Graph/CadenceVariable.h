@@ -83,6 +83,40 @@ private:
 	FGuid GUID;
 };
 
+UCLASS()
+class CADENCE_API UCadenceVariableArray : public UCadenceVariable
+{
+	GENERATED_BODY()
+	
+public:
+	static UCadenceVariableArray* Create(TSubclassOf<UCadenceVariable> InVariableClass, UObject* InOuter);
+	
+	virtual FName GetPinCategory() const override;
+	virtual FName GetPinSubCategory() const override { return FCadencePinSubCategoryConstants::PSC_Array; }
+	virtual FLinearColor GetPinColor() const override;
+
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override;
+	virtual bool IsArray() const override { return true; }	
+
+	TArray<UCadenceVariable*> GetValue() const { return Value; }
+	void SetValue(const TArray<UCadenceVariable*>& InValue);
+
+	TSubclassOf<UCadenceVariable> GetVariableClass() const { return VariableClass; }
+	void SetVariableClass(const TSubclassOf<UCadenceVariable>& InVariableClass);
+
+	int32 GetSize() const { return Value.Num(); }
+	UCadenceVariable* GetElement(const int32& InElementIndex) const;
+	bool AddElement(UCadenceVariable* InVariable);
+	bool RemoveElement(const int32& InElementIndex);
+	void EmptyElements();
+	
+private:
+	UPROPERTY()
+	TArray<UCadenceVariable*> Value;
+
+	UPROPERTY()
+	TSubclassOf<UCadenceVariable> VariableClass;
+};
 
 UCLASS()
 class CADENCE_API UCadenceVariableInt : public UCadenceVariable
@@ -90,7 +124,7 @@ class CADENCE_API UCadenceVariableInt : public UCadenceVariable
 	GENERATED_BODY()
 
 public:
-	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_Integer; }
+	virtual FName GetPinCategory() const override {	return FCadencePinCategoryConstants::PC_Integer; }
 	virtual FLinearColor GetPinColor() const override { return FCadenceVariableColorConstants::VC_Int; }
 
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
@@ -111,8 +145,9 @@ public:
 private:
 	UPROPERTY(EditAnywhere)
 	int32 Value;
-};
 
+	TArray<int32> ValueA;
+};
 
 UCLASS(EditInlineNew)
 class CADENCE_API UCadenceVariableFloat : public UCadenceVariable
@@ -142,7 +177,6 @@ private:
 	UPROPERTY(EditAnywhere)
 	float Value;
 };
-
 
 UCLASS()
 class CADENCE_API UCadenceVariableDouble : public UCadenceVariable
@@ -400,34 +434,6 @@ public:
 private:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UObject> Value;
-};
-
-
-UCLASS()
-class CADENCE_API UCadenceVariableUObjectArray : public UCadenceVariable
-{
-	GENERATED_BODY()
-
-public:
-	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_Object; }
-	virtual FName GetPinSubCategory() const override { return FCadencePinSubCategoryConstants::PSC_Array; }
-	virtual FLinearColor GetPinColor() const override { return FCadenceVariableColorConstants::VC_UObject; }
-
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
-	{
-		UCadenceVariableUObjectArray* CastedVariable = Cast<UCadenceVariableUObjectArray>(OtherVariable);
-		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
-	}
-
-	virtual bool IsArray() const override { return true; }	
-	
-	TArray<TObjectPtr<UObject>> GetValue() const { return Value; }
-	void SetValue(const TArray<TObjectPtr<UObject>>& InValue) { Value = InValue; }
-
-private:
-	UPROPERTY(EditAnywhere)
-	TArray<TObjectPtr<UObject>> Value;
 };
 
 UCLASS()

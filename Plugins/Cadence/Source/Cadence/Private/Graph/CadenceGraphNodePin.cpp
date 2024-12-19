@@ -11,6 +11,8 @@ void UCadenceGraphNodePin::ConnectPin(UCadenceGraphNodePin* InPin)
 	{
 		Modify();
 		ConnectedPins.Add(InPin);
+
+		OnPinConnected.Broadcast(InPin);
 	}
 }
 
@@ -20,17 +22,27 @@ void UCadenceGraphNodePin::DisconnectPin(UCadenceGraphNodePin* InPin)
 	{
 		Modify();
 		ConnectedPins.Remove(InPin);
+
+		OnPinDisconnected.Broadcast(InPin);
+
+		if(ConnectedPins.Num() == 0)
+			OnConnectionsCleared.Broadcast();
 	}
 }
 
 void UCadenceGraphNodePin::ClearConnections()
 {
+	if(ConnectedPins.Num() == 0)
+		return;
+	
 	Modify();
 	
 	for(UCadenceGraphNodePin* OtherPin : ConnectedPins)
 		OtherPin->DisconnectPin(this);
 	
 	ConnectedPins.Empty();
+
+	OnConnectionsCleared.Broadcast();
 }
 
 void UCadenceGraphNodePin::PruneConnections()
@@ -53,5 +65,20 @@ void UCadenceGraphNodePin::PruneConnections()
 void UCadenceGraphNodePin::GenerateGUID()
 {
 	GUID = FGuid::NewGuid();
+}
+
+void UCadenceGraphNodePin::SetVariableClass(const TSubclassOf<UCadenceVariable>& InVariableClass)
+{
+	if(VariableClass != InVariableClass)
+	{
+		VariableClass = InVariableClass;
+		Variable = nullptr;
+	}
+}
+
+void UCadenceGraphNodePin::SetVariable(UCadenceVariable* InVariable)
+{
+	if(InVariable->IsA(VariableClass))
+		Variable = InVariable;
 }
 

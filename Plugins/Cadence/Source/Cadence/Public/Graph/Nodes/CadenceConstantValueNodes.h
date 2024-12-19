@@ -13,9 +13,28 @@ namespace FCadenceConstantValueConstants
 	static constexpr FLinearColor NodeTitleColor = FLinearColor(0.25f, 1.0f, 0.25f);
 }
 
-/**
- * 
- */
+
+UCLASS()
+class CADENCE_API UCadenceConstantValueIntNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateOutputPins() override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+
+	virtual bool IsPure() const override { return true; }
+
+	virtual FText GetNodeTitle() const override;
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Int Constant")); }
+	virtual FText GetNodeCategory() const override { return FCadenceConstantValueConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceConstantValueConstants::NodeTitleColor; }
+	
+private:
+	UPROPERTY(EditAnywhere)
+	int32 Value;
+};
+
 UCLASS()
 class CADENCE_API UCadenceConstantValueFloatNode : public UCadenceGraphNode
 {
@@ -38,7 +57,7 @@ private:
 };
 
 UCLASS()
-class CADENCE_API UCadenceConstantValueIntNode : public UCadenceGraphNode
+class CADENCE_API UCadenceConstantValueStringNode : public UCadenceGraphNode
 {
 	GENERATED_BODY()
 
@@ -49,13 +68,34 @@ public:
 	virtual bool IsPure() const override { return true; }
 
 	virtual FText GetNodeTitle() const override;
-	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Int Constant")); }
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("String Constant")); }
 	virtual FText GetNodeCategory() const override { return FCadenceConstantValueConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceConstantValueConstants::NodeTitleColor; }
 	
 private:
 	UPROPERTY(EditAnywhere)
-	int32 Value;
+	FString Value;
+};
+
+UCLASS()
+class CADENCE_API UCadenceConstantValueStringArrayNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateOutputPins() override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+
+	virtual bool IsPure() const override { return true; }
+
+	virtual FText GetNodeTitle() const override;
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("String Array Constant")); }
+	virtual FText GetNodeCategory() const override { return FCadenceConstantValueConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceConstantValueConstants::NodeTitleColor; }
+	
+private:
+	UPROPERTY(EditAnywhere)
+	TArray<FString> Value;
 };
 
 UCLASS()

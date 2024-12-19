@@ -14,6 +14,7 @@ namespace FCadencePinConstants
 	static const FName Pin_Rotation = TEXT("Rotation");
 
 	static const FName Pin_Value = TEXT("Value");
+	static const FName Pin_Array = TEXT("Array");
 	static const FName Pin_Float = TEXT("Float");
 	static const FName Pin_Int = TEXT("Int");
 	static const FName Pin_Bool = TEXT("Bool");
@@ -36,6 +37,7 @@ namespace FCadencePinConstants
 	
 	static const FName Pin_LoopBody = TEXT("Loop Body");
 	static const FName Pin_Completed = TEXT("Completed");
+	static const FName Pin_ArrayElement = TEXT("Array Element");
 	static const FName Pin_Index = TEXT("Index");
 	static const FName Pin_FirstIndex = TEXT("First Index");
 	static const FName Pin_LastIndex = TEXT("Last Index");
@@ -68,6 +70,7 @@ namespace FCadencePinSubCategoryConstants
 
 namespace FCadenceVariableColorConstants
 {
+	static constexpr FLinearColor VC_Wildcard = FLinearColor(0.4f, 0.4f, 0.4f);
 	static constexpr FLinearColor VC_Int = FLinearColor(0.4f, 0.4f, 1.0f);	
 	static constexpr FLinearColor VC_Float = FLinearColor(0.0f, 1.0f, 0.0f);
 	static constexpr FLinearColor VC_Double = FLinearColor(0.4f, 0.4f, 1.0f); 

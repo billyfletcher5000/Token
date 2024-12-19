@@ -7,6 +7,87 @@
 #include "Actors/CadenceActorLifetime.h"
 #include "Graph/CadenceGraphNode.h"
 
+UCadenceVariableArray* UCadenceVariableArray::Create(TSubclassOf<UCadenceVariable> InVariableClass, UObject* InOuter)
+{
+	UCadenceVariableArray* Array = NewObject<UCadenceVariableArray>(InOuter);
+	Array->VariableClass = InVariableClass;
+	return Array;
+}
+
+FName UCadenceVariableArray::GetPinCategory() const
+{
+	if(IsValid(VariableClass))
+		return VariableClass->GetDefaultObject<UCadenceVariable>()->GetPinCategory();
+
+	return FCadencePinCategoryConstants::PC_Wildcard;
+}
+
+FLinearColor UCadenceVariableArray::GetPinColor() const
+{
+	if(IsValid(VariableClass))
+		return VariableClass->GetDefaultObject<UCadenceVariable>()->GetPinColor();
+
+	return FCadenceVariableColorConstants::VC_Wildcard;
+}
+
+void UCadenceVariableArray::CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext)
+{
+	UCadenceVariableArray* CastedVariable = Cast<UCadenceVariableArray>(OtherVariable);
+	if(ensure(CastedVariable))
+		SetValue(CastedVariable->GetValue());
+}
+
+void UCadenceVariableArray::SetValue(const TArray<UCadenceVariable*>& InValue)
+{
+	Value.Empty();
+	for(UCadenceVariable* Var : InValue)
+	{
+		if(!ensure(Var->IsA(VariableClass)))
+			return;
+		
+		Value.Add(DuplicateObject(Var, this->GetOuter()));
+	}
+}
+
+void UCadenceVariableArray::SetVariableClass(const TSubclassOf<UCadenceVariable>& InVariableClass)
+{
+	if(VariableClass != InVariableClass)
+	{
+		VariableClass = InVariableClass;
+		Value.RemoveAll([&InVariableClass](UCadenceVariable* InVar) { return !InVar->IsA(InVariableClass.Get()); });
+	}
+}
+
+UCadenceVariable* UCadenceVariableArray::GetElement(const int32& InElementIndex) const
+{
+	return Value[InElementIndex];
+}
+
+bool UCadenceVariableArray::AddElement(UCadenceVariable* InVariable)
+{
+	if(ensure(InVariable->IsA(VariableClass)))
+	{
+		Value.Add(DuplicateObject(InVariable, this->GetOuter()));
+		return true;
+	}
+
+	return false;
+}
+
+bool UCadenceVariableArray::RemoveElement(const int32& InElementIndex)
+{
+	if(InElementIndex < 0 || InElementIndex >= Value.Num())
+		return false;
+	
+	Value.RemoveAt(InElementIndex);
+	return true;
+}
+
+void UCadenceVariableArray::EmptyElements()
+{
+	Value.Empty();
+}
+
 void UCadenceVariableInt::SetFromString(const FString& InStringValue)
 {
 	Value = FCString::Atoi(*InStringValue);

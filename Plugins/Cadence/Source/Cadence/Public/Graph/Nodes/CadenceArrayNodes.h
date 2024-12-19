@@ -1,0 +1,39 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Graph/CadenceGraphNode.h"
+#include "UObject/Object.h"
+#include "CadenceArrayNodes.generated.h"
+
+namespace FCadenceArrayConstants
+{
+	static const FText NodeCategory = FText::FromString(TEXT("Array"));
+	static constexpr FLinearColor NodeTitleColor = FLinearColor(1.0f, 0.8f, 0.9f);
+}
+
+UCLASS()
+class CADENCE_API UCadenceForEachNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+
+public:
+	virtual void CreateInputPins() override;
+	virtual void CreateOutputPins() override;
+	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+	
+	virtual bool ShouldCreateThenExecPin() const override { return false; }
+	virtual TArray<UCadenceGraphNodePin*> GetActuatingOutputExecPins() const override;
+	
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("For Each")); }
+	virtual FText GetNodeCategory() const override { return FCadenceArrayConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceArrayConstants::NodeTitleColor; }
+
+private:	
+	void OnInputPinConnected(UCadenceGraphNodePin* CadenceGraphNodePin);
+	void OnInputPinConnectionsCleared();
+	
+	TWeakObjectPtr<UCadenceGraphNodePin> CurrentActuatingOutputExecPin = nullptr;
+	TMap<UCadenceGraphRunnerPathway*, int32> PathwayToIndex;
+};

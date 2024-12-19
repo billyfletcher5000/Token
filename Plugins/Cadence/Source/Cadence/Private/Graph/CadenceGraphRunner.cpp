@@ -3,11 +3,13 @@
 
 #include "Graph/CadenceGraphRunner.h"
 
+#include "Cadence.h"
 #include "CadenceContext.h"
 #include "Graph/CadenceGraph.h"
 #include "Graph/CadenceGraphNode.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "CadenceSubsystem.h"
+#include "Actors/CadenceActorLifetime.h"
 #include "Graph/CadenceVariable.h"
 #include "Graph/Nodes/CadenceRerouteNodes.h"
 
@@ -182,7 +184,9 @@ void UCadenceGraphRunnerPathway::ExecuteCurrentNode(UCadenceContext* InContext)
 					SetCurrentNode(InContext, NextNodePins[0]->GetParentNode());
 				}
 				else
-				{				
+				{
+					// We early propagate here as it seems inadvisable to have new pathways backtrack for any reason
+					PropagateOutputPinsToInputPins(CurrentNode, InContext);
 					InContext->Runner->RequestAdditionalPathway(NextNodePins[NodeIndex]->GetParentNode(), Context->bProcessNodesImmediately, InContext->DeltaSeconds);
 				}
 			}

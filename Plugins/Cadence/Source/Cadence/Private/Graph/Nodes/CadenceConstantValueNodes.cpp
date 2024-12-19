@@ -7,6 +7,28 @@
 #include "Graph/CadencePinConstants.h"
 #include "Graph/CadenceVariable.h"
 
+FText UCadenceConstantValueIntNode::GetNodeTitle() const
+{
+	return FText::FromString(FString::FromInt(Value));
+}
+
+void UCadenceConstantValueIntNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+	AddOutputVariablePin(FCadencePinConstants::Pin_Int, UCadenceVariableInt::StaticClass());
+}
+
+ECadenceNodeExecuteResult UCadenceConstantValueIntNode::Execute(UCadenceContext* InContext)
+{
+	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Int);
+	ensure(Pin);
+
+	UCadenceVariableInt* Variable = Pin->GetVariable<UCadenceVariableInt>();
+	Variable->SetValue(Value);
+	
+	return ECadenceNodeExecuteResult::Complete;
+}
+
 FText UCadenceConstantValueFloatNode::GetNodeTitle() const
 {
 	return FText::FromString(FString::SanitizeFloat(Value));
@@ -29,26 +51,60 @@ ECadenceNodeExecuteResult UCadenceConstantValueFloatNode::Execute(UCadenceContex
 	return ECadenceNodeExecuteResult::Complete;
 }
 
-FText UCadenceConstantValueIntNode::GetNodeTitle() const
-{
-	return FText::FromString(FString::FromInt(Value));
-}
-
-void UCadenceConstantValueIntNode::CreateOutputPins()
+void UCadenceConstantValueStringNode::CreateOutputPins()
 {
 	Super::CreateOutputPins();
-	AddOutputVariablePin(FCadencePinConstants::Pin_Int, UCadenceVariableInt::StaticClass());
+	AddOutputVariablePin(FCadencePinConstants::Pin_String, UCadenceVariableString::StaticClass());
 }
 
-ECadenceNodeExecuteResult UCadenceConstantValueIntNode::Execute(UCadenceContext* InContext)
+ECadenceNodeExecuteResult UCadenceConstantValueStringNode::Execute(UCadenceContext* InContext)
 {
-	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Int);
+	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_String);
 	ensure(Pin);
 
-	UCadenceVariableInt* Variable = Pin->GetVariable<UCadenceVariableInt>();
+	UCadenceVariableString* Variable = Pin->GetVariable<UCadenceVariableString>();
 	Variable->SetValue(Value);
 	
 	return ECadenceNodeExecuteResult::Complete;
+}
+
+FText UCadenceConstantValueStringNode::GetNodeTitle() const
+{
+	return FText::FromString(Value);
+}
+
+void UCadenceConstantValueStringArrayNode::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+	UCadenceGraphNodePin* Pin = AddOutputVariablePin(FCadencePinConstants::Pin_Array, UCadenceVariableArray::StaticClass());
+	
+	UCadenceVariableArray* ArrayVariable = UCadenceVariableArray::Create(UCadenceVariableString::StaticClass(), Pin);
+	Pin->SetVariable(ArrayVariable);
+}
+
+ECadenceNodeExecuteResult UCadenceConstantValueStringArrayNode::Execute(UCadenceContext* InContext)
+{
+	UCadenceGraphNodePin* Pin = GetOutputPin(FCadencePinConstants::Pin_Array);
+	ensure(Pin);
+
+	UCadenceVariableArray* ArrayVariable = Pin->GetVariable<UCadenceVariableArray>(false);
+	ensure(ArrayVariable);
+
+	ArrayVariable->EmptyElements();
+
+	for(FString& String : Value)
+	{
+		UCadenceVariableString* StringVariable = NewObject<UCadenceVariableString>(ArrayVariable);
+		StringVariable->SetValue(String);
+		ArrayVariable->AddElement(StringVariable);
+	}
+	
+	return ECadenceNodeExecuteResult::Complete;
+}
+
+FText UCadenceConstantValueStringArrayNode::GetNodeTitle() const
+{
+	return FText::FromString("StrArray");
 }
 
 void UCadenceConstantValueBoolNode::CreateOutputPins()

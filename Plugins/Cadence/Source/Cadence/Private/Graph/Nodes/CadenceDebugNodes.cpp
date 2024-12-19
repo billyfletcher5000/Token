@@ -3,6 +3,7 @@
 
 #include "Graph/Nodes/CadenceDebugNodes.h"
 
+#include "Cadence.h"
 #include "CadenceContext.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadenceGraphRunner.h"
