@@ -8,7 +8,7 @@
 void UCadenceForEachNode::CreateInputPins()
 {
 	Super::CreateInputPins();
-	AddInputVariableWildcardArrayPin(FCadencePinConstants::Pin_Array, 0, true);
+	AddInputVariableWildcardArrayPin(FCadencePinConstants::Pin_Array, 0);
 }
 
 void UCadenceForEachNode::CreateOutputPins()
@@ -84,8 +84,8 @@ ECadenceNodeExecuteResult UCadenceArraySizeNode::Execute(UCadenceContext* InCont
 void UCadenceArrayFindIndexNode::CreateInputPins()
 {
 	Super::CreateInputPins();
-	AddInputVariableWildcardArrayPin(FCadencePinConstants::Pin_Array, 0, true);
-	AddInputVariableWildcardPin(FCadencePinConstants::Pin_Item, 0, false);
+	AddInputVariableWildcardArrayPin(FCadencePinConstants::Pin_Array, 0);
+	AddInputVariableWildcardPin(FCadencePinConstants::Pin_Item, 0);
 }
 
 void UCadenceArrayFindIndexNode::CreateOutputPins()

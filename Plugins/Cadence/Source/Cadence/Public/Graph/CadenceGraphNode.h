@@ -32,6 +32,7 @@ class CADENCE_API UCadenceGraphNode : public UObject
 	GENERATED_BODY()
 	
 public:
+	virtual void PostLoad() override;
 	void GenerateGUID();
 	
 	virtual FText GetNodeTitle() const { return GetNodeMenuName(); }
@@ -82,20 +83,23 @@ public:
 #if WITH_EDITOR
 	virtual bool CanBeAutoCreated() const { return true; }
 	virtual bool DoesSupportEditorValuePropagation() const { return false; }
+
+	bool HasAnyPinsWithWildcard(const int32& InWildcardId);
+	TArray<UCadenceGraphNodePin*> GetPinsWithWildcard(const int32& InWildcardId);
 #endif
 	
 protected:
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputExecPin(const FName& InPinName);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputExecPin(const FName& InPinName);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
-	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId = -1, const bool& InIsMaster = true);
-	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId = -1, const bool& InIsMaster = true);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const bool& bInOptional = false);
-	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId = -1);
-	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId = -1);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId);
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateExecPin(const FName& InPinName);	
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
-	virtual TObjectPtr<UCadenceGraphNodePin> CreateVariableWildcardPin(const FName& InPinName, const int32& InWildcardId = -1, const bool& InIsMaster = false, const bool InIsArray = false);
+	virtual TObjectPtr<UCadenceGraphNodePin> CreateVariableWildcardPin(const FName& InPinName, const int32& InWildcardId, const bool InIsArray = false);
 	virtual bool RemoveInputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
 	virtual bool RemoveOutputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
 	virtual void RemoveAllInputPins();
@@ -125,8 +129,9 @@ protected:
 private:
 	static TObjectPtr<UCadenceGraphNodePin> GetPinFromArray(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName);
 
-	void OnPinConnectedToWildcardMaster(UCadenceGraphNodePin* InConnectedPin, UCadenceGraphNodePin* InMasterPin);
-	void OnPinConnectionsClearedFromWildcardMaster(UCadenceGraphNodePin* InMasterPin);
+	void RebuildAndValidateWildcardToVariableClass();
+	void OnPinConnectedToWildcardPin(UCadenceGraphNodePin* InConnectedPin, UCadenceGraphNodePin* InWildcardPin);
+	void OnPinConnectionsClearedFromWildcardPin(UCadenceGraphNodePin* InWildcardPin);
 	
 public:
 	UPROPERTY()
@@ -148,6 +153,5 @@ private:
 	UPROPERTY(EditAnywhere)
 	FString DebugName;
 
-	UPROPERTY()
-	TMap<int32, TObjectPtr<UCadenceGraphNodePin>> WildcardIdToMasterPin;
+	TMap<int32, UClass*> WildcardIdToVariableClass;
 };
