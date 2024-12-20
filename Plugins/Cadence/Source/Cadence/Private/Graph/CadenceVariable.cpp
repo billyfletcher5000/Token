@@ -37,6 +37,27 @@ void UCadenceVariableArray::CopyValueFrom(UCadenceVariable* OtherVariable, UCade
 		SetValue(CastedVariable->GetValue());
 }
 
+bool UCadenceVariableArray::Equals(UCadenceVariable* OtherVariable)
+{
+	UCadenceVariableArray* CastedVariable = Cast<UCadenceVariableArray>(OtherVariable);
+	if(ensure(CastedVariable))
+	{
+		TArray<UCadenceVariable*>& OtherArray = CastedVariable->Value;
+		if(Value.Num() != OtherArray.Num())
+			return false;
+
+		for(int Index = 0; Index < Value.Num(); ++Index)
+		{
+			if(!Value[Index]->Equals(OtherArray[Index]))
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 void UCadenceVariableArray::SetValue(const TArray<UCadenceVariable*>& InValue)
 {
 	Value.Empty();
@@ -63,15 +84,47 @@ UCadenceVariable* UCadenceVariableArray::GetElement(const int32& InElementIndex)
 	return Value[InElementIndex];
 }
 
-bool UCadenceVariableArray::AddElement(UCadenceVariable* InVariable)
+int32 UCadenceVariableArray::GetIndexOfElement(UCadenceVariable* InVariable) const
 {
-	if(ensure(InVariable->IsA(VariableClass)))
+	int32 ItemIndex = INDEX_NONE;
+	int32 ArraySize = GetSize();
+	for(int32 Index = 0; Index < ArraySize; ++Index)
 	{
-		Value.Add(DuplicateObject(InVariable, this->GetOuter()));
-		return true;
+		UCadenceVariable* ArrayElement = GetElement(Index);
+		if(ensure(ArrayElement->IsA(InVariable->GetClass())))
+		{
+			if(ArrayElement->Equals(InVariable))
+			{
+				ItemIndex = Index;
+				break;
+			}
+		}
 	}
 
-	return false;
+	return ItemIndex;
+}
+
+bool UCadenceVariableArray::ContainsElement(UCadenceVariable* InVariable) const
+{
+	return GetIndexOfElement(InVariable) != INDEX_NONE;
+}
+
+int32 UCadenceVariableArray::AddElement(UCadenceVariable* InVariable)
+{
+	if(ensure(InVariable->IsA(VariableClass)))
+		return Value.Add(DuplicateObject(InVariable, this->GetOuter()));
+
+	return INDEX_NONE;
+}
+
+int32 UCadenceVariableArray::RemoveElement(UCadenceVariable* InVariable)
+{
+	int32 RemovalCount = Value.RemoveAll([&InVariable] (UCadenceVariable* InArrayVariable)
+	{
+		return InArrayVariable->Equals(InVariable);
+	});
+
+	return RemovalCount;
 }
 
 bool UCadenceVariableArray::RemoveElement(const int32& InElementIndex)
@@ -176,6 +229,15 @@ void UCadenceVariableName::SetFromString(const FString& InStringValue)
 FString UCadenceVariableName::ConvertToValueString() const
 {
 	return Value.ToString();
+}
+
+bool UCadenceVariableText::Equals(UCadenceVariable* OtherVariable)
+{	
+	UCadenceVariableText* CastedVariable = Cast<UCadenceVariableText>(OtherVariable);
+	if(ensure(CastedVariable))
+		return CastedVariable->GetValue().EqualTo(GetValue());
+
+	return false;
 }
 
 void UCadenceVariableText::SetFromString(const FString& InStringValue)

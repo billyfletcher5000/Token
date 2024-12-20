@@ -42,6 +42,9 @@ namespace FCadencePinConstants
 	static const FName Pin_FirstIndex = TEXT("First Index");
 	static const FName Pin_LastIndex = TEXT("Last Index");
 	static const FName Pin_Item = TEXT("Item");
+	static const FName Pin_Size = TEXT("Size");
+	static const FName Pin_Unique = TEXT("Unique");
+	static const FName Pin_Removed = TEXT("Removed");
 }
 
 namespace FCadencePinCategoryConstants

@@ -41,6 +41,8 @@ class CADENCE_API UCadenceArraySizeNode : public UCadenceGraphNode
 	GENERATED_BODY()
 
 public:
+	virtual bool IsPure() const override { return true; }
+	
 	virtual void CreateInputPins() override;
 	virtual void CreateOutputPins() override;
 	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
@@ -56,6 +58,8 @@ class CADENCE_API UCadenceArrayFindIndexNode : public UCadenceGraphNode
 	GENERATED_BODY()
 
 public:
+	virtual bool IsPure() const override { return true; }
+	
 	virtual void CreateInputPins() override;
 	virtual void CreateOutputPins() override;
 	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
@@ -71,6 +75,8 @@ class CADENCE_API UCadenceArrayContainsNode : public UCadenceGraphNode
 	GENERATED_BODY()
 
 public:
+	virtual bool IsPure() const override { return true; }
+	
 	virtual void CreateInputPins() override;
 	virtual void CreateOutputPins() override;
 	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;

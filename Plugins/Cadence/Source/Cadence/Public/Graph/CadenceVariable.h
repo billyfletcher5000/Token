@@ -25,7 +25,8 @@ public:
 	virtual FLinearColor GetPinColor() const PURE_VIRTUAL(UCadenceVariable::GetPinSubCategory, return FLinearColor::White;);
 	virtual FName GetDisplayName() const { return GetPinSubCategory(); }
 	
-	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) PURE_VIRTUAL();
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) PURE_VIRTUAL();	
+	virtual bool Equals(UCadenceVariable* OtherVariable) PURE_VIRTUAL(UCadenceVariable::Equals, return false;);
 
 	// Called when a variable's parent node, if it has one, is complete and has transferred data from this variable to others
 	virtual void OnParentNodeReleased(UCadenceContext* InContext) {}
@@ -69,6 +70,16 @@ public:
 	}
 
 protected:
+	template<typename T>
+	static bool EqualsHelper(T* ThisVariable, UCadenceVariable* OtherVariable)
+	{
+		T* CastedVariable = Cast<T>(OtherVariable);
+		if(ensure(CastedVariable))
+			return CastedVariable->GetValue() == ThisVariable->GetValue();
+
+		return false;
+	}
+	
 	UPROPERTY()
 	FName UserVariableName = NAME_None;
 
@@ -96,6 +107,8 @@ public:
 	virtual FLinearColor GetPinColor() const override;
 
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override;
+	virtual bool Equals(UCadenceVariable* OtherVariable) override;
+	
 	virtual bool IsArray() const override { return true; }	
 
 	TArray<UCadenceVariable*> GetValue() const { return Value; }
@@ -106,7 +119,10 @@ public:
 
 	int32 GetSize() const { return Value.Num(); }
 	UCadenceVariable* GetElement(const int32& InElementIndex) const;
-	bool AddElement(UCadenceVariable* InVariable);
+	int32 GetIndexOfElement(UCadenceVariable* InVariable) const;
+	bool ContainsElement(UCadenceVariable* InVariable) const;
+	int32 AddElement(UCadenceVariable* InVariable);
+	int32 RemoveElement(UCadenceVariable* InVariable);
 	bool RemoveElement(const int32& InElementIndex);
 	void EmptyElements();
 	
@@ -133,6 +149,11 @@ public:
 		if(ensure(CastedVariable))
 			Value = CastedVariable->GetValue();
 	}
+	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
+	}
 
 	int32 GetValue() const { return Value; }
 	void SetValue(const int32& InValue) { Value = InValue; }
@@ -145,8 +166,6 @@ public:
 private:
 	UPROPERTY(EditAnywhere)
 	int32 Value;
-
-	TArray<int32> ValueA;
 };
 
 UCLASS(EditInlineNew)
@@ -163,6 +182,11 @@ public:
 		UCadenceVariableFloat* CastedVariable = Cast<UCadenceVariableFloat>(OtherVariable);
 		if(ensure(CastedVariable))
 			Value = CastedVariable->GetValue();
+	}
+	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
 	}
 	
 	float GetValue() const { return Value; }
@@ -194,6 +218,11 @@ public:
 			Value = CastedVariable->GetValue();
 	}
 	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
+	}
+	
 	double GetValue() const { return Value; }
 	void SetValue(const double& InValue) { Value = InValue; }
 
@@ -223,6 +252,11 @@ public:
 			Value = CastedVariable->GetValue();
 	}
 	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
+	}
+	
 	bool GetValue() const { return Value; }
 	void SetValue(const bool& InValue) { Value = InValue; }
 
@@ -250,6 +284,11 @@ public:
 		UCadenceVariableVector* CastedVariable = Cast<UCadenceVariableVector>(OtherVariable);
 		if(ensure(CastedVariable))
 			Value = CastedVariable->GetValue();
+	}
+	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
 	}
 	
 	FVector GetValue() const { return Value; }
@@ -283,6 +322,11 @@ public:
 			Value = CastedVariable->GetValue();
 	}
 	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
+	}
+	
 	FVector2D GetValue() const { return Value; }
 	void SetValue(const FVector2D& InValue) { Value = InValue; }
 
@@ -310,6 +354,11 @@ public:
 		UCadenceVariableRotator* CastedVariable = Cast<UCadenceVariableRotator>(OtherVariable);
 		if(ensure(CastedVariable))
 			Value = CastedVariable->GetValue();
+	}
+	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
 	}
 	
 	FRotator GetValue() const { return Value; }
@@ -341,6 +390,11 @@ public:
 			Value = CastedVariable->GetValue();
 	}
 	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
+	}
+	
 	FString GetValue() const { return Value; }
 	void SetValue(const FString& InValue) { Value = InValue; }
 
@@ -368,6 +422,11 @@ public:
 		UCadenceVariableName* CastedVariable = Cast<UCadenceVariableName>(OtherVariable);
 		if(ensure(CastedVariable))
 			Value = CastedVariable->GetValue();
+	}
+	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
 	}
 	
 	FName GetValue() const { return Value; }
@@ -399,6 +458,8 @@ public:
 			Value = CastedVariable->GetValue();
 	}
 	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override;
+	
 	FText GetValue() const { return Value; }
 	void SetValue(const FText& InValue) { Value = InValue; }
 
@@ -428,6 +489,11 @@ public:
 			Value = CastedVariable->GetValue();
 	}
 	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
+	}
+	
 	TObjectPtr<UObject> GetValue() const { return Value; }
 	void SetValue(const TObjectPtr<UObject>& InValue) { Value = InValue; }
 
@@ -452,6 +518,11 @@ public:
 		UCadenceVariableEnum* CastedVariable = Cast<UCadenceVariableEnum>(OtherVariable);
 		if(ensure(CastedVariable))
 			Value = CastedVariable->GetValue();
+	}
+	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
 	}
 
 	virtual bool IsEnum() const override { return true; }
@@ -500,6 +571,11 @@ public:
 	virtual FLinearColor GetPinColor() const override { return FCadenceVariableColorConstants::VC_Actor; }
 
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override;
+	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
+	}
 
 	virtual void OnParentNodeReleased(UCadenceContext* InContext) override;
 	
@@ -525,6 +601,11 @@ public:
 		UCadenceVariableTrigger* CastedVariable = Cast<UCadenceVariableTrigger>(OtherVariable);
 		if(ensure(CastedVariable))
 			Value = CastedVariable->GetValue();
+	}
+	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
 	}
 	
 	TObjectPtr<UCadenceTriggerData> GetValue() const { return Value; }
