@@ -137,8 +137,8 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 		if(RuntimePinA && RuntimePinB
 			&& IsValid(RuntimePinAVarClass) // If null/invalid, it's a wildcard and can be connected to anything, including other wildcards (for now) 
 			&& IsValid(RuntimePinBVarClass) // If null/invalid, it's a wildcard and can be connected to anything, including other wildcards (for now)
-			&& !RuntimePinAVarClass->IsChildOf(RuntimePinB->GetVariableClass())
-			&& !RuntimePinBVarClass->IsChildOf(RuntimePinA->GetVariableClass()))
+			&& !RuntimePinAVarClass->IsChildOf(RuntimePinBVarClass)
+			&& !RuntimePinBVarClass->IsChildOf(RuntimePinAVarClass))
 		{
 			return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Pins must be of same type or convertible!"));
 		}

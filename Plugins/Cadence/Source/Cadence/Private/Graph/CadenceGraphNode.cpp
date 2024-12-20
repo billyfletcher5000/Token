@@ -444,7 +444,8 @@ void UCadenceGraphNode::OnPinConnectionsClearedFromWildcardPin(UCadenceGraphNode
 		}
 	};
 	
-	Algo::ForEach(AllWildcardPins, SetClassLambda);
+	Algo::ForEach(AllWildcardPins, SetClassLambda);	
+	WildcardIdToVariableClass.Remove(WildcardId);
 
 #if WITH_EDITOR
 	GetParentGraph()->NotifyPinTypesChanged();
