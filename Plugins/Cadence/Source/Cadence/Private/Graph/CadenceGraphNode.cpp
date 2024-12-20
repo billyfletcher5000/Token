@@ -10,7 +10,7 @@
 
 void UCadenceGraphNode::PostLoad()
 {
-	UObject::PostInitProperties();
+	UObject::PostLoad();
 	RebuildAndValidateWildcardToVariableClass();
 }
 
