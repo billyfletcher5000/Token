@@ -107,7 +107,7 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 	const FName PinACategory = A->PinType.PinCategory;
 	const FName PinBCategory = B->PinType.PinCategory;
 	
-	if (PinACategory != PinBCategory)
+	if (PinACategory != PinBCategory && PinACategory != PC_Wildcard && PinBCategory != PC_Wildcard)
 		return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Pins must be of same type or convertible!"));
 
 	if (IsVariablePinCategory(PinACategory) || IsVariablePinCategory(PinBCategory))
@@ -123,24 +123,16 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 
 		TSubclassOf<UCadenceVariable> RuntimePinAVarClass = RuntimePinA->GetVariableClass();
 		TSubclassOf<UCadenceVariable> RuntimePinBVarClass = RuntimePinB->GetVariableClass();
-
-		UClass* RuntimePinASubClass = nullptr;
-		UClass* RuntimePinBSubClass = nullptr;
 		
-		if(RuntimePinA->GetVariableClass() == UCadenceVariableArray::StaticClass())
+		if(RuntimePinA->GetVariableClass() == UCadenceVariableArray::StaticClass()
+			&& RuntimePinB->GetVariableClass() == UCadenceVariableArray::StaticClass())
 		{
 			if(UCadenceVariableArray* ArrayVariable = Cast<UCadenceVariableArray>(RuntimePinA->GetVariable()))			
-				RuntimePinASubClass = ArrayVariable->GetVariableClass();			
-		}
-
-		if(RuntimePinB->GetVariableClass() == UCadenceVariableArray::StaticClass())
-		{
+				RuntimePinAVarClass = ArrayVariable->GetVariableClass();
+			
 			if(UCadenceVariableArray* ArrayVariable = Cast<UCadenceVariableArray>(RuntimePinB->GetVariable()))			
-				RuntimePinBSubClass = ArrayVariable->GetVariableClass();			
+				RuntimePinBVarClass = ArrayVariable->GetVariableClass();
 		}
-
-		if(RuntimePinASubClass != RuntimePinBSubClass && IsValid(RuntimePinASubClass) && IsValid(RuntimePinBSubClass))
-			return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Arrays must be of same type or convertible!"));			
 		
 		if(RuntimePinA && RuntimePinB
 			&& IsValid(RuntimePinAVarClass) // If null/invalid, it's a wildcard and can be connected to anything, including other wildcards (for now) 

@@ -143,6 +143,12 @@ void FCadenceGraphApplication::ChangeVariableType(UCadenceVariable* InVar, UCade
 
 void FCadenceGraphApplication::Refresh()
 {
+	for (UEdGraphNode* Node : WorkingGraphEditor->Nodes)
+	{
+		UCadenceGraphEditorNode* CadenceNode = Cast<UCadenceGraphEditorNode>(Node);
+		CadenceNode->UpdateRuntimePosition();
+	}
+	
 	WorkingGraphEditor->Nodes.Empty();
 	ReconstructEditorGraph();
 }
