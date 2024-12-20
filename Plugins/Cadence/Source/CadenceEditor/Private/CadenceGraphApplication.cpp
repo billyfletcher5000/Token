@@ -43,6 +43,8 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 		WorkingAsset->CreateGraph();
 	}
 
+	WorkingAsset->GetGraph()->OnPinTypesChanged.AddRaw(this, &FCadenceGraphApplication::Refresh);
+
 	PreSaveDelegateHandle = WorkingAsset->OnPreSaveDelegate.AddRaw(this, &FCadenceGraphApplication::OnWorkingAssetPreSave);
 
 	if(!WorkingGraphEditor)
