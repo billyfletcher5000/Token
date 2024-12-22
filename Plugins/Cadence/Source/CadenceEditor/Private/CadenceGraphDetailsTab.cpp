@@ -288,6 +288,8 @@ void SCadenceGraphVariablesTabWidget::Construct(const FArguments& InArgs, TWeakP
 	bNeedsRefresh = false;
 
 	ApplicationPtr = InGraphApplication;
+	ApplicationPtr.Pin()->OnRefresh.AddSP(this, &SCadenceGraphVariablesTabWidget::Refresh);
+	
 	EdGraph = nullptr;
 	
 	TSharedPtr<SWidget> ToolbarBuilderWidget = TSharedPtr<SWidget>();
@@ -1029,7 +1031,6 @@ void SCadenceGraphVariablesTabWidget::OnAddNewVariable()
 		App->SetLastUsedVariableClass(LastChosenVariableClass);
 
 	App->Refresh();
-	Refresh();
 }
 
 bool SCadenceGraphVariablesTabWidget::CanAddNewVariable() const

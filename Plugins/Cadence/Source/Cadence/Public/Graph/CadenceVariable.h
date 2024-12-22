@@ -13,7 +13,7 @@ class UCadenceTriggerData;
 /**
  * 
  */
-UCLASS(Abstract)
+UCLASS(Abstract, EditInlineNew)
 class CADENCE_API UCadenceVariable : public UObject
 {
 	GENERATED_BODY()
@@ -127,7 +127,7 @@ public:
 	void EmptyElements();
 	
 private:
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	TArray<UCadenceVariable*> Value;
 
 	UPROPERTY()
@@ -236,7 +236,7 @@ private:
 	double Value;
 };
 
-UCLASS()
+UCLASS(EditInlineNew)
 class CADENCE_API UCadenceVariableBool : public UCadenceVariable
 {
 	GENERATED_BODY()

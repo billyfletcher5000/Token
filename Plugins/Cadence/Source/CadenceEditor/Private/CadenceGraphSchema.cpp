@@ -496,8 +496,19 @@ UClass* UCadenceGraphSchema::ChangeVariableType(UCadenceVariable* InVar, UCadenc
 		return nullptr; // TODO: Error	
 	
 	UClass* NewVariableType = GetVariableClassFromPinType(InEdGraphPinType);
-	UCadenceVariable* NewVariable = NewObject<UCadenceVariable>(InGraph, NewVariableType);
+	UCadenceVariable* NewVariable = nullptr;
 
+	if(InEdGraphPinType.IsArray())
+	{
+		UCadenceVariableArray* ArrayVariable = NewObject<UCadenceVariableArray>(InGraph);
+		ArrayVariable->SetVariableClass(NewVariableType);
+		NewVariable = ArrayVariable;
+	}
+	else
+	{
+		NewVariable = NewObject<UCadenceVariable>(InGraph, NewVariableType);
+	}
+	
 	NewVariable->SetUserVariableName(InVar->GetUserVariableName());
 
 	for(UCadenceGraphNode* Node : InGraph->Nodes)

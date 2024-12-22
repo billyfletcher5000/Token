@@ -11,6 +11,7 @@
 #include "CadenceGraphEditorNode.h"
 #include "CadenceGraphEditorRerouteNode.h"
 #include "CadenceGraphSchema.h"
+#include "CadencePalette.h"
 #include "CadenceSequencerSectionNameCustomization.h"
 #include "EdGraphUtilities.h"
 #include "Framework/Commands/GenericCommands.h"
@@ -130,9 +131,8 @@ bool FCadenceGraphApplication::InEditingMode() const
 	return true;
 }
 
-void FCadenceGraphApplication::ChangeVariableType(UCadenceVariable* InVar, UCadenceAsset* InAsset, const FEdGraphPinType& InNewPinType)
+void FCadenceGraphApplication::ChangeVariableType(UCadenceVariable* InVar, const FEdGraphPinType& InNewPinType)
 {
-	check(GetWorkingAsset() == InAsset);
 	const UCadenceGraphSchema* Schema = Cast<UCadenceGraphSchema>(GetWorkingGraphEditor()->GetSchema());
 	if(UClass* UsedVarClass = Schema->ChangeVariableType(InVar, GetWorkingGraph(), GetWorkingGraphEditor(), InNewPinType))
 	{
@@ -151,6 +151,8 @@ void FCadenceGraphApplication::Refresh()
 	
 	WorkingGraphEditor->Nodes.Empty();
 	ReconstructEditorGraph();
+
+	OnRefresh.Broadcast();
 }
 
 void FCadenceGraphApplication::OnToolkitHostingStarted(const TSharedRef<IToolkit>& Toolkit)
@@ -602,6 +604,10 @@ TSharedRef<SWidget> FCadenceGraphNodeDetailsTabFactory::CreateTabBody(const FWor
 
 	DetailsView->RegisterInstancedCustomPropertyTypeLayout(FCadenceSectionName::StaticStruct()->GetFName(),
 	FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceSequencerSectionNameSelectCustomization::MakeInstance, App->GetWorkingGraph() ) );
+	DetailsView->RegisterInstancedCustomPropertyLayout(UCadenceVariable::StaticClass(),
+						  FOnGetDetailCustomizationInstance::CreateStatic(&FCadenceVariableDetailCustomization::MakeInstance, App));
+	DetailsView->RegisterInstancedCustomPropertyLayout(UCadenceVariableArray::StaticClass(),
+						  FOnGetDetailCustomizationInstance::CreateStatic(&FCadenceVariableArrayDetailCustomization::MakeInstance));
 
 	return SNew(SVerticalBox)
 				+ SVerticalBox::Slot()

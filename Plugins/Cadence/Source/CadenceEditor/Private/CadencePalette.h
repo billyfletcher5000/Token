@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "IDetailCustomization.h"
 #include "SGraphPalette.h"
 #include "UObject/Object.h"
 
+class UCadenceVariableArray;
 class UCadenceAsset;
 class FCadenceGraphApplication;
 
@@ -109,3 +111,33 @@ private:
 	TSharedPtr<SWidget> LibraryWrapper;
 };
 
+class FCadenceVariableDetailCustomization : public IDetailCustomization
+{
+public:
+	FCadenceVariableDetailCustomization(TSharedPtr<FCadenceGraphApplication> InApplication) : Application(InApplication) {}
+	static TSharedRef<IDetailCustomization> MakeInstance(TSharedPtr<FCadenceGraphApplication> InApplication);
+	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
+
+protected:
+	TSharedPtr<FCadenceGraphApplication> Application;
+};
+
+class FCadenceVariableArrayDetailCustomization : public IDetailCustomization
+{
+public:
+	static TSharedRef<IDetailCustomization> MakeInstance();
+	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
+
+private:	
+	void OnArrayNumElementsChanged(TWeakObjectPtr<UCadenceVariableArray> InArray, IDetailLayoutBuilder* InDetailBuilder);
+
+	TSharedPtr<IPropertyHandleArray> ArrayHandle;
+};
+
+class FCadenceVariableArrayPropertyCustomization : public IPropertyTypeCustomization
+{
+public:
+	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
+	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+};

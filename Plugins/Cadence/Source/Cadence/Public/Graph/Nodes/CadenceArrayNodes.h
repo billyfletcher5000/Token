@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Graph/CadenceGraphNode.h"
-#include "UObject/Object.h"
 #include "CadenceArrayNodes.generated.h"
 
 namespace FCadenceArrayConstants

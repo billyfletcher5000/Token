@@ -56,9 +56,12 @@ public:
 	UClass* GetLastUsedVariableClass() const { return LastUsedVariableClass; }
 	void SetLastUsedVariableClass(UClass* InClass) { LastUsedVariableClass = InClass; }
 
-	void ChangeVariableType(UCadenceVariable* InVar, UCadenceAsset* InAsset, const FEdGraphPinType& InNewPinType);
+	void ChangeVariableType(UCadenceVariable* InVar, const FEdGraphPinType& InNewPinType);
 
 	void Refresh();
+
+	DECLARE_MULTICAST_DELEGATE(FOnRefresh)
+	FOnRefresh OnRefresh;
 
 public: // FAssetEditorToolkit
 	virtual FName GetToolkitFName() const override { return ToolkitFName; }
