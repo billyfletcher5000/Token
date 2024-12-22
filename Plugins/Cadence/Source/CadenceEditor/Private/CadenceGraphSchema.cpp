@@ -487,7 +487,7 @@ UClass* UCadenceGraphSchema::GetVariableClassFromPinType(const FEdGraphPinType& 
 	return nullptr;
 }
 
-UClass* UCadenceGraphSchema::ChangeVariableType(UCadenceVariable* InVar, UCadenceGraph* InGraph, UCadenceGraphEditor* InEditorGraph, const FEdGraphPinType& InEdGraphPinType) const
+UCadenceVariable* UCadenceGraphSchema::ChangeVariableType(UCadenceVariable* InVar, UCadenceGraph* InGraph, UCadenceGraphEditor* InEditorGraph, const FEdGraphPinType& InEdGraphPinType) const
 {
 	const FScopedTransaction Transaction(*FCadenceEditorCommon::ContextIdentifier, FText::FromString("Change Variable Type"), InGraph);
 	
@@ -522,7 +522,7 @@ UClass* UCadenceGraphSchema::ChangeVariableType(UCadenceVariable* InVar, UCadenc
 	
 	NamedVariable->Variable = NewVariable;
 
-	return NewVariableType;
+	return NewVariable;
 }
 
 UCadenceVariable* UCadenceGraphSchema::AddNewUserVariable(TSubclassOf<UCadenceVariable> InClass, UCadenceGraph* InGraph) const

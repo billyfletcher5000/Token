@@ -133,11 +133,18 @@ bool FCadenceGraphApplication::InEditingMode() const
 
 void FCadenceGraphApplication::ChangeVariableType(UCadenceVariable* InVar, const FEdGraphPinType& InNewPinType)
 {
+	bool ReselectVariable = false;
+	if(SelectedDetailsView.Pin()->GetSelectedObjects().Contains(InVar))
+		ReselectVariable = true;
+	
 	const UCadenceGraphSchema* Schema = Cast<UCadenceGraphSchema>(GetWorkingGraphEditor()->GetSchema());
-	if(UClass* UsedVarClass = Schema->ChangeVariableType(InVar, GetWorkingGraph(), GetWorkingGraphEditor(), InNewPinType))
+	if(UCadenceVariable* NewVariable = Schema->ChangeVariableType(InVar, GetWorkingGraph(), GetWorkingGraphEditor(), InNewPinType))
 	{
-		LastUsedVariableClass = UsedVarClass; 
+		LastUsedVariableClass = NewVariable->GetClass(); 
 		Refresh();
+
+		if(ReselectVariable)
+			SelectedDetailsView.Pin()->SetObject(NewVariable, true);
 	}
 }
 
@@ -243,7 +250,7 @@ void FCadenceGraphApplication::ReconstructEditorGraph()
 			NodeCreator.Finalize();
 		}		
         
-        WorkingGraphEditor->AddNode(Node, true, true);
+        WorkingGraphEditor->AddNode(Node, false, true);
 	}
 
 	// Connect nodes after

@@ -50,9 +50,8 @@ public:
 	void GetVariableTypeTree(TArray<FPinTypeTreeItem>& OutTypeTreeArray, ETypeTreeFilter InTreeFilter) const;
 	UClass* GetVariableClassFromPinType(const FEdGraphPinType& EdGraphPin) const;
 
-	// Returns variable type class used
-	// TODO: Fix whatever this is, it could be an out param but it all feels bad
-	UClass* ChangeVariableType(UCadenceVariable* InVar, UCadenceGraph* InGraph, UCadenceGraphEditor* InEditorGraph, const FEdGraphPinType& InEdGraphPinType) const;
+	// Returns pointer to the variable or its replacement
+	UCadenceVariable* ChangeVariableType(UCadenceVariable* InVar, UCadenceGraph* InGraph, UCadenceGraphEditor* InEditorGraph, const FEdGraphPinType& InEdGraphPinType) const;
 	
 	UCadenceVariable* AddNewUserVariable(TSubclassOf<UCadenceVariable> InClass, UCadenceGraph* InGraph) const;
 	
