@@ -33,7 +33,6 @@ public:
 
 	virtual bool IsArray() const { return false; }
 	virtual bool IsEnum() const  { return false; }
-	virtual TSubclassOf<UCadenceVariable> GetArrayVariableType() const { return nullptr; }
 	
 	virtual bool SupportsDefault() const { return false; }
 	virtual bool CanCreateUserVariableOfType() const { return true; }

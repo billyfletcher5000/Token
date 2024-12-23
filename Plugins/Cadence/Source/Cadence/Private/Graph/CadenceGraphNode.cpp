@@ -215,7 +215,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateExecPin(const FName& I
 	return Pin;
 }
 
-TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const bool InIsArray)
 {	
 	UCadenceGraphNodePin* Pin = NewObject<UCadenceGraphNodePin>(this);
 

@@ -98,7 +98,7 @@ protected:
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId = 0);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId = 0);
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateExecPin(const FName& InPinName);	
-	virtual TObjectPtr<UCadenceGraphNodePin> CreateVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass);
+	virtual TObjectPtr<UCadenceGraphNodePin> CreateVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const bool InIsArray = false);
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateVariableWildcardPin(const FName& InPinName, const int32& InWildcardId, const bool InIsArray = false);
 	virtual bool RemoveInputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);
 	virtual bool RemoveOutputPin(const TObjectPtr<UCadenceGraphNodePin>& InPin);

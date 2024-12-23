@@ -3,6 +3,7 @@
 
 #include "Graph/Nodes/CadenceUserVariableNodes.h"
 
+#include "Cadence.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadencePinConstants.h"
 #include "Graph/CadenceVariable.h"
@@ -10,7 +11,13 @@
 void UCadenceUserVariableGetterNode::CreateOutputPins()
 {
 	Super::CreateOutputPins();
-	AddOutputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable->GetClass());
+	UCadenceGraphNodePin* Pin = AddOutputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable->GetClass());
+	
+	if(UCadenceVariableArray* ArrayVariable = Cast<UCadenceVariableArray>(SourceVariable))
+	{		
+		UCadenceVariableArray* NewArrayVariable = UCadenceVariableArray::Create(ArrayVariable->GetVariableClass(), Pin);
+		Pin->SetVariable(NewArrayVariable);
+	}
 }
 
 ECadenceNodeExecuteResult UCadenceUserVariableGetterNode::Execute(UCadenceContext* InContext)
@@ -48,20 +55,37 @@ void UCadenceUserVariableGetterNode::SetSourceVariable(UCadenceVariable* InVaria
 		{
 			Pin->ClearConnections();
 			Pin->SetVariableClass(InVariable->GetClass());
+			if(UCadenceVariableArray* ArrayVariable = Cast<UCadenceVariableArray>(InVariable))
+			{
+				Pin->GetVariable<UCadenceVariableArray>()->SetVariableClass(ArrayVariable->GetVariableClass());
+			}
 		}
 	}
 }
 
 void UCadenceUserVariableSetterNode::CreateInputPins()
 {
-	Super::CreateInputPins();	
-	AddInputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable->GetClass());
+	Super::CreateInputPins();
+	
+	UCadenceGraphNodePin* Pin = AddInputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable->GetClass());
+	
+	if(UCadenceVariableArray* ArrayVariable = Cast<UCadenceVariableArray>(SourceVariable))
+	{		
+		UCadenceVariableArray* NewArrayVariable = UCadenceVariableArray::Create(ArrayVariable->GetVariableClass(), Pin);
+		Pin->SetVariable(NewArrayVariable);
+	}
 }
 
 void UCadenceUserVariableSetterNode::CreateOutputPins()
 {
 	Super::CreateOutputPins();
-	AddOutputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable->GetClass());
+	UCadenceGraphNodePin* Pin = AddOutputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable->GetClass());
+	
+	if(UCadenceVariableArray* ArrayVariable = Cast<UCadenceVariableArray>(SourceVariable))
+	{		
+		UCadenceVariableArray* NewArrayVariable = UCadenceVariableArray::Create(ArrayVariable->GetVariableClass(), Pin);
+		Pin->SetVariable(NewArrayVariable);
+	}
 }
 
 UCadenceGraphNodePin* UCadenceUserVariableSetterNode::GetVariableInputPin() const
@@ -117,12 +141,20 @@ void UCadenceUserVariableSetterNode::SetSourceVariable(UCadenceVariable* InVaria
 		{
 			Pin->ClearConnections();
 			Pin->SetVariableClass(InVariable->GetClass());
+			if(UCadenceVariableArray* ArrayVariable = Cast<UCadenceVariableArray>(InVariable))
+			{
+				Pin->GetVariable<UCadenceVariableArray>()->SetVariableClass(ArrayVariable->GetVariableClass());
+			}
 		}
 		
 		if(UCadenceGraphNodePin* Pin = GetVariableOutputPin())
 		{
 			Pin->ClearConnections();
 			Pin->SetVariableClass(InVariable->GetClass());
+			if(UCadenceVariableArray* ArrayVariable = Cast<UCadenceVariableArray>(InVariable))
+			{
+				Pin->GetVariable<UCadenceVariableArray>()->SetVariableClass(ArrayVariable->GetVariableClass());
+			}
 		}
 	}
 }
