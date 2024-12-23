@@ -11,7 +11,8 @@
 class UCadenceTriggerData;
 
 /**
- * 
+ * NOTE: If adding a new Variable derivative, you must have your main value property named "Value" or the user variable details view will not be able
+ *		 to appropriately display it within arrays of that type
  */
 UCLASS(Abstract, EditInlineNew)
 class CADENCE_API UCadenceVariable : public UObject

@@ -17,6 +17,7 @@
 #include "Framework/Commands/GenericCommands.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "IDetailsView.h"
+#include "Algo/ForEach.h"
 #include "Graph/Nodes/CadenceGridNodes.h"
 #include "SequencerTrack/CadenceSequencerSection.h"
 #include "HAL/PlatformApplicationMisc.h"
@@ -387,7 +388,7 @@ void FCadenceGraphApplication::PasteClipboardNodesAtLocation(const FVector2D& In
 	UCadenceGraph* RuntimeGraph = WorkingAsset->GetGraph();
 	TSharedPtr<SGraphEditor> GraphEditorWidget = SlateGraphEditor.Pin();
 
-	const FScopedTransaction Transaction(*FCadenceEditorConstants::ContextIdentifier, FText::FromString(TEXT("PCG Editor: Paste")), nullptr);
+	const FScopedTransaction Transaction(*FCadenceEditorConstants::ContextIdentifier, FText::FromString(TEXT("Cadence Editor: Paste")), nullptr);
 	WorkingGraphEditor->Modify();
 
 	// Clear the selection set (newly pasted stuff will be selected)
@@ -424,7 +425,7 @@ void FCadenceGraphApplication::PasteClipboardNodesAtLocation(const FVector2D& In
 		AvgNodePosition.Y *= InvNumNodes;
 	}
 
-	TArray<UCadenceGraphNode*> NodesToPaste;
+	TArray<UCadenceGraphNode*> PastedRuntimeNodes;
 
 	for (UEdGraphNode* PastedNode : PastedNodes)
 	{
@@ -436,13 +437,46 @@ void FCadenceGraphApplication::PasteClipboardNodesAtLocation(const FVector2D& In
 		PastedNode->SnapToGrid(SNodePanel::GetSnapGridSize());
 
 		PastedNode->CreateNewGuid();
-
+		
 		UCadenceGraphEditorNode* PastedGraphEditorNode = Cast<UCadenceGraphEditorNode>(PastedNode);
-		if (UCadenceGraphNode* PastedRuntimeNode = PastedGraphEditorNode ? PastedGraphEditorNode->GetRuntimeGraphNode() : nullptr)
+		if(!ensure(PastedGraphEditorNode))
+			continue;
+		
+		UCadenceGraphNode* PastedRuntimeNode = PastedGraphEditorNode->GetRuntimeGraphNode();
+		if(!ensure(PastedRuntimeNode))
+			continue;;
+
+		PastedRuntimeNodes.Add(PastedRuntimeNode);		
+	}
+
+	// Clean up any connections that aren't to other nodes within the pasted set
+	for(UCadenceGraphNode* PastedRuntimeNode : PastedRuntimeNodes)
+	{
+		PastedRuntimeNode->GenerateGUID();
+
+		auto DisconnectNonPastedPinsLambda = [&PastedRuntimeNodes](TObjectPtr<UCadenceGraphNodePin> Pin)
 		{
-			PastedRuntimeNode->GenerateGUID();
-			RuntimeGraph->AddNode(PastedRuntimeNode);
-		}
+			TArray<UCadenceGraphNodePin*> PinsToDisconnect;
+			Pin->PruneConnections();
+			TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedPins = Pin->GetConnectedPins();
+			for(TObjectPtr<UCadenceGraphNodePin> ConnectedPin : ConnectedPins)
+			{
+				UCadenceGraphNode* ParentNode = ConnectedPin->GetParentNode();
+				if(!IsValid(ParentNode) || !PastedRuntimeNodes.Contains(ConnectedPin->GetParentNode()))
+					PinsToDisconnect.Add(ConnectedPin);
+			}
+
+			for(UCadenceGraphNodePin* PinToDisconnect : PinsToDisconnect)
+				Pin->DisconnectPin(PinToDisconnect);	
+		};
+
+		TArray<TObjectPtr<UCadenceGraphNodePin>>& InputPins = PastedRuntimeNode->GetInputPins();
+		TArray<TObjectPtr<UCadenceGraphNodePin>>& OutputPins = PastedRuntimeNode->GetOutputPins();
+
+		Algo::ForEach(InputPins, DisconnectNonPastedPinsLambda);
+		Algo::ForEach(OutputPins, DisconnectNonPastedPinsLambda);
+		
+		RuntimeGraph->AddNode(PastedRuntimeNode);
 	}
 
 	GraphEditorWidget->NotifyGraphChanged();
