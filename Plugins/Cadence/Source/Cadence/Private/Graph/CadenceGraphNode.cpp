@@ -211,6 +211,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateExecPin(const FName& I
 	Pin->SetPinName(InPinName);
 	Pin->SetIsExec(true);
 	Pin->GenerateGUID();
+	Pin->SetFlags(RF_Transactional);
 
 	return Pin;
 }
@@ -224,6 +225,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariablePin(const FNam
 	Pin->SetIsExec(false);
 	Pin->SetVariableClass(InVariableClass);
 	Pin->GenerateGUID();
+	Pin->SetFlags(RF_Transactional);
 
 	return Pin;
 }
@@ -241,6 +243,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariableWildcardPin(co
 	Pin->SetVariableClass(InIsArray ? UCadenceVariableArray::StaticClass() : nullptr);
 	Pin->SetWildcardId(WildcardId);
 	Pin->GenerateGUID();
+	Pin->SetFlags(RF_Transactional);
 
 	Pin->OnPinConnected.AddUObject(this, &UCadenceGraphNode::OnPinConnectedToWildcardPin, Pin);
 	Pin->OnConnectionsCleared.AddUObject(this, &UCadenceGraphNode::OnPinConnectionsClearedFromWildcardPin, Pin);	

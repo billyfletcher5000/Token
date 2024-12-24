@@ -150,6 +150,9 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) const
 {
 	const FScopedTransaction Transaction(*FCadenceEditorCommon::ContextIdentifier, FText::FromString(TEXT("Try Create Connection")), nullptr);
+	if(A->bWasTrashed || B->bWasTrashed)
+		return false;
+	
 	FPinConnectionResponse Response = CanCreateConnection(A, B);
 
 	if(Response.Response == CONNECT_RESPONSE_DISALLOW)

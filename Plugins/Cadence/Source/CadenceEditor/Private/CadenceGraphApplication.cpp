@@ -28,6 +28,7 @@ const FText FCadenceGraphApplication::BaseToolkitName = FText::FromString(TEXT("
 const FString FCadenceGraphApplication::WorldCentricTabPrefix = TEXT("CadenceGraphApplication");
 const FLinearColor FCadenceGraphApplication::WorldCentricTabColorScale = FLinearColor(0.549f, 0.0f, 0.784f, 0.5f);
 const FString FCadenceGraphApplication::DocumentationLink = TEXT("https://github.com/billyfletcher5000");
+TMap<TWeakObjectPtr<UCadenceGraph>, TWeakObjectPtr<UCadenceGraphEditor>> FCadenceGraphApplication::GraphToEditorGraphCache = TMap<TWeakObjectPtr<UCadenceGraph>, TWeakObjectPtr<UCadenceGraphEditor>>();
 
 void FCadenceGraphApplication::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
 {
@@ -44,19 +45,35 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 	{
 		WorkingAsset->CreateGraph();
 	}
+	else
+	{
+		WorkingAsset->GetGraph()->SetFlags(RF_Transactional);
+	}
 
-	WorkingAsset->GetGraph()->OnPinTypesChanged.AddRaw(this, &FCadenceGraphApplication::Refresh);
+	PinTypesChangedDelegateHandle = WorkingAsset->GetGraph()->OnPinTypesChanged.AddRaw(this, &FCadenceGraphApplication::Refresh);
 
 	PreSaveDelegateHandle = WorkingAsset->OnPreSaveDelegate.AddRaw(this, &FCadenceGraphApplication::OnWorkingAssetPreSave);
 
 	if(!WorkingGraphEditor)
 	{
-		UEdGraph* CreatedGraph = FBlueprintEditorUtils::CreateNewGraph(WorkingAsset, NAME_None, UCadenceGraphEditor::StaticClass(), UCadenceGraphSchema::StaticClass());	
-		WorkingGraphEditor = Cast<UCadenceGraphEditor>(CreatedGraph);
-	} 
+		if(GraphToEditorGraphCache.Contains(WorkingAsset->GetGraph()))
+			WorkingGraphEditor = GraphToEditorGraphCache[WorkingAsset->GetGraph()].Get();
+
+		if(!WorkingGraphEditor)
+		{
+			UEdGraph* CreatedGraph = FBlueprintEditorUtils::CreateNewGraph(WorkingAsset, NAME_None, UCadenceGraphEditor::StaticClass(), UCadenceGraphSchema::StaticClass());	
+			WorkingGraphEditor = Cast<UCadenceGraphEditor>(CreatedGraph);
+			
+			GraphToEditorGraphCache.Add(WorkingAsset->GetGraph(), WorkingGraphEditor);
+		}
+	}
+
+	WorkingGraphEditor->SetFlags(RF_Transactional);
 	
 	ensure(WorkingGraphEditor);
 	WorkingGraphEditor->SetRuntimeGraph(WorkingAsset->GetGraph());
+
+	UndoOrRedoPerformedDelegateHandle = WorkingGraphEditor->OnUndoOrRedoPerformed.AddRaw(this, &FCadenceGraphApplication::OnEditorGraphUndoRedo);
 
 	DocumentManager = MakeShareable(new FDocumentTracker);	
 	TSharedPtr<FCadenceGraphApplication> ThisPtr(SharedThis(this));
@@ -76,7 +93,16 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 void FCadenceGraphApplication::OnClose()
 {
 	FWorkflowCentricApplication::OnClose();
-	WorkingAsset->OnPreSaveDelegate.Remove(PreSaveDelegateHandle);
+	
+	if(WorkingAsset)
+	{
+		if(UCadenceGraph* Graph = WorkingAsset->GetGraph())
+			Graph->OnPinTypesChanged.Remove(PinTypesChangedDelegateHandle);
+		WorkingAsset->OnPreSaveDelegate.Remove(PreSaveDelegateHandle);
+	}
+	
+	if(WorkingGraphEditor)
+		WorkingGraphEditor->OnUndoOrRedoPerformed.Remove(UndoOrRedoPerformedDelegateHandle);
 }
 
 TSharedPtr<FUICommandList> FCadenceGraphApplication::GetCommandList()
@@ -234,6 +260,7 @@ void FCadenceGraphApplication::ReconstructEditorGraph()
 			FGraphNodeCreator<UCadenceGraphEditorRerouteNode> NodeCreator(*WorkingGraphEditor);
 			Node = NodeCreator.CreateNode(false);
 			Node->Construct(RuntimeNode);
+			Node->SetFlags(RF_Transactional);
 			NodeCreator.Finalize();
 		}
 		else if(RuntimeNode->GetClass()->ImplementsInterface(UCadenceGraphGridCommandProvider::StaticClass()))
@@ -241,6 +268,7 @@ void FCadenceGraphApplication::ReconstructEditorGraph()
 			FGraphNodeCreator<UCadenceGraphEditorGridNode> NodeCreator(*WorkingGraphEditor);
 			Node = NodeCreator.CreateNode(false);
 			Node->Construct(RuntimeNode);
+			Node->SetFlags(RF_Transactional);
 			NodeCreator.Finalize();
 		}
 		else
@@ -248,6 +276,7 @@ void FCadenceGraphApplication::ReconstructEditorGraph()
 			FGraphNodeCreator<UCadenceGraphEditorNode> NodeCreator(*WorkingGraphEditor);
 			Node = NodeCreator.CreateNode(false);
 			Node->Construct(RuntimeNode);
+			Node->SetFlags(RF_Transactional);
 			NodeCreator.Finalize();
 		}		
         
@@ -271,8 +300,16 @@ void FCadenceGraphApplication::OnWorkingAssetPreSave()
 	}
 }
 
+void FCadenceGraphApplication::OnEditorGraphUndoRedo(UCadenceGraphEditor* InEditorGraph)
+{
+	WorkingGraphEditor->NotifyGraphChanged();
+	SlateGraphEditor.Pin()->NotifyGraphChanged();
+	Refresh();
+}
+
 void FCadenceGraphApplication::DeleteSelectedNodes() const
 {
+	const FScopedTransaction Transaction(*FCadenceEditorConstants::ContextIdentifier, FText::FromString(TEXT("Cadence: Delete Node(s)")), nullptr);
 	TSharedPtr<SGraphEditor> SlateGraph = SlateGraphEditor.Pin();
 	const FGraphPanelSelectionSet& SelectedNodes = SlateGraph->GetSelectedNodes();
 	

@@ -83,6 +83,7 @@ public:
 private:
 	void ReconstructEditorGraph();
 	void OnWorkingAssetPreSave();
+	void OnEditorGraphUndoRedo(UCadenceGraphEditor* InEditorGraph);
 	
 	// Begin UICommands
 	void DeleteSelectedNodes() const;	
@@ -112,11 +113,14 @@ private:
 	UCadenceAsset* WorkingAsset = nullptr;
 	UCadenceGraphEditor* WorkingGraphEditor = nullptr;
 	TWeakPtr<SGraphEditor> SlateGraphEditor = nullptr;
+	FDelegateHandle PinTypesChangedDelegateHandle;
 	FDelegateHandle PreSaveDelegateHandle;
+	FDelegateHandle UndoOrRedoPerformedDelegateHandle;
 	TWeakPtr<IDetailsView> SelectedDetailsView;
 	TWeakPtr<IDetailsView> GraphDetailsView;	
 	TSharedPtr<FDocumentTracker> DocumentManager;
 	UClass* LastUsedVariableClass = nullptr;
+	static TMap<TWeakObjectPtr<UCadenceGraph>, TWeakObjectPtr<UCadenceGraphEditor>> GraphToEditorGraphCache;
 };
 
 class FCadenceGraphApplicationMode : public FApplicationMode

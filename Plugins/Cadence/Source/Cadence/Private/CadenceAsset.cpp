@@ -10,6 +10,7 @@ void UCadenceAsset::CreateGraph()
 {	
 	Modify();
 	Graph = NewObject<UCadenceGraph>(this);
+	Graph->SetFlags(RF_Transactional);
 }
 
 void UCadenceAsset::PreSave(FObjectPreSaveContext SaveContext)

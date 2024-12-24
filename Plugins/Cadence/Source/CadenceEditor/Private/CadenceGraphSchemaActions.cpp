@@ -14,8 +14,11 @@
 
 UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode)
 {
+	FScopedTransaction Transaction(FText::FromString("Cadence: New Node"));
 	UCadenceGraphEditor* ParentEditorGraph = Cast<UCadenceGraphEditor>(ParentGraph);
 	ensure(ParentEditorGraph);
+
+	ParentGraph->Modify();
 
 	UCadenceGraph* RuntimeGraph = ParentEditorGraph->GetRuntimeGraph();
 	ensure(RuntimeGraph);
@@ -68,8 +71,7 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 			}
 		}
 	}
-
-	ParentGraph->Modify();
+	ParentGraph->NotifyGraphChanged();
 	
 	return Node;
 }
