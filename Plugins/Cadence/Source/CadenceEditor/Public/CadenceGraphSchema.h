@@ -35,6 +35,9 @@ public:
 	virtual void BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin* TargetPin) const override;	
 	virtual void OnPinConnectionDoubleCicked(UEdGraphPin* PinA, UEdGraphPin* PinB, const FVector2D& GraphPosition) const override;
 	virtual void TrySetDefaultValue(UEdGraphPin& Pin, const FString& NewDefaultValue, bool bMarkAsModified = true) const override;
+	virtual FConnectionDrawingPolicy* CreateConnectionDrawingPolicy(int32 InBackLayerID, int32 InFrontLayerID,
+		float InZoomFactor, const FSlateRect& InClippingRect, FSlateWindowElementList& InDrawElements,
+		UEdGraph* InGraphObj) const override;
 
 	virtual FLinearColor GetPinTypeColor(const FEdGraphPinType& PinType) const override;
 	virtual FLinearColor GetSecondaryPinTypeColor(const FEdGraphPinType& PinType) const override;
@@ -69,7 +72,9 @@ private:
 	
 	void GenerateColorMap();
 	TArray<UCadenceVariable*> GetVariableTypeCDOs(bool InFilterForCreate = true) const;
-	
+
+public:
+
 private:
 	TMap<FName, FLinearColor> PinCategoryToColor;
 };

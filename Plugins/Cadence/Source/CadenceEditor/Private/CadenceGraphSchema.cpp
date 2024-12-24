@@ -13,6 +13,7 @@
 #include "Graph/CadenceGraphNode.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "CadenceGraphSchemaActions.h"
+#include "ConnectionDrawingPolicy.h"
 #include "GraphEditorSettings.h"
 #include "Graph/CadencePinConstants.h"
 #include "Graph/Nodes/CadenceUserVariableNodes.h"
@@ -21,7 +22,57 @@
 
 const FName UCadenceGraphSchema::PC_Exec = TEXT("exec");
 const FName UCadenceGraphSchema::PC_Wildcard = TEXT("wildcard");
-const FString UCadenceGraphSchema::DefaultVariableNameBase = TEXT("NewVar"); 
+const FString UCadenceGraphSchema::DefaultVariableNameBase = TEXT("NewVar");
+
+class FCadenceConnectionDrawingPolicy : public FConnectionDrawingPolicy
+{
+public:
+	FCadenceConnectionDrawingPolicy(int32 InBackLayerID, int32 InFrontLayerID, float InZoomFactor,
+		const FSlateRect& InClippingRect, FSlateWindowElementList& InDrawElements)
+		: FConnectionDrawingPolicy(InBackLayerID, InFrontLayerID, InZoomFactor, InClippingRect, InDrawElements)
+	{
+	}
+
+protected:
+	virtual void DrawPinGeometries(TMap<TSharedRef<SWidget>, FArrangedWidget>& InPinGeometries,
+		FArrangedChildren& ArrangedNodes) override
+	{
+		for (TMap<TSharedRef<SWidget>, FArrangedWidget>::TIterator ConnectorIt(InPinGeometries); ConnectorIt; ++ConnectorIt)
+		{
+			TSharedRef<SWidget> SomePinWidget = ConnectorIt.Key();
+			SGraphPin& PinWidget = static_cast<SGraphPin&>(SomePinWidget.Get());
+			UEdGraphPin* ThePin = PinWidget.GetPinObj();
+
+			if (ThePin && ThePin->Direction == EGPD_Output)
+			{
+				for (int32 LinkIndex=0; LinkIndex < ThePin->LinkedTo.Num(); ++LinkIndex)
+				{
+					FArrangedWidget* LinkStartWidgetGeometry = nullptr;
+					FArrangedWidget* LinkEndWidgetGeometry = nullptr;
+
+					UEdGraphPin* TargetPin = ThePin->LinkedTo[LinkIndex];
+
+					DetermineLinkGeometry(ArrangedNodes, SomePinWidget, ThePin, TargetPin, /*out*/ LinkStartWidgetGeometry, /*out*/ LinkEndWidgetGeometry);
+
+					if (( LinkEndWidgetGeometry && LinkStartWidgetGeometry ) && !IsConnectionCulled( *LinkStartWidgetGeometry, *LinkEndWidgetGeometry ))
+					{
+						FConnectionParams Params;
+						DetermineWiringStyle(ThePin, TargetPin, /*inout*/ Params);
+						const TSharedPtr<SGraphPin>* ConnectedPinWidget = PinToPinWidgetMap.Find(TargetPin);
+						if (ConnectedPinWidget && ConnectedPinWidget->IsValid())
+						{
+							if ( PinWidget.AreConnectionsFaded() && (*ConnectedPinWidget)->AreConnectionsFaded() )
+							{
+								Params.WireColor.A = 0.2f;
+							}
+						}
+						DrawSplineWithArrow(LinkStartWidgetGeometry->Geometry, LinkEndWidgetGeometry->Geometry, Params);
+					}
+				}
+			}
+		}
+	}
+};
 
 UCadenceGraphSchema::UCadenceGraphSchema()
 {
@@ -385,6 +436,14 @@ void UCadenceGraphSchema::TrySetDefaultValue(UEdGraphPin& Pin, const FString& Ne
 
 	// This has to be done last as the variable default value changes get propagated to the editor nodes/pins as a result of the Super
 	Super::TrySetDefaultValue(Pin, NewDefaultValue, bMarkAsModified);
+}
+
+FConnectionDrawingPolicy* UCadenceGraphSchema::CreateConnectionDrawingPolicy(int32 InBackLayerID, int32 InFrontLayerID,
+	float InZoomFactor, const FSlateRect& InClippingRect, FSlateWindowElementList& InDrawElements,
+	UEdGraph* InGraphObj) const
+{
+	return Super::CreateConnectionDrawingPolicy(InBackLayerID, InFrontLayerID, InZoomFactor, InClippingRect, InDrawElements, InGraphObj);
+	//return new FCadenceConnectionDrawingPolicy(InBackLayerID, InFrontLayerID, InZoomFactor, InClippingRect, InDrawElements);
 }
 
 FLinearColor UCadenceGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType) const
