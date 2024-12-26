@@ -10,6 +10,7 @@
 #include "CadenceGraphEditorGridNode.h"
 #include "CadenceGraphEditorNode.h"
 #include "CadenceGraphEditorRerouteNode.h"
+#include "CadenceGraphPropertyCustomization.h"
 #include "CadenceGraphSchema.h"
 #include "CadencePalette.h"
 #include "CadenceSequencerSectionNameCustomization.h"
@@ -21,7 +22,6 @@
 #include "Graph/Nodes/CadenceGridNodes.h"
 #include "SequencerTrack/CadenceSequencerSection.h"
 #include "HAL/PlatformApplicationMisc.h"
-
 
 const FName FCadenceGraphApplication::ToolkitFName = FName(TEXT("CadenceGraphApplication"));
 const FText FCadenceGraphApplication::BaseToolkitName = FText::FromString(TEXT("CadenceGraphApplication"));
@@ -53,7 +53,7 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 	PinTypesChangedDelegateHandle = WorkingAsset->GetGraph()->OnPinTypesChanged.AddRaw(this, &FCadenceGraphApplication::Refresh);
 
 	PreSaveDelegateHandle = WorkingAsset->OnPreSaveDelegate.AddRaw(this, &FCadenceGraphApplication::OnWorkingAssetPreSave);
-
+	
 	if(!WorkingGraphEditor)
 	{
 		if(GraphToEditorGraphCache.Contains(WorkingAsset->GetGraph()))
@@ -183,7 +183,6 @@ void FCadenceGraphApplication::Refresh()
 		CadenceNode->UpdateRuntimePosition();
 	}
 	
-	WorkingGraphEditor->Nodes.Empty();
 	ReconstructEditorGraph();
 
 	OnRefresh.Broadcast();
@@ -245,6 +244,8 @@ FSlateBrush const* FCadenceGraphApplication::GetVarIconAndColorFromPinType(const
 
 void FCadenceGraphApplication::ReconstructEditorGraph()
 {
+	WorkingGraphEditor->Nodes.Empty();
+	
 	UCadenceGraph* RuntimeGraph = WorkingAsset->GetGraph();
 	ensure(RuntimeGraph);
 
@@ -289,6 +290,9 @@ void FCadenceGraphApplication::ReconstructEditorGraph()
 		UCadenceGraphEditorNode* CadenceEdNode = Cast<UCadenceGraphEditorNode>(EdGraphNode);
 		CadenceEdNode->ReconstructConnections();
 	}
+
+	TSharedPtr<SGraphEditor> GraphEditor = SlateGraphEditor.Pin();
+	GraphEditor->NotifyGraphChanged();
 }
 
 void FCadenceGraphApplication::OnWorkingAssetPreSave()
@@ -296,15 +300,18 @@ void FCadenceGraphApplication::OnWorkingAssetPreSave()
 	for(UEdGraphNode* EdGraphNode : WorkingGraphEditor->Nodes)
 	{
 		UCadenceGraphEditorNode* CadenceEditorNode = Cast<UCadenceGraphEditorNode>(EdGraphNode);
+		UE_LOG(LogCadenceEditor, Warning, TEXT("OnWorkingAssetPreSave"));
 		CadenceEditorNode->UpdateRuntimePosition();
 	}
 }
 
-void FCadenceGraphApplication::OnEditorGraphUndoRedo(UCadenceGraphEditor* InEditorGraph)
+void FCadenceGraphApplication::OnEditorGraphUndoRedo()
 {
+	
+	TSharedPtr<SGraphEditor> GraphEditor = SlateGraphEditor.Pin();
+	GraphEditor->NotifyGraphChanged();
 	WorkingGraphEditor->NotifyGraphChanged();
-	SlateGraphEditor.Pin()->NotifyGraphChanged();
-	Refresh();
+	ReconstructEditorGraph();
 }
 
 void FCadenceGraphApplication::DeleteSelectedNodes() const
@@ -631,7 +638,6 @@ TSharedRef<SWidget> FCadenceGraphPrimaryTabFactory::CreateTabBody(const FWorkflo
 						.GraphEvents(GraphEditorEvents)
 						.GraphToEdit(App->GetWorkingGraphEditor());
 
-	GraphEditor->SetNodeFactory(MakeShareable(new FCadenceGraphEditorNodeFactory()));
 	App->SetSlateGraphEditor(GraphEditor);
 	
 	TSharedRef<SWidget> Widget =

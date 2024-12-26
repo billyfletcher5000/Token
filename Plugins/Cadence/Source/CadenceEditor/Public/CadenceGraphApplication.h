@@ -83,7 +83,7 @@ public:
 private:
 	void ReconstructEditorGraph();
 	void OnWorkingAssetPreSave();
-	void OnEditorGraphUndoRedo(UCadenceGraphEditor* InEditorGraph);
+	void OnEditorGraphUndoRedo();
 	
 	// Begin UICommands
 	void DeleteSelectedNodes() const;	

@@ -19,9 +19,10 @@ class CADENCEEDITOR_API UCadenceGraphEditor : public UEdGraph
 public:
 	TObjectPtr<UCadenceGraph> GetRuntimeGraph() const { return RuntimeGraph; }
 	void SetRuntimeGraph(TObjectPtr<UCadenceGraph> InGraph) { RuntimeGraph = InGraph; }
-	virtual void PreEditUndo() override;
+	virtual void PostEditUndo() override;
+	void NotifyChildElementUndoOrRedo();
 
-	DECLARE_MULTICAST_DELEGATE_OneParam(FOnUndoOrRedoPerformed, UCadenceGraphEditor*);
+	DECLARE_MULTICAST_DELEGATE(FOnUndoOrRedoPerformed);
 	FOnUndoOrRedoPerformed OnUndoOrRedoPerformed;
 
 private:

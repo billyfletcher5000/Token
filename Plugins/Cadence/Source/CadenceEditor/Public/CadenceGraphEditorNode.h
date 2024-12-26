@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EdGraphUtilities.h"
 #include "Graph/CadenceGraphNode.h"
 #include "EdGraph/EdGraphNode.h"
 #include "NodeFactory.h"
@@ -40,6 +41,8 @@ public:
 	virtual bool CanUserDeleteNode() const override { return true; }
 	virtual void GetNodeContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const override;
 	virtual void PrepareForCopying() override;
+	virtual void PreEditUndo() override;
+	virtual void PostEditUndo() override;
 	// End UEdGraphNode
 
 private:
@@ -66,9 +69,20 @@ protected:
 	// End of SGraphNode interface
 };
 
-class FCadenceGraphEditorNodeFactory : public FGraphNodeFactory
+class SCadenceGraphNode : public SGraphNode
 {
 public:
-	// FGrapNodeFactory interface	
-	virtual TSharedPtr<SGraphNode> CreateNodeWidget(UEdGraphNode* InNode) override;
+	SLATE_BEGIN_ARGS(SCadenceGraphNode){}
+	SLATE_END_ARGS()
+
+	void Construct( const FArguments& InArgs, UCadenceGraphEditorNode* InNode );
+	
+	virtual void MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty) override;
+};
+
+class FCadenceGraphEditorNodeFactory : public FGraphPanelNodeFactory
+{
+public:
+	// FGraphPanelNodeFactory interface	
+	virtual TSharedPtr<SGraphNode> CreateNode(UEdGraphNode* InNode) const override;
 };

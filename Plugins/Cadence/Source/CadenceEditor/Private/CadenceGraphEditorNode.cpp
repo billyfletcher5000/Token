@@ -8,6 +8,7 @@
 #include "Graph/CadenceGraph.h"
 #include "Graph/CadenceVariable.h"
 #include "CadenceGraphEditor.h"
+#include "CadenceGraphPropertyCustomization.h"
 #include "CadenceGraphSchema.h"
 #include "CadenceGraphUtility.h"
 #include "GraphEditorSettings.h"
@@ -60,6 +61,8 @@ void UCadenceGraphEditorNode::ReconstructConnections()
 
 void UCadenceGraphEditorNode::UpdateRuntimePosition()
 {
+	FVector2D RuntimePos = RuntimeGraphNode->GetGraphPosition();
+	UE_LOG(LogCadenceEditor, Verbose, TEXT("UpdateRuntimePosition: Position: This: (%d, %d) Runtime: (%f, %f)"), NodePosX, NodePosY, RuntimePos.X, RuntimePos.Y);
 	RuntimeGraphNode->SetGraphPosition(NodePosX, NodePosY);
 }
 
@@ -119,6 +122,23 @@ void UCadenceGraphEditorNode::PrepareForCopying()
 		// Temporarily take ownership of the MaterialExpression, so that it is not deleted when cutting
 		RuntimeGraphNode->Rename(nullptr, this, REN_DontCreateRedirectors | REN_DoNotDirty);
 	}
+}
+
+void UCadenceGraphEditorNode::PreEditUndo()
+{
+	Super::PreEditUndo();
+	FVector2D RuntimePos = RuntimeGraphNode->GetGraphPosition();
+	UE_LOG(LogCadenceEditor, Verbose, TEXT("PreEditUndo: Position: This: (%d, %d) Runtime: (%f, %f)"), NodePosX, NodePosY, RuntimePos.X, RuntimePos.Y);
+}
+
+void UCadenceGraphEditorNode::PostEditUndo()
+{
+	Super::PostEditUndo();
+	FVector2D RuntimePos = RuntimeGraphNode->GetGraphPosition();
+	UE_LOG(LogCadenceEditor, Verbose, TEXT("PostEditUndo: Position: This: (%d, %d) Runtime: (%f, %f)"), NodePosX, NodePosY, RuntimePos.X, RuntimePos.Y);
+	UpdateRuntimePosition();
+	UCadenceGraphEditor* EditorGraph = Cast<UCadenceGraphEditor>(GetGraph());
+	EditorGraph->NotifyChildElementUndoOrRedo();
 }
 
 void UCadenceGraphEditorNode::RemoveUserInputPin(UCadenceGraphNodePin* Pin)
@@ -298,7 +318,24 @@ EVisibility SGraphNodeUserAddablePins::IsAddPinButtonVisible() const
 	return (AddPinNode && AddPinNode->CanAddPin()) ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
-TSharedPtr<SGraphNode> FCadenceGraphEditorNodeFactory::CreateNodeWidget(UEdGraphNode* InNode)
+void SCadenceGraphNode::Construct(const FArguments& InArgs, UCadenceGraphEditorNode* InNode)
+{	
+	this->GraphNode = InNode;
+
+	this->SetCursor( EMouseCursor::CardinalCross );
+
+	this->UpdateGraphNode();
+}
+
+void SCadenceGraphNode::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty)
+{
+	SGraphNode::MoveTo(NewPosition, NodeFilter, bMarkDirty);
+
+	if(UCadenceGraphEditorNode* CadenceEdNode = Cast<UCadenceGraphEditorNode>(GraphNode))
+		CadenceEdNode->UpdateRuntimePosition();
+}
+
+TSharedPtr<SGraphNode> FCadenceGraphEditorNodeFactory::CreateNode(UEdGraphNode* InNode) const
 {
 	if(UCadenceGraphEditorNode* CadenceEditNode = Cast<UCadenceGraphEditorNode>(InNode))
 	{
@@ -306,7 +343,11 @@ TSharedPtr<SGraphNode> FCadenceGraphEditorNodeFactory::CreateNodeWidget(UEdGraph
 		{
 			return SNew(SGraphNodeUserAddablePins, CadenceEditNode);
 		}
+		else
+		{
+			return SNew(SCadenceGraphNode, CadenceEditNode);
+		}
 	}
 	
-	return FGraphNodeFactory::CreateNodeWidget(InNode);
+	return FGraphPanelNodeFactory::CreateNode(InNode);
 }

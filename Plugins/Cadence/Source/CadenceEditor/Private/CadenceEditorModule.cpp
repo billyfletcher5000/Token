@@ -5,6 +5,7 @@
 #include "CadenceSettings.h"
 #include "Graph/CadenceGraph.h"
 #include "CadenceGraphAssetAction.h"
+#include "CadenceGraphEditorNode.h"
 #include "CadenceGraphEditorPin.h"
 #include "CadenceGraphPropertyCustomization.h"
 #include "CadenceSequencerSectionNameCustomization.h"
@@ -64,6 +65,9 @@ void FCadenceEditorModule::StartupModule()
 
 	PanelPinFactory = MakeShareable(new FCadenceGraphEditorPanelPinFactory());
 	FEdGraphUtilities::RegisterVisualPinFactory(PanelPinFactory);
+	
+	NodeFactory = MakeShareable(new FCadenceGraphEditorNodeFactory());
+	FEdGraphUtilities::RegisterVisualNodeFactory(NodeFactory);
 
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 
@@ -88,6 +92,9 @@ void FCadenceEditorModule::ShutdownModule()
 
 	FEdGraphUtilities::UnregisterVisualPinFactory(PanelPinFactory);
 	PanelPinFactory = nullptr;
+	
+	FEdGraphUtilities::UnregisterVisualNodeFactory(NodeFactory);
+	NodeFactory = nullptr;
 	
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceGraphUserVariableSet::StaticStruct()->GetFName());

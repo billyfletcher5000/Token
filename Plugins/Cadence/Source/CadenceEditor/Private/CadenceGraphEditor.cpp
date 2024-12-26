@@ -3,8 +3,13 @@
 
 #include "CadenceGraphEditor.h"
 
-void UCadenceGraphEditor::PreEditUndo()
+void UCadenceGraphEditor::PostEditUndo()
 {
-	Super::PreEditUndo();
-	OnUndoOrRedoPerformed.Broadcast(this);
+	Super::PostEditUndo();
+	OnUndoOrRedoPerformed.Broadcast();
+}
+
+void UCadenceGraphEditor::NotifyChildElementUndoOrRedo()
+{
+	OnUndoOrRedoPerformed.Broadcast();
 }
