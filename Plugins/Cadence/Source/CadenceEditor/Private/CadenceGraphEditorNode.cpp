@@ -127,16 +127,23 @@ void UCadenceGraphEditorNode::PrepareForCopying()
 void UCadenceGraphEditorNode::PreEditUndo()
 {
 	Super::PreEditUndo();
-	FVector2D RuntimePos = RuntimeGraphNode->GetGraphPosition();
-	UE_LOG(LogCadenceEditor, Verbose, TEXT("PreEditUndo: Position: This: (%d, %d) Runtime: (%f, %f)"), NodePosX, NodePosY, RuntimePos.X, RuntimePos.Y);
+	
+	if(IsValid(RuntimeGraphNode))
+	{
+		FVector2D RuntimePos = RuntimeGraphNode->GetGraphPosition();
+		UE_LOG(LogCadenceEditor, Verbose, TEXT("PreEditUndo: Position: This: (%d, %d) Runtime: (%f, %f)"), NodePosX, NodePosY, RuntimePos.X, RuntimePos.Y);
+	}
 }
 
 void UCadenceGraphEditorNode::PostEditUndo()
 {
 	Super::PostEditUndo();
-	FVector2D RuntimePos = RuntimeGraphNode->GetGraphPosition();
-	UE_LOG(LogCadenceEditor, Verbose, TEXT("PostEditUndo: Position: This: (%d, %d) Runtime: (%f, %f)"), NodePosX, NodePosY, RuntimePos.X, RuntimePos.Y);
-	UpdateRuntimePosition();
+	if(IsValid(RuntimeGraphNode))
+	{
+		FVector2D RuntimePos = RuntimeGraphNode->GetGraphPosition();
+		UE_LOG(LogCadenceEditor, Verbose, TEXT("PostEditUndo: Position: This: (%d, %d) Runtime: (%f, %f)"), NodePosX, NodePosY, RuntimePos.X, RuntimePos.Y);
+		UpdateRuntimePosition();
+	}
 	UCadenceGraphEditor* EditorGraph = Cast<UCadenceGraphEditor>(GetGraph());
 	EditorGraph->NotifyChildElementUndoOrRedo();
 }
