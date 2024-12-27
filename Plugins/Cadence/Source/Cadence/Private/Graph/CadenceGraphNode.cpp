@@ -22,6 +22,8 @@ void UCadenceGraphNode::GenerateGUID()
 
 void UCadenceGraphNode::DestroyNode()
 {
+	Modify();
+	
 	for(UCadenceGraphNodePin* Pin : InputPins)
 		Pin->ClearConnections();
 

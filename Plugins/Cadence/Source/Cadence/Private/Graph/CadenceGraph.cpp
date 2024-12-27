@@ -22,6 +22,8 @@ TObjectPtr<UCadenceGraphNode> UCadenceGraph::CreateNode(TSubclassOf<UCadenceGrap
 {
 	TObjectPtr<UCadenceGraphNode> Node = NewObject<UCadenceGraphNode>(this, InClass);
 
+	Node->Modify();
+	
 	Node->GenerateGUID();
 	Node->SetFlags(RF_Transactional);	
 	
@@ -33,6 +35,9 @@ TObjectPtr<UCadenceGraphNode> UCadenceGraph::CreateNode(TSubclassOf<UCadenceGrap
 
 void UCadenceGraph::AddNode(TObjectPtr<UCadenceGraphNode> InNode)
 {
+	Modify();
+	
+	InNode->Rename(nullptr, this, REN_ForceNoResetLoaders | REN_DontCreateRedirectors);
 	Nodes.Add(InNode);
 }
 

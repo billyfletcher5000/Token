@@ -119,7 +119,7 @@ void UCadenceGraphEditorNode::PrepareForCopying()
 {	
 	if (RuntimeGraphNode)
 	{
-		// Temporarily take ownership of the MaterialExpression, so that it is not deleted when cutting
+		// Temporarily take ownership of the RuntimeGraphNode, so that it is not deleted when cutting
 		RuntimeGraphNode->Rename(nullptr, this, REN_DontCreateRedirectors | REN_DoNotDirty);
 	}
 }
@@ -143,6 +143,9 @@ void UCadenceGraphEditorNode::PostEditUndo()
 		FVector2D RuntimePos = RuntimeGraphNode->GetGraphPosition();
 		UE_LOG(LogCadenceEditor, Verbose, TEXT("PostEditUndo: Position: This: (%d, %d) Runtime: (%f, %f)"), NodePosX, NodePosY, RuntimePos.X, RuntimePos.Y);
 		UpdateRuntimePosition();
+
+		if(Pins.IsEmpty())
+			Construct(RuntimeGraphNode);
 	}
 	UCadenceGraphEditor* EditorGraph = Cast<UCadenceGraphEditor>(GetGraph());
 	EditorGraph->NotifyChildElementUndoOrRedo();

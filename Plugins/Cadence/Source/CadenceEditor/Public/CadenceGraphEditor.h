@@ -26,6 +26,9 @@ public:
 	FOnUndoOrRedoPerformed OnUndoOrRedoPerformed;
 
 private:
+	void RemoveDuplicateNodeEntries();
+	void CheckForUndoneDeletedNodes();
+	
 	UPROPERTY()
 	TObjectPtr<UCadenceGraph> RuntimeGraph;
 };

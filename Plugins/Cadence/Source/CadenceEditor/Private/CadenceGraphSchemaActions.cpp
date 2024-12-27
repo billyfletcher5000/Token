@@ -79,6 +79,7 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 UCadenceGraphNode* FNewNodeAction::CreateCadenceGraphNode(UCadenceGraph* RuntimeGraph, const FVector2D& Location)
 {
 	UCadenceGraphNode* Node = RuntimeGraph->CreateNode(RuntimeNodeType, Location);
+	Node->Modify();
 	Node->CreateInputPins();
 	Node->CreateOutputPins();
 	return Node;
@@ -88,6 +89,7 @@ UCadenceUserVariableGetterNode* FNewVariableGetterNodeAction::CreateGetterNode(U
 {
 	UCadenceGraphNode* Node = InGraph->CreateNode(UCadenceUserVariableGetterNode::StaticClass(), InLocation);
 	UCadenceUserVariableGetterNode* GetterNode = Cast<UCadenceUserVariableGetterNode>(Node);
+	GetterNode->Modify();
 	GetterNode->SetSourceVariable(InVariable);
 	GetterNode->CreateInputPins();
 	GetterNode->CreateOutputPins();
@@ -103,9 +105,11 @@ UCadenceUserVariableSetterNode* FNewVariableSetterNodeAction::CreateSetterNode(U
 {	
 	UCadenceGraphNode* Node = InGraph->CreateNode(UCadenceUserVariableSetterNode::StaticClass(), InLocation);
 	UCadenceUserVariableSetterNode* SetterNode = Cast<UCadenceUserVariableSetterNode>(Node);
+	SetterNode->Modify();
 	SetterNode->SetSourceVariable(InVariable);
 	SetterNode->CreateInputPins();
-	SetterNode->CreateOutputPins();	
+	SetterNode->CreateOutputPins();
+	
 	return SetterNode;
 }
 
