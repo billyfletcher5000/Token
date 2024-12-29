@@ -16,7 +16,7 @@ class CADENCE_API UCadenceAsset : public UObject
 public:
 	void CreateGraph();
 	
-	UCadenceGraph* GetGraph() const { return Graph; }
+	UCadenceGraph* GetPrimaryGraph() const { return Graph; }
 	void SetGraph(UCadenceGraph* InGraph) { Graph = InGraph; }
 
 public:

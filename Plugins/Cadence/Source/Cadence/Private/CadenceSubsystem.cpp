@@ -36,7 +36,7 @@ void UCadenceAssetInstance::BeginDestroy()
 
 void UCadenceAssetInstance::GenerateSectionDurationData(UCadenceSequencerSection* InStartSection)
 {
-	UCadenceGraph* Graph = Asset->GetGraph();
+	UCadenceGraph* Graph = Asset->GetPrimaryGraph();
 	
 	UQuartzSubsystem* QuartzSubsystem = GetWorld()->GetSubsystem<UQuartzSubsystem>();
 	FQuartzClockSettings Settings;	
@@ -82,14 +82,30 @@ float UCadenceAssetInstance::GetSectionDuration(const FString& SectionName)
 	return 0.0f;
 }
 
-void UCadenceAssetInstance::SetRunner(UCadenceGraphRunner* InRunner)
+void UCadenceAssetInstance::SetPrimaryRunner(UCadenceGraphRunner* InRunner)
 {
-	if(Runner != InRunner)
+	if(PrimaryRunner != InRunner)
 	{
-		Runner = InRunner;
-		bRunnerComplete = Runner == nullptr;
-		Runner->GetContext()->AssetInstance = this; //TODO: Restructure this
+		PrimaryRunner = InRunner;
+		bPrimaryRunnerComplete = PrimaryRunner == nullptr;
+		PrimaryRunner->GetContext()->AssetInstance = this; //TODO: Restructure this
 	}	
+}
+
+void UCadenceAssetInstance::AddAdditionalRunner(UCadenceGraphRunner* InRunner)
+{
+	if(ensure(IsValid(InRunner)))
+		AdditionalRunners.AddUnique(InRunner);
+}
+
+TArray<UCadenceGraphRunner*> UCadenceAssetInstance::GetAllRunners() const
+{
+	// Turbo floyd??? Truth Magnum???
+	TArray<UCadenceGraphRunner*> OutRunners = { PrimaryRunner };
+	
+	OutRunners.Append(AdditionalRunners);
+
+	return OutRunners;
 }
 
 void UCadenceAssetInstance::NotifySequenceUpdated(FFrameTime InCurrentTime)
@@ -108,6 +124,23 @@ void UCadenceAssetInstance::NotifySequenceUpdated(FFrameTime InCurrentTime)
 			OnSectionEnded.Broadcast(Data.SectionName);
 		}
 	}
+}
+
+void UCadenceAssetInstance::NotifyRunnerComplete(UCadenceGraphRunner* InRunner)
+{
+	if(InRunner == PrimaryRunner)
+	{
+		PrimaryRunner = nullptr; bPrimaryRunnerComplete = true;
+	}
+	else
+	{
+		AdditionalRunners.Remove(InRunner);		
+	}
+}
+
+bool UCadenceAssetInstance::IsAdditionalRunnerComplete(UCadenceGraphRunner* InRunner) const
+{
+	return !AdditionalRunners.Contains(InRunner);
 }
 
 float UCadenceAssetInstance::GetAlignedTime(float TimeInSeconds, ECadenceSectionEdgeQuantizationType EdgeQuantizationType, EQuartzCommandQuantization QuantizationBoundary) const
@@ -205,16 +238,19 @@ void UCadenceSubsystem::Tick(float DeltaTime)
 
 	for(UCadenceAssetInstance* AssetInstance : ActiveAssets)
 	{
-		UCadenceGraphRunner* Runner = AssetInstance->GetRunner();
-		if(IsValid(Runner))
-			Runner->Tick(DeltaTime);
+		TArray<UCadenceGraphRunner*> Runners = AssetInstance->GetAllRunners();
+		for(UCadenceGraphRunner* Runner : Runners)
+		{			
+			if(IsValid(Runner))
+				Runner->Tick(DeltaTime);
+		}
 	}
 
 	for(UCadenceGraphRunner* Runner : EndedRunners)
 	{		
 		if(UCadenceAssetInstance* Data = GetActiveAssetData(Runner))
 		{
-			Data->NotifyRunnerComplete();
+			Data->NotifyRunnerComplete(Runner);
 			if(Data->IsInstanceComplete())
 				ActiveAssets.Remove(Data);			
 		}
@@ -228,21 +264,20 @@ TStatId UCadenceSubsystem::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UCadenceSubsystem, STATGROUP_Tickables);
 }
 
-UCadenceGraphRunner* UCadenceSubsystem::CreateRunner(UCadenceAssetInstance* AssetInstance)
+UCadenceGraphRunner* UCadenceSubsystem::CreateRunner(UCadenceAssetInstance* InAssetInstance, UCadenceGraph* InGraph)
 {	
 	UCadenceGraphRunner* Runner = NewObject<UCadenceGraphRunner>(this);
 	UCadenceContext* Context = NewObject<UCadenceContext>(Runner);
-	TObjectPtr<UCadenceGraph> Graph = AssetInstance->GetAsset()->GetGraph();
+	TObjectPtr<UCadenceGraph> Graph = IsValid(InGraph) ? InGraph : InAssetInstance->GetAsset()->GetPrimaryGraph();
 	Context->SourceGraph = Graph;
 	Context->Graph = DuplicateObject(Graph, Context, "Graph");
-	Context->Asset = AssetInstance->GetAsset();
-	Context->AssetInstance = AssetInstance;
+	Context->Asset = InAssetInstance->GetAsset();
+	Context->AssetInstance = InAssetInstance;
 	Context->ActorLifetimeManager = NewObject<UCadenceActorLifetimeManager>(Context);
 
 	LogOuterRelationships(Context->Graph, Graph);
 	
 	Runner->Init(Context);
-	Runner->Begin();
 
 	return Runner;
 }
@@ -254,10 +289,12 @@ void UCadenceSubsystem::Notify_SectionStart(UMovieSceneSequence* Sequence, UCade
 	ULevelSequence* LevelSequence = Cast<ULevelSequence>(Sequence);
 	UCadenceAssetInstance* Data = GetActiveAssetData(LevelSequence);
 	
-	if(!Data->IsRunnerComplete() && Data->GetRunner() == nullptr)
+	if(!Data->IsPrimaryRunnerComplete() && Data->GetPrimaryRunner() == nullptr)
 	{
 		Data->GenerateSectionDurationData(Section);
-		Data->SetRunner(CreateRunner(Data));
+		UCadenceGraphRunner* Runner = CreateRunner(Data);
+		Data->SetPrimaryRunner(Runner);
+		Runner->Begin();
 	}
 }
 
@@ -325,7 +362,7 @@ UCadenceAssetInstance* UCadenceSubsystem::GetActiveAssetData(ULevelSequence* InS
 {
 	for(UCadenceAssetInstance* AssetInstance : ActiveAssets)
 	{
-		if(AssetInstance->GetAsset()->GetGraph()->GetSequence() == InSequence)
+		if(AssetInstance->GetAsset()->GetPrimaryGraph()->GetSequence() == InSequence)
 		{			
 			return AssetInstance;
 		}
@@ -338,7 +375,7 @@ UCadenceAssetInstance* UCadenceSubsystem::GetActiveAssetData(UCadenceGraphRunner
 {
 	for(UCadenceAssetInstance* AssetInstance : ActiveAssets)
 	{
-		if(AssetInstance->GetRunner() == InRunner)
+		if(AssetInstance->GetAllRunners().Contains(InRunner))
 		{			
 			return AssetInstance;
 		}

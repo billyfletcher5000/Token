@@ -271,7 +271,7 @@ private:
 			TSharedPtr<FCadenceVariableAction> VarAction = StaticCastSharedPtr<FCadenceVariableAction>(PaletteAction);
 			if (UCadenceVariable* VariableProperty = VarAction->GetVariable())
 			{
-				return VariableProperty->IsVisible() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+				return VariableProperty->IsPublic() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 			}
 		}
 
@@ -293,7 +293,7 @@ private:
 			TSharedPtr<FCadenceVariableAction> VarAction = StaticCastSharedPtr<FCadenceVariableAction>(PaletteAction);
 			if (UCadenceVariable* VariableProperty = VarAction->GetVariable())
 			{
-				VariableProperty->SetVisible(InNewState == ECheckBoxState::Checked);
+				VariableProperty->SetIsPublic(InNewState == ECheckBoxState::Checked);
 			}
 		}
 	}
@@ -443,7 +443,7 @@ void SCadencePaletteItem::Construct(const FArguments& InArgs, FCreateWidgetForAc
 				.IsEnabled(bIsEditingEnabled)
 				.OnTypeChanged(this, &SCadencePaletteItem::OnPinTypeChanged);
 
-			ActionAccessSpecifier = Variable->IsVisible() ? EAccessSpecifier::Public : EAccessSpecifier::Private;
+			ActionAccessSpecifier = Variable->IsPublic() ? EAccessSpecifier::Public : EAccessSpecifier::Private;
 		}
 	}	
 

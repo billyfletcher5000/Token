@@ -7,6 +7,7 @@
 #include "MovieScene.h"
 #include "Graph/CadenceGraphNode.h"
 #include "Graph/CadenceGraphNodePin.h"
+#include "Graph/Nodes/CadenceFlowNodes.h"
 #include "SequencerTrack/CadenceSequencerTrack.h"
 #include "SequencerTrack/CadenceSequencerSection.h"
 
@@ -87,6 +88,32 @@ TArray<TObjectPtr<UCadenceGraphNode>> UCadenceGraph::GetRootExecNodesThatLeadToN
 	GatherRootExecNodes(RootNodes, InNode);
 
 	return RootNodes;
+}
+
+TArray<TObjectPtr<UCadenceVariable>> UCadenceGraph::GetInputVariables() const
+{
+	TArray<TObjectPtr<UCadenceVariable>> OutVariables;
+	
+	for (auto NamedVariable : UserVariables.Variables)
+	{
+		if(NamedVariable.Variable->IsPublic())
+			OutVariables.Add(NamedVariable.Variable);
+	}
+
+	return OutVariables;
+}
+
+TArray<TObjectPtr<UCadenceVariable>> UCadenceGraph::GetOutputVariables() const
+{
+	TArray<TObjectPtr<UCadenceVariable>> OutVariables;
+	
+	for (auto NamedVariable : UserVariables.Variables)
+	{
+		if(NamedVariable.Variable->IsOutput())
+			OutVariables.Add(NamedVariable.Variable);
+	}
+
+	return OutVariables;
 }
 
 TArray<UCadenceSequencerTrack*> UCadenceGraph::GetTracks() const

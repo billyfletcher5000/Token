@@ -3,6 +3,9 @@
 
 #include "Graph/Nodes/CadenceFlowNodes.h"
 
+#include "CadenceAsset.h"
+#include "CadenceSubsystem.h"
+#include "Graph/CadenceGraph.h"
 #include "Graph/CadenceGraphRunner.h"
 #include "Graph/Nodes/CadenceRerouteNodes.h"
 
@@ -160,4 +163,105 @@ void UCadenceForLoopRunner::CreateNextPathway()
 		bExecuteImmediately,
 		LastDeltaSeconds,
 		UCadenceGraphRunner::FOnAdditionalPathWayEndedDelegate::CreateUObject(this, &UCadenceForLoopRunner::OnPathwayEnded));
+}
+
+void UCadenceRunGraphNode_Base::CreateInputPins()
+{
+	Super::CreateInputPins();
+	UCadenceGraph* Graph = GetGraph();
+	TArray<TObjectPtr<UCadenceVariable>> InputVariables = Graph->GetInputVariables();
+
+	for(UCadenceVariable* InputVariable : InputVariables)
+	{
+		VariableInputPins.Add(AddInputVariablePin(InputVariable->GetUserVariableName(), InputVariable->GetClass()));
+	}
+}
+
+void UCadenceRunGraphNode_Base::CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList, UCadenceContext* InContext)
+{
+	TArray<UCadenceVariable*> Variables;
+	for(TWeakObjectPtr<UCadenceGraphNodePin> VariableInputPin : VariableInputPins)
+	{
+		UCadenceVariable* Variable = VariableInputPin->GetVariable();
+		Variable->SetUserVariableName(VariableInputPin->GetPinName());
+		Variables.Add(Variable);
+	}
+	
+	InActionList.Add(UCadenceRunGraphTickable::Create(InContext, GetGraph(), Variables));
+}
+
+UCadenceRunGraphTickable* UCadenceRunGraphTickable::Create(UCadenceContext* InContext, UCadenceGraph* InTargetGraph, const TArray<UCadenceVariable*>& InInputVariables)
+{
+	UCadenceRunGraphTickable* Action = NewObject<UCadenceRunGraphTickable>();
+	Action->Context = InContext;
+	Action->TargetGraph = InTargetGraph;
+	
+	Action->InputVariables.Reserve(InInputVariables.Num());
+	for(UCadenceVariable* Var : InInputVariables)
+		Action->InputVariables.AddUnique(Var);
+	
+	return Action;		
+}
+
+void UCadenceRunGraphTickable::Init()
+{
+	UCadenceSubsystem* Subsystem = GetWorld()->GetSubsystem<UCadenceSubsystem>();
+	Runner = Subsystem->CreateRunner(Context->AssetInstance, TargetGraph.Get());
+
+	// Set initial values of public variables
+	UCadenceContext* RunnerContext = Runner->GetContext();
+	UCadenceGraph* RunnerGraph = RunnerContext->Graph;
+
+	TArray<TObjectPtr<UCadenceVariable>> RunnerInputVariables = RunnerGraph->GetInputVariables();
+	
+	for(TWeakObjectPtr<UCadenceVariable>& Variable : InputVariables)
+	{
+		auto RunnerEquivalent = RunnerInputVariables.FindByPredicate([&Variable](UCadenceVariable* RunnerVar)
+		{
+			return RunnerVar->GetUserVariableName() == Variable->GetUserVariableName();
+		});
+
+		if(RunnerEquivalent)
+		{
+			(*RunnerEquivalent)->CopyValueFrom(Variable.Get());
+		}
+	}
+	
+	Context->AssetInstance->AddAdditionalRunner(Runner.Get());	
+	Runner->Begin();
+}
+
+bool UCadenceRunGraphTickable::Tick(const float& InDeltaSeconds)
+{
+	if(Context->AssetInstance->IsAdditionalRunnerComplete(Runner.Get()))
+		return true;
+	
+	return false;
+}
+
+void UCadenceRunGraphAssetNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+	AddInputVariablePin(FCadencePinConstants::Pin_CadenceAsset, UCadenceVariableCadenceAsset::StaticClass(), 1);
+}
+
+UCadenceGraph* UCadenceRunGraphAssetNode::GetGraph() const
+{
+	TObjectPtr<UCadenceGraphNodePin> Pin = GetInputPin(FCadencePinConstants::Pin_CadenceAsset);
+	if(!ensure(Pin))
+		return nullptr;
+
+	UCadenceVariableCadenceAsset* Variable = Pin->GetVariable<UCadenceVariableCadenceAsset>();
+	if(!ensure(Variable))
+		return nullptr;
+
+	TObjectPtr<UCadenceAsset> Asset = Variable->GetValue();
+	if(!ensure(Asset))
+		return nullptr;
+
+	UCadenceGraph* Graph = Asset->GetPrimaryGraph();
+	if(!ensure(Graph))
+		return nullptr;
+
+	return Graph;
 }

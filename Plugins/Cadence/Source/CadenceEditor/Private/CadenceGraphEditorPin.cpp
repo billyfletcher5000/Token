@@ -9,6 +9,7 @@
 #include "KismetPins/SGraphPinEnum.h"
 #include "KismetPins/SGraphPinExec.h"
 #include "KismetPins/SGraphPinInteger.h"
+#include "KismetPins/SGraphPinObject.h"
 #include "KismetPins/SGraphPinString.h"
 #include "KismetPins/SGraphPinVector.h"
 #include "KismetPins/SGraphPinVector2D.h"
@@ -53,6 +54,11 @@ TSharedPtr<SGraphPin> FCadenceGraphEditorPanelPinFactory::CreatePin(UEdGraphPin*
 
 	if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Enum && InPin->PinType.PinSubCategoryObject != nullptr && InPin->PinType.PinSubCategoryObject->IsA(UEnum::StaticClass()))
 		return SNew(SGraphPinEnum, InPin);
+
+	if(InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Object
+		|| InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Actor
+		|| InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_CadenceAsset)
+		return SNew(SGraphPinObject, InPin);
 
 	return SNew(SCadenceGraphPin, InPin);
 }

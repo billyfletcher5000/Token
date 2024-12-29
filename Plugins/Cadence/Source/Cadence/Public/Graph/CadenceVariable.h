@@ -53,8 +53,11 @@ public:
 	}
 	virtual FName GetUserVariableName() const { return UserVariableName; }
 
-	virtual bool IsVisible() const { return bIsVisible; }
-	virtual void SetVisible(const bool& InValue) { bIsVisible = InValue; }
+	virtual bool IsPublic() const { return bIsPublic; }
+	virtual void SetIsPublic(const bool& InValue) { bIsPublic = InValue; }
+
+	virtual bool IsOutput() const { return bIsOutput; }
+	virtual void SetIsOutput(const bool& InValue) { bIsOutput = InValue; }
 
 	FText GetCategory() const { return Category; }
 	void SetCategory(const FText& InCategory) { Category = InCategory; }
@@ -83,8 +86,11 @@ protected:
 	UPROPERTY()
 	FName UserVariableName = NAME_None;
 
-	UPROPERTY()
-	bool bIsVisible = true;
+	UPROPERTY(EditAnywhere)
+	bool bIsPublic = true;
+
+	UPROPERTY(EditAnywhere)
+	bool bIsOutput = false;
 
 	UPROPERTY()
 	FText Category;
@@ -497,6 +503,10 @@ public:
 	TObjectPtr<UObject> GetValue() const { return Value; }
 	void SetValue(const TObjectPtr<UObject>& InValue) { Value = InValue; }
 
+	virtual bool SupportsDefault() const override { return true; }
+	virtual void SetFromString(const FString& InStringValue) override;
+	virtual FString ConvertToValueString() const override;
+
 private:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UObject> Value;
@@ -614,4 +624,37 @@ public:
 private:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCadenceTriggerData> Value;
+};
+
+UCLASS()
+class CADENCE_API UCadenceVariableCadenceAsset : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_CadenceAsset; }
+	virtual FLinearColor GetPinColor() const override { return FCadenceVariableColorConstants::VC_CadenceAsset; }
+
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
+	{
+		UCadenceVariableCadenceAsset* CastedVariable = Cast<UCadenceVariableCadenceAsset>(OtherVariable);
+		if(ensure(CastedVariable))
+			Value = CastedVariable->GetValue();
+	}
+	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
+	}
+	
+	TObjectPtr<UCadenceAsset> GetValue() const { return Value; }
+	void SetValue(const TObjectPtr<UCadenceAsset>& InValue) { Value = InValue; }
+
+	virtual bool SupportsDefault() const override { return true; }
+	virtual void SetFromString(const FString& InStringValue) override;
+	virtual FString ConvertToValueString() const override;
+
+private:
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UCadenceAsset> Value;
 };

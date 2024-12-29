@@ -17,6 +17,7 @@ class UCadenceGraph;
 class UCadenceAsset;
 class UCadenceGraphRunner;
 class UQuartzClockHandle;
+class UCadenceRunGraphTickable;
 
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FCadenceSectionDelegate, FString InSectionName);
@@ -58,16 +59,21 @@ public:
 
 	UCadenceAsset* GetAsset() const { return Asset; }
 	
-	void SetRunner(UCadenceGraphRunner* InRunner);
-	UCadenceGraphRunner* GetRunner() const { return Runner; }
+	void SetPrimaryRunner(UCadenceGraphRunner* InRunner);
+	UCadenceGraphRunner* GetPrimaryRunner() const { return PrimaryRunner; }
 
+	void AddAdditionalRunner(UCadenceGraphRunner* InRunner);
+
+	TArray<UCadenceGraphRunner*> GetAllRunners() const;
+	
 	void NotifySequenceUpdated(FFrameTime InCurrentTime);
 	void NotifySequenceComplete() { bSequenceComplete = true; }	
-	void NotifyRunnerComplete() { Runner = nullptr; bRunnerComplete = true; }
+	void NotifyRunnerComplete(UCadenceGraphRunner* InRunner);
 
 	bool IsSequenceComplete() const { return bSequenceComplete; }
-	bool IsRunnerComplete() const { return bRunnerComplete; }
-	bool IsInstanceComplete() const { return bSequenceComplete && bRunnerComplete; }
+	bool IsPrimaryRunnerComplete() const { return bPrimaryRunnerComplete; }
+	bool IsAdditionalRunnerComplete(UCadenceGraphRunner* InRunner) const;
+	bool IsInstanceComplete() const { return bSequenceComplete && bPrimaryRunnerComplete; }
 
 	FCadenceSectionDelegate OnSectionStarted;
 	FCadenceSectionDelegate OnSectionEnded;
@@ -82,13 +88,16 @@ private:
 	TObjectPtr<UCadenceAsset> Asset;
 	
 	UPROPERTY()
-	TObjectPtr<UCadenceGraphRunner> Runner;
+	TObjectPtr<UCadenceGraphRunner> PrimaryRunner;
 
+	UPROPERTY()
+	TArray<TObjectPtr<UCadenceGraphRunner>> AdditionalRunners;
+	
 	UPROPERTY()
 	bool bSequenceComplete = false;
 
 	UPROPERTY()
-	bool bRunnerComplete = false;
+	bool bPrimaryRunnerComplete = false;
 
 	UPROPERTY()
 	TArray<FCadenceSectionTimingData> TimingDataList;
@@ -131,13 +140,13 @@ public:
 
 protected:
 	friend UCadenceGraphRunner;
-
+	friend UCadenceRunGraphTickable;
 	
 	UCadenceAssetInstance* GetOrCreateActiveAssetData(UCadenceAsset* InAsset);
 	UCadenceAssetInstance* GetActiveAssetData(UCadenceAsset* InAsset);
 	UCadenceAssetInstance* GetActiveAssetData(ULevelSequence* InSequence);
 	UCadenceAssetInstance* GetActiveAssetData(UCadenceGraphRunner* InRunner);
-	UCadenceGraphRunner* CreateRunner(UCadenceAssetInstance* AssetInstance);
+	UCadenceGraphRunner* CreateRunner(UCadenceAssetInstance* InAssetInstance, UCadenceGraph* InGraph = nullptr);
 	void NotifyGraphComplete(UCadenceGraphRunner* InRunner);
 
 	static void LogOuterRelationships(UCadenceGraph* Copy, UCadenceGraph* Source);

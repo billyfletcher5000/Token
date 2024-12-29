@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CadenceLatentNode.h"
+#include "Graph/CadenceGraph.h"
 #include "Graph/CadenceGraphNode.h"
 #include "TickableActions/ICadenceTickableAction.h"
 #include "UObject/Object.h"
@@ -79,4 +80,54 @@ protected:
 	bool bExecuteImmediately = false;
 	float LastDeltaSeconds = 0.0f;
 	bool bHasOutstandingPathway = false;
+};
+
+UCLASS(Abstract)
+class CADENCE_API UCadenceRunGraphNode_Base : public UCadenceLatentNode
+{
+	GENERATED_BODY()
+	
+public:
+	virtual void CreateInputPins() override;
+	virtual UCadenceGraph* GetGraph() const PURE_VIRTUAL(UCadenceGraph::GetGraph, return nullptr;);
+	
+#if WITH_EDITOR
+	virtual bool CanBeAutoCreated() const override { return false; }
+#endif
+
+protected:
+	virtual void CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList, UCadenceContext* InContext) override;
+
+	TArray<TWeakObjectPtr<UCadenceGraphNodePin>> VariableInputPins;
+};
+
+UCLASS()
+class UCadenceRunGraphTickable : public UObject, public ICadenceTickableAction
+{
+	GENERATED_BODY()
+	
+public:
+	static UCadenceRunGraphTickable* Create(UCadenceContext* InContext, UCadenceGraph* InTargetGraph, const TArray<UCadenceVariable*>& InInputVariables);
+	virtual void Init() override;
+	virtual bool Tick(const float& InDeltaSeconds) override;
+
+private:
+	TWeakObjectPtr<UCadenceContext> Context;
+	TWeakObjectPtr<UCadenceGraph> TargetGraph;
+	TArray<TWeakObjectPtr<UCadenceVariable>> InputVariables;
+	TWeakObjectPtr<UCadenceGraphRunner> Runner; 
+};
+
+UCLASS()
+class CADENCE_API UCadenceRunGraphAssetNode : public UCadenceGraphNode
+{
+	GENERATED_BODY()
+	
+public:
+	virtual void CreateInputPins() override;
+	virtual UCadenceGraph* GetGraph() const;
+	
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Play Graph (Asset)")); }
+	virtual FText GetNodeCategory() const override { return FCadenceFlowControlConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceFlowControlConstants::NodeTitleColor; }
 };

@@ -51,6 +51,12 @@ public:
 	TArray<TObjectPtr<UCadenceGraphNode>> GetRootExecNodes() const;
 
 	TArray<TObjectPtr<UCadenceGraphNode>> GetRootExecNodesThatLeadToNode(UCadenceGraphNode* InNode) const;
+
+	template<typename T>
+	TArray<T*> GetNodesOfType() const;
+
+	TArray<TObjectPtr<UCadenceVariable>> GetInputVariables() const;
+	TArray<TObjectPtr<UCadenceVariable>> GetOutputVariables() const;
 	
 	ULevelSequence* GetSequence() const { return Sequence; }
 	float GetBPM() const { return BPM; }
@@ -91,3 +97,17 @@ public:
 	UPROPERTY(EditAnywhere)
 	FCadenceGraphUserVariableSet UserVariables;
 };
+
+template <typename T>
+TArray<T*> UCadenceGraph::GetNodesOfType() const
+{
+	TArray<T*> OutArray;
+	
+	for (UCadenceGraphNode* Node : Nodes)
+	{
+		if(T* CastedNode = Cast<T>(Node))
+			OutArray.Add(CastedNode);
+	}
+
+	return OutArray;
+}

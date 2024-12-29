@@ -39,7 +39,7 @@ public:
     virtual void OnClose() override;
 
 	UCadenceAsset* GetWorkingAsset() const { return WorkingAsset; }
-	UCadenceGraph* GetWorkingGraph() const { return WorkingAsset->GetGraph(); }
+	UCadenceGraph* GetWorkingGraph() const { return WorkingAsset->GetPrimaryGraph(); }
 	UCadenceGraphEditor* GetWorkingGraphEditor() const { return WorkingGraphEditor; }
 	TSharedPtr<SGraphEditor> GetSlateGraphEditor() const { return SlateGraphEditor.Pin(); }
 	TSharedPtr<FUICommandList> GetCommandList();

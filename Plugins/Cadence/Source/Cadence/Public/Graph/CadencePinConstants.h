@@ -45,6 +45,8 @@ namespace FCadencePinConstants
 	static const FName Pin_Size = TEXT("Size");
 	static const FName Pin_Unique = TEXT("Unique");
 	static const FName Pin_Removed = TEXT("Removed");
+
+	static const FName Pin_CadenceAsset = TEXT("Cadence Asset");
 }
 
 namespace FCadencePinCategoryConstants
@@ -65,6 +67,7 @@ namespace FCadencePinCategoryConstants
 	static const FName PC_Object = TEXT("Object");
 	static const FName PC_Actor = TEXT("Actor");	
 	static const FName PC_Trigger = TEXT("Trigger");
+	static const FName PC_CadenceAsset = TEXT("CadenceAsset");
 }
 
 namespace FCadencePinSubCategoryConstants
@@ -89,5 +92,5 @@ namespace FCadenceVariableColorConstants
 	static constexpr FLinearColor VC_Enum = FLinearColor(0.09f, 0.702f, 0.271f);
 	static constexpr FLinearColor VC_Actor = FLinearColor(0.3f, 0.3f, 0.95f); 
 	static constexpr FLinearColor VC_Trigger = FLinearColor(0.75f, 0.0f, 0.0f);
-	
+	static constexpr FLinearColor VC_CadenceAsset = FLinearColor(0.6f, 0.2f, 0.3f);	
 }

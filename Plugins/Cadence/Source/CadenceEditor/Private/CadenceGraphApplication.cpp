@@ -41,37 +41,37 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 	WorkingAsset = Cast<UCadenceAsset>(InObject);
 	ensure(WorkingAsset);
 
-	if (WorkingAsset->GetGraph() == nullptr)
+	if (WorkingAsset->GetPrimaryGraph() == nullptr)
 	{
 		WorkingAsset->CreateGraph();
 	}
 	else
 	{
-		WorkingAsset->GetGraph()->SetFlags(RF_Transactional);
+		WorkingAsset->GetPrimaryGraph()->SetFlags(RF_Transactional);
 	}
 
-	PinTypesChangedDelegateHandle = WorkingAsset->GetGraph()->OnPinTypesChanged.AddRaw(this, &FCadenceGraphApplication::Refresh);
+	PinTypesChangedDelegateHandle = WorkingAsset->GetPrimaryGraph()->OnPinTypesChanged.AddRaw(this, &FCadenceGraphApplication::Refresh);
 
 	PreSaveDelegateHandle = WorkingAsset->OnPreSaveDelegate.AddRaw(this, &FCadenceGraphApplication::OnWorkingAssetPreSave);
 	
 	if(!WorkingGraphEditor)
 	{
-		if(GraphToEditorGraphCache.Contains(WorkingAsset->GetGraph()))
-			WorkingGraphEditor = GraphToEditorGraphCache[WorkingAsset->GetGraph()].Get();
+		if(GraphToEditorGraphCache.Contains(WorkingAsset->GetPrimaryGraph()))
+			WorkingGraphEditor = GraphToEditorGraphCache[WorkingAsset->GetPrimaryGraph()].Get();
 
 		if(!WorkingGraphEditor)
 		{
 			UEdGraph* CreatedGraph = FBlueprintEditorUtils::CreateNewGraph(WorkingAsset, NAME_None, UCadenceGraphEditor::StaticClass(), UCadenceGraphSchema::StaticClass());	
 			WorkingGraphEditor = Cast<UCadenceGraphEditor>(CreatedGraph);
 			
-			GraphToEditorGraphCache.Add(WorkingAsset->GetGraph(), WorkingGraphEditor);
+			GraphToEditorGraphCache.Add(WorkingAsset->GetPrimaryGraph(), WorkingGraphEditor);
 		}
 	}
 
 	WorkingGraphEditor->SetFlags(RF_Transactional);
 	
 	ensure(WorkingGraphEditor);
-	WorkingGraphEditor->SetRuntimeGraph(WorkingAsset->GetGraph());
+	WorkingGraphEditor->SetRuntimeGraph(WorkingAsset->GetPrimaryGraph());
 
 	UndoOrRedoPerformedDelegateHandle = WorkingGraphEditor->OnUndoOrRedoPerformed.AddRaw(this, &FCadenceGraphApplication::OnEditorGraphUndoRedo);
 
@@ -96,7 +96,7 @@ void FCadenceGraphApplication::OnClose()
 	
 	if(WorkingAsset)
 	{
-		if(UCadenceGraph* Graph = WorkingAsset->GetGraph())
+		if(UCadenceGraph* Graph = WorkingAsset->GetPrimaryGraph())
 			Graph->OnPinTypesChanged.Remove(PinTypesChangedDelegateHandle);
 		WorkingAsset->OnPreSaveDelegate.Remove(PreSaveDelegateHandle);
 	}
@@ -246,7 +246,7 @@ void FCadenceGraphApplication::ReconstructEditorGraph()
 {
 	WorkingGraphEditor->Nodes.Empty();
 	
-	UCadenceGraph* RuntimeGraph = WorkingAsset->GetGraph();
+	UCadenceGraph* RuntimeGraph = WorkingAsset->GetPrimaryGraph();
 	ensure(RuntimeGraph);
 
 	const TArray<TObjectPtr<UCadenceGraphNode>>& RuntimeNodes = RuntimeGraph->GetNodes();
@@ -424,12 +424,12 @@ void FCadenceGraphApplication::PasteClipboardNodes()
 
 void FCadenceGraphApplication::PasteClipboardNodesAtLocation(const FVector2D& InLocation)
 {
-	if (!SlateGraphEditor.IsValid() || !WorkingAsset || !WorkingAsset->GetGraph())
+	if (!SlateGraphEditor.IsValid() || !WorkingAsset || !WorkingAsset->GetPrimaryGraph())
 	{
 		return;
 	}
 
-	UCadenceGraph* RuntimeGraph = WorkingAsset->GetGraph();
+	UCadenceGraph* RuntimeGraph = WorkingAsset->GetPrimaryGraph();
 	TSharedPtr<SGraphEditor> GraphEditorWidget = SlateGraphEditor.Pin();
 
 	const FScopedTransaction Transaction(*FCadenceEditorConstants::ContextIdentifier, FText::FromString(TEXT("Cadence Editor: Paste")), nullptr);

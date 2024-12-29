@@ -11,8 +11,8 @@
 
 void ACadenceSequenceActor::PostInitializeComponents()
 {
-	if(CadenceGraph && CadenceGraph->GetGraph())
-		LevelSequenceAsset = CadenceGraph->GetGraph()->Sequence;
+	if(CadenceGraph && CadenceGraph->GetPrimaryGraph())
+		LevelSequenceAsset = CadenceGraph->GetPrimaryGraph()->Sequence;
 	
 	if(GetWorld()->IsGameWorld())
 	{
