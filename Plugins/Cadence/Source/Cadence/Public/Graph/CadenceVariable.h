@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CadenceAsset.h"
 #include "CadenceContext.h"
 #include "UObject/Object.h"
 #include "CadencePinConstants.h"
@@ -40,9 +41,12 @@ public:
 	virtual void SetFromString(const FString& InStringValue) { }
 	virtual FString ConvertToValueString() const { return FString(); }
 
+	DECLARE_MULTICAST_DELEGATE(FOnValueChanged);
+	FOnValueChanged OnValueChanged;
+	
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnUserVariableNameChanged, const FName& /* InName */);
-
 	FOnUserVariableNameChanged OnUserVariableNameChanged;
+	
 	virtual void SetUserVariableName(const FName& InName)
 	{
 		if(UserVariableName != InName)
@@ -81,6 +85,16 @@ protected:
 			return CastedVariable->GetValue() == ThisVariable->GetValue();
 
 		return false;
+	}
+
+	template<typename TVal>
+	void SetValueHelper(TVal& ThisValue, TVal InValue)
+	{
+		if(ThisValue != InValue)
+		{
+			ThisValue = InValue;
+			OnValueChanged.Broadcast();
+		}
 	}
 	
 	UPROPERTY()
@@ -162,7 +176,7 @@ public:
 	}
 
 	int32 GetValue() const { return Value; }
-	void SetValue(const int32& InValue) { Value = InValue; }
+	void SetValue(const int32& InValue) { SetValueHelper(Value, InValue); }
 
 	virtual bool SupportsDefault() const override { return true; }
 	
@@ -196,7 +210,7 @@ public:
 	}
 	
 	float GetValue() const { return Value; }
-	void SetValue(const float& InValue) { Value = InValue; }
+	void SetValue(const float& InValue) { SetValueHelper(Value, InValue); }
 
 	virtual bool SupportsDefault() const override { return true; }
 	
@@ -230,7 +244,7 @@ public:
 	}
 	
 	double GetValue() const { return Value; }
-	void SetValue(const double& InValue) { Value = InValue; }
+	void SetValue(const double& InValue) { SetValueHelper(Value, InValue); }
 
 	virtual bool SupportsDefault() const override { return true; }
 	
@@ -264,7 +278,7 @@ public:
 	}
 	
 	bool GetValue() const { return Value; }
-	void SetValue(const bool& InValue) { Value = InValue; }
+	void SetValue(const bool& InValue) { SetValueHelper(Value, InValue); }
 
 	virtual bool SupportsDefault() const override { return true; }
 	
@@ -298,7 +312,7 @@ public:
 	}
 	
 	FVector GetValue() const { return Value; }
-	void SetValue(const FVector& InValue) { Value = InValue; }
+	void SetValue(const FVector& InValue) { SetValueHelper(Value, InValue); }
 
 	virtual bool SupportsDefault() const override { return true; }
 	
@@ -334,7 +348,7 @@ public:
 	}
 	
 	FVector2D GetValue() const { return Value; }
-	void SetValue(const FVector2D& InValue) { Value = InValue; }
+	void SetValue(const FVector2D& InValue) { SetValueHelper(Value, InValue); }
 
 	virtual bool SupportsDefault() const override { return true; }
 	
@@ -368,7 +382,7 @@ public:
 	}
 	
 	FRotator GetValue() const { return Value; }
-	void SetValue(const FRotator& InValue) { Value = InValue; }
+	void SetValue(const FRotator& InValue) { SetValueHelper(Value, InValue); }
 
 	virtual bool SupportsDefault() const override { return true; }
 	
@@ -402,7 +416,7 @@ public:
 	}
 	
 	FString GetValue() const { return Value; }
-	void SetValue(const FString& InValue) { Value = InValue; }
+	void SetValue(const FString& InValue) { SetValueHelper(Value, InValue); }
 
 	virtual bool SupportsDefault() const override { return true; }
 	
@@ -436,7 +450,7 @@ public:
 	}
 	
 	FName GetValue() const { return Value; }
-	void SetValue(const FName& InValue) { Value = InValue; }
+	void SetValue(const FName& InValue) { SetValueHelper(Value, InValue); }
 
 	virtual bool SupportsDefault() const override { return true; }
 	
@@ -467,7 +481,14 @@ public:
 	virtual bool Equals(UCadenceVariable* OtherVariable) override;
 	
 	FText GetValue() const { return Value; }
-	void SetValue(const FText& InValue) { Value = InValue; }
+	void SetValue(const FText& InValue)
+	{
+		if(!Value.EqualTo(InValue))
+		{
+			Value = InValue;
+			OnValueChanged.Broadcast();
+		}
+	}
 
 	virtual bool SupportsDefault() const override { return true; }
 	
@@ -501,7 +522,7 @@ public:
 	}
 	
 	TObjectPtr<UObject> GetValue() const { return Value; }
-	void SetValue(const TObjectPtr<UObject>& InValue) { Value = InValue; }
+	void SetValue(const TObjectPtr<UObject>& InValue) { SetValueHelper(Value, InValue); }
 
 	virtual bool SupportsDefault() const override { return true; }
 	virtual void SetFromString(const FString& InStringValue) override;
@@ -538,12 +559,20 @@ public:
 	virtual bool IsEnum() const override { return true; }
 	
 	int64 GetValue() const { return Value; }
-	void SetValue(const int64& InValue) { Value = InValue; }
+	void SetValue(const int64& InValue) { SetValueHelper(Value, InValue); }
 
 	template<typename T>
 	T GetValue() const { return static_cast<T>(Value); }
 	template<typename T>
-	void SetValue(const T& InValue) { Value = static_cast<int64>(InValue);}
+	void SetValue(const T& InValue)
+	{		
+		int64 NewValue = static_cast<int64>(InValue);
+		if(Value != NewValue)
+		{
+			Value = NewValue;
+			OnValueChanged.Broadcast();
+		}
+	}
 
 	UEnum* GetEnumType() const { return EnumType; }
 
@@ -579,6 +608,7 @@ class CADENCE_API UCadenceVariableActor : public UCadenceVariable
 public:
 	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_Actor; }
 	virtual FLinearColor GetPinColor() const override { return FCadenceVariableColorConstants::VC_Actor; }
+	virtual UObject* GetPinSubCategoryObject() const override { return AActor::StaticClass(); }
 
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override;
 	
@@ -590,7 +620,7 @@ public:
 	virtual void OnParentNodeReleased(UCadenceContext* InContext) override;
 	
 	TObjectPtr<AActor> GetValue() const { return Value; }
-	void SetValue(const TObjectPtr<AActor>& InValue) { Value = InValue; }
+	void SetValue(const TObjectPtr<AActor>& InValue) { SetValueHelper(Value, InValue); }
 
 private:
 	UPROPERTY(EditAnywhere)
@@ -619,7 +649,7 @@ public:
 	}
 	
 	TObjectPtr<UCadenceTriggerData> GetValue() const { return Value; }
-	void SetValue(const TObjectPtr<UCadenceTriggerData>& InValue) { Value = InValue; }
+	void SetValue(const TObjectPtr<UCadenceTriggerData>& InValue) { SetValueHelper(Value, InValue); }
 
 private:
 	UPROPERTY(EditAnywhere)
@@ -634,6 +664,7 @@ class CADENCE_API UCadenceVariableCadenceAsset : public UCadenceVariable
 public:
 	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_CadenceAsset; }
 	virtual FLinearColor GetPinColor() const override { return FCadenceVariableColorConstants::VC_CadenceAsset; }
+	virtual UObject* GetPinSubCategoryObject() const override { return UCadenceAsset::StaticClass(); }
 
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
 	{
@@ -648,7 +679,7 @@ public:
 	}
 	
 	TObjectPtr<UCadenceAsset> GetValue() const { return Value; }
-	void SetValue(const TObjectPtr<UCadenceAsset>& InValue) { Value = InValue; }
+	void SetValue(const TObjectPtr<UCadenceAsset>& InValue) { SetValueHelper(Value, InValue); }
 
 	virtual bool SupportsDefault() const override { return true; }
 	virtual void SetFromString(const FString& InStringValue) override;

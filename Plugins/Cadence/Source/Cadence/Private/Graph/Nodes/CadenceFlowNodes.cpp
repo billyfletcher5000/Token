@@ -168,12 +168,49 @@ void UCadenceForLoopRunner::CreateNextPathway()
 void UCadenceRunGraphNode_Base::CreateInputPins()
 {
 	Super::CreateInputPins();
+	UpdateVariablePins();
+}
+
+void UCadenceRunGraphNode_Base::UpdateVariablePins()
+{	
 	UCadenceGraph* Graph = GetGraph();
+	if(!Graph)
+		return;
+	
 	TArray<TObjectPtr<UCadenceVariable>> InputVariables = Graph->GetInputVariables();
+
+	auto RemoveNotInInputList = [&] (UCadenceGraphNodePin* Pin)
+	{
+		return VariableInputPins.Contains(Pin) && !InputVariables.ContainsByPredicate([&Pin] (UCadenceVariable* Variable)
+		{
+			return Variable->GetUserVariableName() == Pin->GetPinName();
+		});
+	};
+
+	InputPins.RemoveAll(RemoveNotInInputList);
+
+	VariableInputPins.Empty();
 
 	for(UCadenceVariable* InputVariable : InputVariables)
 	{
-		VariableInputPins.Add(AddInputVariablePin(InputVariable->GetUserVariableName(), InputVariable->GetClass()));
+		VariableInputPins.Add(AddInputVariablePinUnique(InputVariable->GetUserVariableName(), InputVariable->GetClass()));
+	}
+
+	TArray<TObjectPtr<UCadenceVariable>> OutputVariables = Graph->GetOutputVariables();
+
+	auto RemoveNotInOutputList = [&] (UCadenceGraphNodePin* Pin)
+	{
+		return VariableOutputPins.Contains(Pin) && !OutputVariables.ContainsByPredicate([&Pin] (UCadenceVariable* Variable)
+		{
+			return Variable->GetUserVariableName() == Pin->GetPinName();
+		});
+	};
+
+	OutputPins.RemoveAll(RemoveNotInOutputList);
+
+	for(UCadenceVariable* OutputVariable : OutputVariables)
+	{
+		VariableOutputPins.Add(AddOutputVariablePinUnique(OutputVariable->GetUserVariableName(), OutputVariable->GetClass()));
 	}
 }
 
@@ -187,12 +224,12 @@ void UCadenceRunGraphNode_Base::CreateLatentActions(TArray<TScriptInterface<ICad
 		Variables.Add(Variable);
 	}
 	
-	InActionList.Add(UCadenceRunGraphTickable::Create(InContext, GetGraph(), Variables));
+	InActionList.Add(UCadenceRunGraphTickable::Create(InContext, GetGraph(), Variables, this));
 }
 
-UCadenceRunGraphTickable* UCadenceRunGraphTickable::Create(UCadenceContext* InContext, UCadenceGraph* InTargetGraph, const TArray<UCadenceVariable*>& InInputVariables)
+UCadenceRunGraphTickable* UCadenceRunGraphTickable::Create(UCadenceContext* InContext, UCadenceGraph* InTargetGraph, const TArray<UCadenceVariable*>& InInputVariables, UObject* InOuter)
 {
-	UCadenceRunGraphTickable* Action = NewObject<UCadenceRunGraphTickable>();
+	UCadenceRunGraphTickable* Action = NewObject<UCadenceRunGraphTickable>(InOuter);
 	Action->Context = InContext;
 	Action->TargetGraph = InTargetGraph;
 	
@@ -242,13 +279,22 @@ bool UCadenceRunGraphTickable::Tick(const float& InDeltaSeconds)
 void UCadenceRunGraphAssetNode::CreateInputPins()
 {
 	Super::CreateInputPins();
-	AddInputVariablePin(FCadencePinConstants::Pin_CadenceAsset, UCadenceVariableCadenceAsset::StaticClass(), 1);
+	
+	if(OnGraphPinValueChangedHandle.IsValid() && ValueChangedVariable.IsValid())
+	{
+		ValueChangedVariable->OnValueChanged.Remove(OnGraphPinValueChangedHandle);
+		OnGraphPinValueChangedHandle.Reset();
+	}
+	
+	UCadenceGraphNodePin* Pin = AddInputVariablePin(FCadencePinConstants::Pin_CadenceAsset, UCadenceVariableCadenceAsset::StaticClass(), 1);
+	ValueChangedVariable = Pin->GetVariable();
+	OnGraphPinValueChangedHandle = ValueChangedVariable->OnValueChanged.AddUObject(this, &UCadenceRunGraphAssetNode::UpdateVariablePins);
 }
 
 UCadenceGraph* UCadenceRunGraphAssetNode::GetGraph() const
 {
 	TObjectPtr<UCadenceGraphNodePin> Pin = GetInputPin(FCadencePinConstants::Pin_CadenceAsset);
-	if(!ensure(Pin))
+	if(!Pin)
 		return nullptr;
 
 	UCadenceVariableCadenceAsset* Variable = Pin->GetVariable<UCadenceVariableCadenceAsset>();
@@ -256,7 +302,7 @@ UCadenceGraph* UCadenceRunGraphAssetNode::GetGraph() const
 		return nullptr;
 
 	TObjectPtr<UCadenceAsset> Asset = Variable->GetValue();
-	if(!ensure(Asset))
+	if(!Asset)
 		return nullptr;
 
 	UCadenceGraph* Graph = Asset->GetPrimaryGraph();

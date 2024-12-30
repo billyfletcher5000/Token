@@ -91,10 +91,12 @@ public:
 protected:
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputExecPin(const FName& InPinName, const int32& InIndex = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputExecPin(const FName& InPinName, const int32& InIndex = -1);
-	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex = -1);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex = -1);	
+	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariablePinUnique(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId = 0, const int32& InIndex = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId = 0, const int32& InIndex = -1);
-	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const bool& bInOptional = false, const int32& InIndex = -1);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex = -1);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePinUnique(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId = 0, const int32& InIndex = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId = 0, const int32& InIndex = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> CreateExecPin(const FName& InPinName);	

@@ -381,6 +381,11 @@ void UCadenceGraphSchema::TrySetDefaultValue(UEdGraphPin& Pin, const FString& Ne
 	{
 		Variable->Modify();
 		Variable->SetFromString(NewDefaultValue);
+
+		ParentEditorNode->Modify();
+		ParentEditorNode->RefreshPins();
+		ParentEditorNode->ReconstructConnections();
+		ParentEditorNode->GetGraph()->NotifyNodeChanged(ParentEditorNode);
 	}
 
 	// This has to be done last as the variable default value changes get propagated to the editor nodes/pins as a result of the Super

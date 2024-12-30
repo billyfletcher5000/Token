@@ -167,6 +167,28 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePin(const FN
 	return Pin;
 }
 
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePinUnique(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex)
+{
+	UCadenceGraphNodePin* Pin = GetInputPin(InPinName);
+	if(Pin)
+	{
+		if(Pin->GetVariableClass() != InVariableClass)
+			Pin->SetVariableClass(InVariableClass);
+
+		if(InIndex >= 0 && InIndex < InputPins.Num())
+		{
+			InputPins.Remove(Pin);
+			InputPins.Insert(Pin, InIndex);
+		}
+
+		return Pin;
+	}
+	else
+	{
+		return AddInputVariablePin(InPinName, InVariableClass, InIndex);
+	}
+}
+
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId, const int32& InIndex)
 {
 	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId);
@@ -181,7 +203,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariableWildcardArra
 	return Pin;
 }
 
-TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const bool& bInOptional, const int32& InIndex)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex)
 {
 	if(!ensureMsgf(GetOutputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin")))
 		return nullptr;
@@ -189,6 +211,28 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePin(const F
 	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariablePin(InPinName, InVariableClass);
 	AddPinToList(Pin, OutputPins, InIndex);
 	return Pin;
+}
+
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePinUnique(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex)
+{
+	UCadenceGraphNodePin* Pin = GetOutputPin(InPinName);
+	if(Pin)
+	{
+		if(Pin->GetVariableClass() != InVariableClass)
+			Pin->SetVariableClass(InVariableClass);
+
+		if(InIndex >= 0 && InIndex < OutputPins.Num())
+		{
+			OutputPins.Remove(Pin);
+			OutputPins.Insert(Pin, InIndex);
+		}
+
+		return Pin;
+	}
+	else
+	{
+		return AddOutputVariablePin(InPinName, InVariableClass, InIndex);
+	}
 }
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId, const int32& InIndex)
@@ -316,11 +360,11 @@ void UCadenceGraphNode::AddPinToList(UCadenceGraphNodePin* InPin, TArray<TObject
 {
 	if(InIndex >= 0 && InIndex < InList.Num())
 	{
-		InList.Add(InPin);
+		InList.Insert(InPin, InIndex);
 	}
 	else
 	{
-		InList.Insert(InPin, InIndex);
+		InList.Add(InPin);
 	}
 }
 

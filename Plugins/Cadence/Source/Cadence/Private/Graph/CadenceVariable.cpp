@@ -109,6 +109,8 @@ void UCadenceVariableArray::SetValue(const TArray<UCadenceVariable*>& InValue)
 		
 		Value.Add(DuplicateObject(Var, this->GetOuter()));
 	}
+
+	OnValueChanged.Broadcast();
 }
 
 void UCadenceVariableArray::SetVariableClass(const TSubclassOf<UCadenceVariable>& InVariableClass)
@@ -184,7 +186,7 @@ void UCadenceVariableArray::EmptyElements()
 
 void UCadenceVariableInt::SetFromString(const FString& InStringValue)
 {
-	Value = FCString::Atoi(*InStringValue);
+	SetValue(FCString::Atoi(*InStringValue));
 }
 
 FString UCadenceVariableInt::ConvertToValueString() const
@@ -194,7 +196,7 @@ FString UCadenceVariableInt::ConvertToValueString() const
 
 void UCadenceVariableFloat::SetFromString(const FString& InStringValue)
 {
-	Value = FCString::Atof(*InStringValue);
+	SetValue(FCString::Atof(*InStringValue));
 }
 
 FString UCadenceVariableFloat::ConvertToValueString() const
@@ -204,7 +206,7 @@ FString UCadenceVariableFloat::ConvertToValueString() const
 
 void UCadenceVariableDouble::SetFromString(const FString& InStringValue)
 {
-	Value = FCString::Atod(*InStringValue);
+	SetValue(FCString::Atod(*InStringValue));
 }
 
 FString UCadenceVariableDouble::ConvertToValueString() const
@@ -214,7 +216,7 @@ FString UCadenceVariableDouble::ConvertToValueString() const
 
 void UCadenceVariableBool::SetFromString(const FString& InStringValue)
 {
-	Value = InStringValue == "true";
+	SetValue(InStringValue == "true");
 }
 
 FString UCadenceVariableBool::ConvertToValueString() const
@@ -224,7 +226,9 @@ FString UCadenceVariableBool::ConvertToValueString() const
 
 void UCadenceVariableVector::SetFromString(const FString& InStringValue)
 {
-	Value.InitFromString(InStringValue);
+	FVector Temp;	
+	Temp.InitFromString(InStringValue);
+	SetValue(Temp);
 }
 
 FString UCadenceVariableVector::ConvertToValueString() const
@@ -234,7 +238,9 @@ FString UCadenceVariableVector::ConvertToValueString() const
 
 void UCadenceVariableVector2D::SetFromString(const FString& InStringValue)
 {
-	Value.InitFromString(InStringValue);
+	FVector2D Temp;	
+	Temp.InitFromString(InStringValue);
+	SetValue(Temp);
 }
 
 FString UCadenceVariableVector2D::ConvertToValueString() const
@@ -244,7 +250,9 @@ FString UCadenceVariableVector2D::ConvertToValueString() const
 
 void UCadenceVariableRotator::SetFromString(const FString& InStringValue)
 {
-	Value.InitFromString(InStringValue);
+	FRotator Temp;
+	Temp.InitFromString(InStringValue);
+	SetValue(Temp);
 }
 
 FString UCadenceVariableRotator::ConvertToValueString() const
@@ -254,7 +262,7 @@ FString UCadenceVariableRotator::ConvertToValueString() const
 
 void UCadenceVariableString::SetFromString(const FString& InStringValue)
 {
-	Value = InStringValue;
+	SetValue(InStringValue);
 }
 
 FString UCadenceVariableString::ConvertToValueString() const
@@ -264,7 +272,7 @@ FString UCadenceVariableString::ConvertToValueString() const
 
 void UCadenceVariableName::SetFromString(const FString& InStringValue)
 {
-	Value = FName(InStringValue);
+	SetValue(FName(InStringValue));
 }
 
 FString UCadenceVariableName::ConvertToValueString() const
@@ -283,7 +291,7 @@ bool UCadenceVariableText::Equals(UCadenceVariable* OtherVariable)
 
 void UCadenceVariableText::SetFromString(const FString& InStringValue)
 {
-	Value = FText::FromString(InStringValue);
+	SetValue(FText::FromString(InStringValue));
 }
 
 FString UCadenceVariableText::ConvertToValueString() const
@@ -293,7 +301,7 @@ FString UCadenceVariableText::ConvertToValueString() const
 
 void UCadenceVariableUObject::SetFromString(const FString& InStringValue)
 {
-	Value = FUObjectStringHelper::SetFromString<UObject>(InStringValue);
+	SetValue(FUObjectStringHelper::SetFromString<UObject>(InStringValue));
 }
 
 FString UCadenceVariableUObject::ConvertToValueString() const
@@ -304,7 +312,7 @@ FString UCadenceVariableUObject::ConvertToValueString() const
 void UCadenceVariableEnum::SetFromString(const FString& InStringValue)
 {
 	if(IsValid(EnumType))
-		Value = EnumType->GetValueByNameString(InStringValue);
+		SetValue(EnumType->GetValueByNameString(InStringValue));
 }
 
 FString UCadenceVariableEnum::ConvertToValueString() const
@@ -342,7 +350,7 @@ void UCadenceVariableActor::OnParentNodeReleased(UCadenceContext* InContext)
 
 void UCadenceVariableCadenceAsset::SetFromString(const FString& InStringValue)
 {
-	Value = FUObjectStringHelper::SetFromString<UCadenceAsset>(InStringValue);
+	SetValue(FUObjectStringHelper::SetFromString<UCadenceAsset>(InStringValue));
 }
 
 FString UCadenceVariableCadenceAsset::ConvertToValueString() const

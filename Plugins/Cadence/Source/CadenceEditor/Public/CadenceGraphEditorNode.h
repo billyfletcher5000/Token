@@ -20,6 +20,7 @@ class CADENCEEDITOR_API UCadenceGraphEditorNode : public UEdGraphNode
 
 public:
 	void Construct(TObjectPtr<UCadenceGraphNode> InRuntimeGraphNode);
+	void RefreshPins();
 	void ReconstructConnections();
 
 	void UpdateRuntimePosition();

@@ -24,6 +24,13 @@ void UCadenceGraphEditorNode::Construct(TObjectPtr<UCadenceGraphNode> InRuntimeG
 	NodePosX = Position.X;
 	NodePosY = Position.Y;
 
+	RefreshPins();
+}
+
+void UCadenceGraphEditorNode::RefreshPins()
+{
+	Pins.Empty();
+	
 	for(UCadenceGraphNodePin* RuntimeInputPin : RuntimeGraphNode->GetInputPins())
 	{		
 		CreatePinInternal(EGPD_Input, RuntimeInputPin);

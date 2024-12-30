@@ -96,9 +96,11 @@ public:
 #endif
 
 protected:
+	void UpdateVariablePins();
 	virtual void CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList, UCadenceContext* InContext) override;
 
 	TArray<TWeakObjectPtr<UCadenceGraphNodePin>> VariableInputPins;
+	TArray<TWeakObjectPtr<UCadenceGraphNodePin>> VariableOutputPins;
 };
 
 UCLASS()
@@ -107,7 +109,7 @@ class UCadenceRunGraphTickable : public UObject, public ICadenceTickableAction
 	GENERATED_BODY()
 	
 public:
-	static UCadenceRunGraphTickable* Create(UCadenceContext* InContext, UCadenceGraph* InTargetGraph, const TArray<UCadenceVariable*>& InInputVariables);
+	static UCadenceRunGraphTickable* Create(UCadenceContext* InContext, UCadenceGraph* InTargetGraph, const TArray<UCadenceVariable*>& InInputVariables, UObject* InOuter);
 	virtual void Init() override;
 	virtual bool Tick(const float& InDeltaSeconds) override;
 
@@ -119,7 +121,7 @@ private:
 };
 
 UCLASS()
-class CADENCE_API UCadenceRunGraphAssetNode : public UCadenceGraphNode
+class CADENCE_API UCadenceRunGraphAssetNode : public UCadenceRunGraphNode_Base
 {
 	GENERATED_BODY()
 	
@@ -127,7 +129,15 @@ public:
 	virtual void CreateInputPins() override;
 	virtual UCadenceGraph* GetGraph() const;
 	
+#if WITH_EDITOR
+	virtual bool CanBeAutoCreated() const override { return true; }
+#endif
+	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Play Graph (Asset)")); }
 	virtual FText GetNodeCategory() const override { return FCadenceFlowControlConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceFlowControlConstants::NodeTitleColor; }
+
+private:
+	TWeakObjectPtr<UCadenceVariable> ValueChangedVariable;
+	FDelegateHandle OnGraphPinValueChangedHandle;
 };
