@@ -99,7 +99,10 @@ protected:
 	void UpdateVariablePins();
 	virtual void CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList, UCadenceContext* InContext) override;
 
+	UPROPERTY()
 	TArray<TWeakObjectPtr<UCadenceGraphNodePin>> VariableInputPins;
+
+	UPROPERTY()
 	TArray<TWeakObjectPtr<UCadenceGraphNodePin>> VariableOutputPins;
 };
 
