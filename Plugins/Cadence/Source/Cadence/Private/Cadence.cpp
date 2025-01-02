@@ -2,18 +2,23 @@
 
 #include "Cadence.h"
 
+#include "SequencerTrack/CadenceSequenceActor.h"
+#include "SequencerTrack/CadenceSequenceActorCustomization.h"
+
 DEFINE_LOG_CATEGORY(LogCadence);
 #define LOCTEXT_NAMESPACE "FCadenceModule"
 
 void FCadenceModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	PropertyModule.RegisterCustomClassLayout(ACadenceSequenceActor::StaticClass()->GetFName(),
+		FOnGetDetailCustomizationInstance::CreateStatic( &FCadenceSequenceActorCustomization::MakeInstance ) );
 }
 
 void FCadenceModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
+	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	PropertyModule.UnregisterCustomClassLayout(ACadenceSequenceActor::StaticClass()->GetFName());
 }
 
 #undef LOCTEXT_NAMESPACE
