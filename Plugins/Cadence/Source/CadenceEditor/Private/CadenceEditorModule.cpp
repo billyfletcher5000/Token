@@ -8,6 +8,7 @@
 #include "CadenceGraphEditorNode.h"
 #include "CadenceGraphEditorPin.h"
 #include "CadenceGraphPropertyCustomization.h"
+#include "CadenceReactionGroupAssetAction.h"
 #include "CadenceSequencerSectionNameCustomization.h"
 #include "CadenceSequencerTrackEditor.h"
 #include "CadenceVariableInlineWidgetFunctions.h"
@@ -40,6 +41,9 @@ void FCadenceEditorModule::StartupModule()
 	// Add Graph
 	TSharedPtr<FCadenceGraphAssetAction> GraphAssetAction = MakeShareable(new FCadenceGraphAssetAction(AssetType));
 	AssetToolsModule.RegisterAssetTypeActions(GraphAssetAction.ToSharedRef());
+
+	TSharedPtr<FCadenceReactionGroupAssetAction> ReactionGroupAssetAction = MakeShareable(new FCadenceReactionGroupAssetAction(AssetType));
+	AssetToolsModule.RegisterAssetTypeActions(ReactionGroupAssetAction.ToSharedRef());
 
 	// Create Style Set
 	StyleSet = MakeShareable(new FSlateStyleSet(StyleSetName));
