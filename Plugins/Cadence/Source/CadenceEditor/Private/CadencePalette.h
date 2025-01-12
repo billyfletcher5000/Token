@@ -7,11 +7,13 @@
 #include "SGraphPalette.h"
 #include "UObject/Object.h"
 
+class UCadenceVariable;
 class UCadenceVariableArray;
 class UCadenceAsset;
 class FCadenceGraphApplication;
 
 DECLARE_DELEGATE(FOnRefreshRequested)
+DECLARE_DELEGATE_TwoParams(FChangeVariableTypeDelegate, UCadenceVariable* /*Variable*/, const FEdGraphPinType& /*NewPinType*/)
 
 /** Widget for displaying a single item  */
 class SCadencePaletteItem : public SGraphPaletteItem
@@ -114,12 +116,12 @@ private:
 class FCadenceVariableDetailCustomization : public IDetailCustomization
 {
 public:
-	FCadenceVariableDetailCustomization(TSharedPtr<FCadenceGraphApplication> InApplication) : Application(InApplication) {}
-	static TSharedRef<IDetailCustomization> MakeInstance(TSharedPtr<FCadenceGraphApplication> InApplication);
+	FCadenceVariableDetailCustomization(const FChangeVariableTypeDelegate& InChangeTypeDelegate) : ChangeTypeDelegate(InChangeTypeDelegate) {}
+	static TSharedRef<IDetailCustomization> MakeInstance(FChangeVariableTypeDelegate InChangeTypeDelegate);
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 
 protected:
-	TSharedPtr<FCadenceGraphApplication> Application;
+	FChangeVariableTypeDelegate ChangeTypeDelegate;
 };
 
 class FCadenceVariableArrayDetailCustomization : public IDetailCustomization
@@ -132,6 +134,19 @@ private:
 	void OnArrayNumElementsChanged(TWeakObjectPtr<UCadenceVariableArray> InArray, IDetailLayoutBuilder* InDetailBuilder);
 
 	TSharedPtr<IPropertyHandleArray> ArrayHandle;
+};
+
+class FCadenceVariablePropertyCustomization : public IPropertyTypeCustomization
+{
+public:
+	FCadenceVariablePropertyCustomization(const FChangeVariableTypeDelegate& InChangeTypeDelegate, const bool& InShowContainerType) : ChangeTypeDelegate(InChangeTypeDelegate), bShowContainerType(InShowContainerType) {}
+	static TSharedRef<IPropertyTypeCustomization> MakeInstance(FChangeVariableTypeDelegate InChangeTypeDelegate, bool InShowContainerType);
+	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+
+protected:
+	FChangeVariableTypeDelegate ChangeTypeDelegate;
+	bool bShowContainerType = true;
 };
 
 class FCadenceVariableArrayPropertyCustomization : public IPropertyTypeCustomization

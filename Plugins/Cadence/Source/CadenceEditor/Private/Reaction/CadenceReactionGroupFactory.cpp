@@ -1,9 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CadenceReactionGroupFactory.h"
+#include "Reaction/CadenceReactionGroupFactory.h"
 
-#include "Cadence/Reactors/CadenceReactionGroup.h"
+#include "Reaction/CadenceReactionGroup.h"
 
 UCadenceReactionGroupFactory::UCadenceReactionGroupFactory(const FObjectInitializer& ObjectInitializer)
 {	

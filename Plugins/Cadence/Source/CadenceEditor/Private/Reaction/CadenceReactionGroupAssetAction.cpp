@@ -1,8 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "CadenceReactionGroupAssetAction.h"
+#include "Reaction/CadenceReactionGroupAssetAction.h"
 
-#include "Cadence/Reactors/CadenceReactionGroup.h"
+#include "Reaction/CadenceReactionGroup.h"
 
 const FText FCadenceReactionGroupAssetAction::AssetName = FText::FromString(TEXT("Cadence Reaction Group"));
 const FColor FCadenceReactionGroupAssetAction::TypeColor = FColor::Purple;
@@ -26,7 +26,7 @@ UClass* FCadenceReactionGroupAssetAction::GetSupportedClass() const
 {
 	return UCadenceReactionGroup::StaticClass();
 }
-
+/*
 void FCadenceReactionGroupAssetAction::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
 {
 	EToolkitMode::Type Mode = EditWithinLevelEditor.IsValid() ? EToolkitMode::WorldCentric : EToolkitMode::Standalone;
@@ -38,7 +38,7 @@ void FCadenceReactionGroupAssetAction::OpenAssetEditor(const TArray<UObject*>& I
 		{
 		}
 	}
-}
+}*/
 
 uint32 FCadenceReactionGroupAssetAction::GetCategories()
 {

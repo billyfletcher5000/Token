@@ -476,6 +476,9 @@ void UCadenceGraphSchema::GetVariableTypeTree(TArray<FPinTypeTreeItem>& OutTypeT
 		FName VariableDisplayName = VariableCDO->GetDisplayName();		
 		FName VariableCategory = VariableCDO->GetPinCategory();
 
+		if(!VariableCDO->SupportsDefault())
+			continue;
+
 		if(VariableDisplayName == NAME_None)
 			VariableDisplayName = VariableCategory;
 		

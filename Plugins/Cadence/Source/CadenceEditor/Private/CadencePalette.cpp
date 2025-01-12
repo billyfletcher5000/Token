@@ -133,10 +133,10 @@ public:
 		SLATE_EVENT(FOnPinTypeChanged, OnTypeChanged)
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, TWeakPtr<FCadenceVariableAction> InAction, TWeakPtr<FCadenceGraphApplication> InCadenceApplication, bool InShowContainerTypeSelector = false)
+	void Construct(const FArguments& InArgs, TWeakPtr<FCadenceVariableAction> InAction, const FChangeVariableTypeDelegate& InChangeTypeDelegate, bool InShowContainerTypeSelector = false)
 	{
 		ActionPtr = InAction;
-		ApplicationPtr = InCadenceApplication;
+		ChangeTypeDelegate = InChangeTypeDelegate;
 		bShowContainerTypeSelector = InShowContainerTypeSelector;
 		
 		Variable = nullptr;
@@ -187,9 +187,8 @@ private:
 	void OnVarTypeChanged(const FEdGraphPinType& InNewPinType)
 	{
 		if (UCadenceVariable* Var = Variable.Get())
-		{
-			TSharedPtr<FCadenceGraphApplication> App = ApplicationPtr.Pin();
-			App->ChangeVariableType(Var, InNewPinType);
+		{			
+			ChangeTypeDelegate.ExecuteIfBound(Var, InNewPinType);
 		}
 
 		if (OnTypeChanged.IsBound())
@@ -205,7 +204,7 @@ private:
 	/** Variable Property to change the type of */
 	TWeakObjectPtr<UCadenceVariable> Variable;
 	
-	TWeakPtr<FCadenceGraphApplication> ApplicationPtr;
+	FChangeVariableTypeDelegate ChangeTypeDelegate;
 
 	bool bShowContainerTypeSelector = false;
 
@@ -439,7 +438,7 @@ void SCadencePaletteItem::Construct(const FArguments& InArgs, FCreateWidgetForAc
 		}
 		if (Variable)
 		{
-			IconWidget = SNew(SPinTypeSelectorHelper, Action, ApplicationPtr)
+			IconWidget = SNew(SPinTypeSelectorHelper, Action, FChangeVariableTypeDelegate::CreateSP(ApplicationPtr.Pin().ToSharedRef(), &FCadenceGraphApplication::ChangeVariableType))
 				.IsEnabled(bIsEditingEnabled)
 				.OnTypeChanged(this, &SCadencePaletteItem::OnPinTypeChanged);
 
@@ -842,9 +841,9 @@ void SCadencePalette::OnSplitterResized() const
 }
 
 
-TSharedRef<IDetailCustomization> FCadenceVariableDetailCustomization::MakeInstance(TSharedPtr<FCadenceGraphApplication> InApplication)
+TSharedRef<IDetailCustomization> FCadenceVariableDetailCustomization::MakeInstance(FChangeVariableTypeDelegate InChangeTypeDelegate)
 {
-	return MakeShareable(new FCadenceVariableDetailCustomization(InApplication));
+	return MakeShareable(new FCadenceVariableDetailCustomization(InChangeTypeDelegate));
 }
 
 void FCadenceVariableDetailCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
@@ -874,7 +873,7 @@ void FCadenceVariableDetailCustomization::CustomizeDetails(IDetailLayoutBuilder&
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
 			[
-				SNew(SPinTypeSelectorHelper, Action.ToWeakPtr(), Application.ToWeakPtr(), true)
+				SNew(SPinTypeSelectorHelper, Action.ToWeakPtr(), ChangeTypeDelegate, true)
 			]
 		];
 }
@@ -927,6 +926,52 @@ void FCadenceVariableArrayDetailCustomization::OnArrayNumElementsChanged(TWeakOb
 	}
 
 	InDetailBuilder->ForceRefreshDetails();
+}
+
+TSharedRef<IPropertyTypeCustomization> FCadenceVariablePropertyCustomization::MakeInstance(FChangeVariableTypeDelegate InChangeTypeDelegate, bool InShowContainerType)
+{
+	return MakeShareable(new FCadenceVariablePropertyCustomization(InChangeTypeDelegate, InShowContainerType));
+}
+
+void FCadenceVariablePropertyCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle,
+	FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
+{
+}
+
+void FCadenceVariablePropertyCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle,
+	IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
+{
+	UObject* VariableObj = nullptr;
+	PropertyHandle->GetValue(VariableObj);
+	UCadenceVariable* Variable = Cast<UCadenceVariable>(VariableObj);
+	check(Variable);
+	
+	TSharedPtr<FCadenceVariableAction> Action = MakeShareable(new FCadenceVariableAction(Variable));
+
+	FPropertyEditorModule& EditModule = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	FSinglePropertyParams Params;
+	Params.NamePlacement = EPropertyNamePlacement::Hidden;
+	auto Element = EditModule.CreateSingleProperty(Variable, FName(TEXT("Value")), Params);
+	
+	ChildBuilder.AddCustomRow(FText::FromString(TEXT("Variable")))
+		.NameContent()
+		[			
+			PropertyHandle->CreatePropertyNameWidget()
+		]
+		.ValueContent()
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				SNew(SPinTypeSelectorHelper, Action.ToWeakPtr(), ChangeTypeDelegate, bShowContainerType)
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			[				
+				Element.ToSharedRef()
+			]
+		];
 }
 
 TSharedRef<IPropertyTypeCustomization> FCadenceVariableArrayPropertyCustomization::MakeInstance()

@@ -8,14 +8,16 @@
 #include "CadenceGraphEditorNode.h"
 #include "CadenceGraphEditorPin.h"
 #include "CadenceGraphPropertyCustomization.h"
-#include "CadenceReactionGroupAssetAction.h"
+#include "Reaction/CadenceReactionGroupAssetAction.h"
 #include "CadenceSequencerSectionNameCustomization.h"
 #include "CadenceSequencerTrackEditor.h"
 #include "CadenceVariableInlineWidgetFunctions.h"
 #include "IAssetTools.h"
 #include "ISequencerModule.h"
 #include "ISettingsModule.h"
+#include "Reaction/CadenceReactionGroup.h"
 #include "Interfaces/IPluginManager.h"
+#include "Reaction/CadenceReactionGroupCustomization.h"
 #include "SequencerTrack/CadenceSequencerSection.h"
 #include "Styling/SlateStyleRegistry.h"
 
@@ -77,6 +79,8 @@ void FCadenceEditorModule::StartupModule()
 
 	PropertyModule.RegisterCustomClassLayout(UCadenceGraph::StaticClass()->GetFName(),
 		FOnGetDetailCustomizationInstance::CreateStatic( &FCadenceGraphCustomization::MakeInstance ) );
+	PropertyModule.RegisterCustomClassLayout(UCadenceReactionGroup::StaticClass()->GetFName(),
+		FOnGetDetailCustomizationInstance::CreateStatic( &FCadenceReactionGroupCustomization::MakeInstance));
 	
 	PropertyModule.NotifyCustomizationModuleChanged();
 
@@ -101,6 +105,10 @@ void FCadenceEditorModule::ShutdownModule()
 	NodeFactory = nullptr;
 	
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	
+	PropertyModule.UnregisterCustomClassLayout(UCadenceGraph::StaticClass()->GetFName());
+	PropertyModule.UnregisterCustomClassLayout(UCadenceReactionGroup::StaticClass()->GetFName());
+	
 	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceGraphUserVariableSet::StaticStruct()->GetFName());
 	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceNamedVariable::StaticStruct()->GetFName());
 	

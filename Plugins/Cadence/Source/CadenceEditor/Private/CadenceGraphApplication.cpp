@@ -689,7 +689,7 @@ TSharedRef<SWidget> FCadenceGraphNodeDetailsTabFactory::CreateTabBody(const FWor
 	DetailsView->RegisterInstancedCustomPropertyTypeLayout(FCadenceSectionName::StaticStruct()->GetFName(),
 	FOnGetPropertyTypeCustomizationInstance::CreateStatic( &FCadenceSequencerSectionNameSelectCustomization::MakeInstance, App->GetWorkingGraph() ) );
 	DetailsView->RegisterInstancedCustomPropertyLayout(UCadenceVariable::StaticClass(),
-						  FOnGetDetailCustomizationInstance::CreateStatic(&FCadenceVariableDetailCustomization::MakeInstance, App));
+						  FOnGetDetailCustomizationInstance::CreateStatic(&FCadenceVariableDetailCustomization::MakeInstance, FChangeVariableTypeDelegate::CreateSP(App.ToSharedRef(), &FCadenceGraphApplication::ChangeVariableType)));
 	DetailsView->RegisterInstancedCustomPropertyLayout(UCadenceVariableArray::StaticClass(),
 						  FOnGetDetailCustomizationInstance::CreateStatic(&FCadenceVariableArrayDetailCustomization::MakeInstance));
 

@@ -7,9 +7,7 @@
 #include "CadenceReactionGroup.generated.h"
 
 class UCadenceVariable;
-/**
- * 
- */
+
 UCLASS()
 class CADENCE_API UCadenceReactionGroup : public UPrimaryDataAsset
 {
@@ -18,7 +16,7 @@ class CADENCE_API UCadenceReactionGroup : public UPrimaryDataAsset
 public:
 	TArray<TObjectPtr<UCadenceVariable>> const& GetVariables() const { return Variables; }
 
-private:
-	UPROPERTY()
+	// Public for detail customization, please use GetVariables() from C++
+	UPROPERTY(EditInstanceOnly, Category="Data")
 	TArray<TObjectPtr<UCadenceVariable>> Variables;
 };
