@@ -13,7 +13,6 @@
 #include "Graph/CadenceVariable.h"
 #include "Reaction/CadenceReactionGroup.h"
 
-
 const FString DefaultVariableNameBase = TEXT("NewVar");
 
 namespace CadencReactionCustomizationHelper
@@ -129,10 +128,6 @@ void FCadenceReactionGroupCustomization::OnGenerateVariable(TSharedRef<IProperty
 		Property->NotifyPostChange(EPropertyChangeType::ValueSet);
 		Property->NotifyFinishedChangingProperties();
 	}
-	
-	//IDetailPropertyRow& PropertyRow = ChildrenBuilder.AddProperty(Property);
-	//PropertyRow.ShowPropertyButtons(true);
-	//PropertyRow.ShouldAutoExpand(true);
 
 	TSharedPtr<FCadenceVariableAction> Action = MakeShareable(new FCadenceVariableAction(Variable));
 
@@ -169,20 +164,4 @@ void FCadenceReactionGroupCustomization::OnGenerateVariable(TSharedRef<IProperty
 							ValueElement.ToSharedRef()
 						]
 					];
-	/*
-	 *TSharedPtr<SWidget> NameWidget;
-	TSharedPtr<SWidget> ValueWidget;
-	PropertyRow.GetDefaultWidgets( NameWidget, ValueWidget);
-	PropertyRow.CustomWidget(true)
-	.NameContent()
-	.HAlign(HAlign_Fill)
-	[
-		Property->CreatePropertyNameWidget()
-	]
-	.ValueContent()
-	.HAlign(HAlign_Fill)
-	[
-	
-	];
-	*/
 }
