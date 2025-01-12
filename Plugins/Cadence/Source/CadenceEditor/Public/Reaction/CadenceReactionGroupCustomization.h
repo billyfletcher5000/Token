@@ -17,5 +17,5 @@ public:
 
 private:
 	static void ChangeVariableType(UCadenceVariable* InVariable, const FEdGraphPinType& InNewPinType, TWeakObjectPtr<UCadenceReactionGroup> InGroup, IDetailLayoutBuilder* InLayoutBuilder);
-	void OnGenerateVariable(TSharedRef<IPropertyHandle> Property, int32 Index, IDetailChildrenBuilder& ChildrenBuilder, TWeakObjectPtr<UCadenceReactionGroup> InGroup);
+	void OnGenerateVariable(TSharedRef<IPropertyHandle> Property, int32 Index, IDetailChildrenBuilder& ChildrenBuilder, TWeakObjectPtr<UCadenceReactionGroup> InGroup, IDetailLayoutBuilder* InLayoutBuilder);
 };

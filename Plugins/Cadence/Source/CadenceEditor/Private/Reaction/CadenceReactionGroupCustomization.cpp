@@ -8,9 +8,44 @@
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
+#include "ISinglePropertyView.h"
 #include "PropertyCustomizationHelpers.h"
 #include "Graph/CadenceVariable.h"
 #include "Reaction/CadenceReactionGroup.h"
+
+
+const FString DefaultVariableNameBase = TEXT("NewVar");
+
+namespace CadencReactionCustomizationHelper
+{
+	bool VariableAlreadyExistsWithName(TArray<TObjectPtr<UCadenceVariable>>& UserVariableArray, const FName& InName)
+	{
+		if(InName == NAME_None)
+			return false;
+	
+		for(UCadenceVariable* Variable : UserVariableArray)
+		{
+			if(Variable && Variable->GetUserVariableName() == InName)
+				return true;
+		}
+
+		return false;
+	}
+
+	FName GetUniqueDefaultVariableName(TArray<TObjectPtr<UCadenceVariable>>& UserVariableArray, FName InBaseName = NAME_None)
+	{
+		FName BaseName = InBaseName == NAME_None ? FName(DefaultVariableNameBase) : InBaseName;
+		FName CurrentTestName = BaseName;
+		uint32 VariableCopyIndex = 1;
+		while(VariableAlreadyExistsWithName(UserVariableArray, CurrentTestName))
+		{
+			VariableCopyIndex++;
+			CurrentTestName = FName(BaseName.ToString() + " " + FString::FromInt(VariableCopyIndex));
+		}
+
+		return CurrentTestName;
+	}
+}
 
 TSharedRef<IDetailCustomization> FCadenceReactionGroupCustomization::MakeInstance()
 {
@@ -28,9 +63,9 @@ void FCadenceReactionGroupCustomization::CustomizeDetails(IDetailLayoutBuilder& 
 	IDetailCategoryBuilder& DataCategory = DetailBuilder.EditCategory("Data");
 	DetailBuilder.RegisterInstancedCustomPropertyTypeLayout(UCadenceVariable::StaticClass()->GetFName(),
 						  FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FCadenceVariablePropertyCustomization::MakeInstance, FChangeVariableTypeDelegate::CreateStatic(&FCadenceReactionGroupCustomization::ChangeVariableType, Groups[0], &DetailBuilder), false));
-
+	
 	TSharedRef<FDetailArrayBuilder> VariablesBuilder = MakeShared<FDetailArrayBuilder>(VariablesProp, true, false, true);
-	VariablesBuilder->OnGenerateArrayElementWidget(FOnGenerateArrayElementWidget::CreateSP(this, &FCadenceReactionGroupCustomization::OnGenerateVariable, Groups[0]));
+	VariablesBuilder->OnGenerateArrayElementWidget(FOnGenerateArrayElementWidget::CreateSP(this, &FCadenceReactionGroupCustomization::OnGenerateVariable, Groups[0], &DetailBuilder));
 
 	DataCategory.AddCustomBuilder(VariablesBuilder);
 }
@@ -48,6 +83,7 @@ void FCadenceReactionGroupCustomization::ChangeVariableType(UCadenceVariable* In
 		return;
 
 	UCadenceVariable* NewVariable = NewObject<UCadenceVariable>(InGroup.Get(), NewClassType);
+	NewVariable->SetUserVariableName(InVar->GetUserVariableName());
 
 	InGroup->Modify();
 	InGroup->Variables.Insert(NewVariable, VarIndex);
@@ -56,36 +92,97 @@ void FCadenceReactionGroupCustomization::ChangeVariableType(UCadenceVariable* In
 	InLayoutBuilder->ForceRefreshDetails();
 }
 
-void FCadenceReactionGroupCustomization::OnGenerateVariable(TSharedRef<IPropertyHandle> Property, int32 Index, IDetailChildrenBuilder& ChildrenBuilder, TWeakObjectPtr<UCadenceReactionGroup> InGroup)
+void FCadenceReactionGroupCustomization::OnGenerateVariable(TSharedRef<IPropertyHandle> Property, int32 Index, IDetailChildrenBuilder& ChildrenBuilder, TWeakObjectPtr<UCadenceReactionGroup> InGroup, IDetailLayoutBuilder* InLayoutBuilder)
 {
 	UObject* CurrentValue = nullptr;
 	Property->GetValue(CurrentValue);
-	
-	if(CurrentValue == nullptr)
+	UCadenceVariable* Variable = Cast<UCadenceVariable>(CurrentValue);
+
+	bool bVariableChanged = false;
+	if(Variable != nullptr)
 	{
-		UCadenceVariable* Variable = NewObject<UCadenceVariable>(InGroup.Get(), UCadenceVariableBool::StaticClass());
+		int32 NumExisting = InGroup->Variables.FilterByPredicate([&Variable] (UCadenceVariable* InVar)
+		{
+			return InVar == Variable;
+		}).Num();
+		
+		if(NumExisting > 1)
+		{			
+			UCadenceVariable* NewVariable = NewObject<UCadenceVariable>(InGroup.Get(), Variable->GetClass());
+			NewVariable->CopyValueFrom(Variable);
+			NewVariable->SetUserVariableName(CadencReactionCustomizationHelper::GetUniqueDefaultVariableName(InGroup->Variables, Variable->GetUserVariableName()));
+			Variable = NewVariable;
+			bVariableChanged = true;
+		}
+	}		
+	else
+	{
+		Variable = NewObject<UCadenceVariable>(InGroup.Get(), UCadenceVariableBool::StaticClass());
+		Variable->SetUserVariableName(CadencReactionCustomizationHelper::GetUniqueDefaultVariableName(InGroup->Variables));
+		bVariableChanged = true;
+	}
+
+	if(bVariableChanged)
+	{
 		Property->NotifyPreChange();
 		Property->SetValue(Variable);
 		Property->NotifyPostChange(EPropertyChangeType::ValueSet);
 		Property->NotifyFinishedChangingProperties();
-	}	
+	}
+	
+	//IDetailPropertyRow& PropertyRow = ChildrenBuilder.AddProperty(Property);
+	//PropertyRow.ShowPropertyButtons(true);
+	//PropertyRow.ShouldAutoExpand(true);
 
-	IDetailPropertyRow& PropertyRow = ChildrenBuilder.AddProperty(Property);
-	PropertyRow.ShowPropertyButtons(false);
-	PropertyRow.ShouldAutoExpand(false);
+	TSharedPtr<FCadenceVariableAction> Action = MakeShareable(new FCadenceVariableAction(Variable));
 
-	TSharedPtr<SWidget> NameWidget;
+	FPropertyEditorModule& EditModule = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	FSinglePropertyParams Params;
+	Params.NamePlacement = EPropertyNamePlacement::Hidden;
+	auto NameElement = EditModule.CreateSingleProperty(Variable, FName(TEXT("UserVariableName")), Params);
+	auto ValueElement = EditModule.CreateSingleProperty(Variable, FName(TEXT("Value")), Params);
+	
+	ChildrenBuilder.AddProperty(Property)
+	                .CustomWidget()
+					.NameContent()
+					[			
+						Property->CreatePropertyNameWidget()
+					]
+					.ValueContent()
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.MinWidth(200)
+						.Padding(0, 0, 10, 0)
+						[
+							NameElement.ToSharedRef()
+						]
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						[
+							SNew(SCadencePinTypeSelectorHelper, Action.ToWeakPtr(), FChangeVariableTypeDelegate::CreateStatic(&FCadenceReactionGroupCustomization::ChangeVariableType, InGroup, InLayoutBuilder), false)
+						]
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						[				
+							ValueElement.ToSharedRef()
+						]
+					];
+	/*
+	 *TSharedPtr<SWidget> NameWidget;
 	TSharedPtr<SWidget> ValueWidget;
 	PropertyRow.GetDefaultWidgets( NameWidget, ValueWidget);
 	PropertyRow.CustomWidget(true)
 	.NameContent()
 	.HAlign(HAlign_Fill)
 	[
-		NameWidget.ToSharedRef()
+		Property->CreatePropertyNameWidget()
 	]
 	.ValueContent()
 	.HAlign(HAlign_Fill)
 	[
-		ValueWidget.ToSharedRef()
+	
 	];
+	*/
 }

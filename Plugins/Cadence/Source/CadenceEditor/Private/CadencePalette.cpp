@@ -122,95 +122,71 @@ static TSharedRef<IToolTip> ConstructToolTipWithActionPath(TSharedPtr<FEdGraphSc
 
 
 /*******************************************************************************
-* SPinTypeSelectorHelper
+* SCadencePinTypeSelectorHelper
 *******************************************************************************/
 DECLARE_DELEGATE_OneParam(FOnPinTypeChanged, const FEdGraphPinType&)
 
-class SPinTypeSelectorHelper : public SCompoundWidget
+void SCadencePinTypeSelectorHelper::Construct(const FArguments& InArgs, TWeakPtr<FCadenceVariableAction> InAction, const FChangeVariableTypeDelegate& InChangeTypeDelegate, bool InShowContainerTypeSelector)
 {
-public:
-	SLATE_BEGIN_ARGS( SPinTypeSelectorHelper ) {}
-		SLATE_EVENT(FOnPinTypeChanged, OnTypeChanged)
-	SLATE_END_ARGS()
-
-	void Construct(const FArguments& InArgs, TWeakPtr<FCadenceVariableAction> InAction, const FChangeVariableTypeDelegate& InChangeTypeDelegate, bool InShowContainerTypeSelector = false)
-	{
-		ActionPtr = InAction;
-		ChangeTypeDelegate = InChangeTypeDelegate;
-		bShowContainerTypeSelector = InShowContainerTypeSelector;
-		
-		Variable = nullptr;
-		if (ActionPtr.IsValid())
-		{
-			Variable = ActionPtr.Pin()->GetVariable();
-		}
-
-		ConstructInternal(InArgs);
-	}
-
-private:
-
-	void ConstructInternal(const FArguments& InArgs)
-	{
-		OnTypeChanged = InArgs._OnTypeChanged;
-		
-		const UEdGraphSchema* Schema = GetDefault<UCadenceGraphSchema>();
-		
-		this->ChildSlot
-		[
-			SNew(SPinTypeSelector, FGetPinTypeTree::CreateUObject(GetDefault<UCadenceGraphSchema>(), &UCadenceGraphSchema::GetVariableTypeTree))
-			.Schema(Schema)
-			.SchemaAction(ActionPtr)
-			.TargetPinType(this, &SPinTypeSelectorHelper::OnGetVarType)
-			.OnPinTypeChanged(this, &SPinTypeSelectorHelper::OnVarTypeChanged)
-			.TypeTreeFilter(ETypeTreeFilter::None)
-			.SelectorType(bShowContainerTypeSelector ? SPinTypeSelector::ESelectorType::Full : SPinTypeSelector::ESelectorType::Partial)
-		];		
-	}
+	ActionPtr = InAction;
+	ChangeTypeDelegate = InChangeTypeDelegate;
+	bShowContainerTypeSelector = InShowContainerTypeSelector;
 	
-	FEdGraphPinType OnGetVarType() const
+	Variable = nullptr;
+	if (ActionPtr.IsValid())
 	{
-		if (Variable.IsValid())
-		{
-			const UCadenceGraphSchema* CadenceGraphSchema = GetDefault<UCadenceGraphSchema>();
-			FEdGraphPinType Type;
-			CadenceGraphSchema->ConvertVariableToPinType(Variable.Get(), Type);
-			return Type;
-		}
-		else if(ActionPtr.IsValid())
-		{
-			return ActionPtr.Pin()->GetPinType();
-		}
-		return FEdGraphPinType();
+		Variable = ActionPtr.Pin()->GetVariable();
 	}
 
-	void OnVarTypeChanged(const FEdGraphPinType& InNewPinType)
-	{
-		if (UCadenceVariable* Var = Variable.Get())
-		{			
-			ChangeTypeDelegate.ExecuteIfBound(Var, InNewPinType);
-		}
+	ConstructInternal(InArgs);
+}
 
-		if (OnTypeChanged.IsBound())
-		{
-			OnTypeChanged.Execute(InNewPinType);
-		}
-	}
-
-private:
-	/** The action that the owning palette entry represents */
-	TWeakPtr<FCadenceVariableAction> ActionPtr;
-
-	/** Variable Property to change the type of */
-	TWeakObjectPtr<UCadenceVariable> Variable;
+void SCadencePinTypeSelectorHelper::ConstructInternal(const FArguments& InArgs)
+{
+	OnTypeChanged = InArgs._OnTypeChanged;
 	
-	FChangeVariableTypeDelegate ChangeTypeDelegate;
+	const UEdGraphSchema* Schema = GetDefault<UCadenceGraphSchema>();
+	
+	this->ChildSlot
+	[
+		SNew(SPinTypeSelector, FGetPinTypeTree::CreateUObject(GetDefault<UCadenceGraphSchema>(), &UCadenceGraphSchema::GetVariableTypeTree))
+		.Schema(Schema)
+		.SchemaAction(ActionPtr)
+		.TargetPinType(this, &SCadencePinTypeSelectorHelper::OnGetVarType)
+		.OnPinTypeChanged(this, &SCadencePinTypeSelectorHelper::OnVarTypeChanged)
+		.TypeTreeFilter(ETypeTreeFilter::None)
+		.SelectorType(bShowContainerTypeSelector ? SPinTypeSelector::ESelectorType::Full : SPinTypeSelector::ESelectorType::Partial)
+	];		
+}
 
-	bool bShowContainerTypeSelector = false;
+FEdGraphPinType SCadencePinTypeSelectorHelper::OnGetVarType() const
+{
+	if (Variable.IsValid())
+	{
+		const UCadenceGraphSchema* CadenceGraphSchema = GetDefault<UCadenceGraphSchema>();
+		FEdGraphPinType Type;
+		CadenceGraphSchema->ConvertVariableToPinType(Variable.Get(), Type);
+		return Type;
+	}
+	else if(ActionPtr.IsValid())
+	{
+		return ActionPtr.Pin()->GetPinType();
+	}
+	return FEdGraphPinType();
+}
 
-	/** Event when type has changed */
-	FOnPinTypeChanged OnTypeChanged;
-};
+void SCadencePinTypeSelectorHelper::OnVarTypeChanged(const FEdGraphPinType& InNewPinType)
+{
+	if (UCadenceVariable* Var = Variable.Get())
+	{			
+		ChangeTypeDelegate.ExecuteIfBound(Var, InNewPinType);
+	}
+
+	if (OnTypeChanged.IsBound())
+	{
+		OnTypeChanged.Execute(InNewPinType);
+	}
+}
 
 /*******************************************************************************
 * SPaletteItemVisibilityToggle
@@ -438,7 +414,7 @@ void SCadencePaletteItem::Construct(const FArguments& InArgs, FCreateWidgetForAc
 		}
 		if (Variable)
 		{
-			IconWidget = SNew(SPinTypeSelectorHelper, Action, FChangeVariableTypeDelegate::CreateSP(ApplicationPtr.Pin().ToSharedRef(), &FCadenceGraphApplication::ChangeVariableType))
+			IconWidget = SNew(SCadencePinTypeSelectorHelper, Action, FChangeVariableTypeDelegate::CreateSP(ApplicationPtr.Pin().ToSharedRef(), &FCadenceGraphApplication::ChangeVariableType))
 				.IsEnabled(bIsEditingEnabled)
 				.OnTypeChanged(this, &SCadencePaletteItem::OnPinTypeChanged);
 
@@ -873,7 +849,7 @@ void FCadenceVariableDetailCustomization::CustomizeDetails(IDetailLayoutBuilder&
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
 			[
-				SNew(SPinTypeSelectorHelper, Action.ToWeakPtr(), ChangeTypeDelegate, true)
+				SNew(SCadencePinTypeSelectorHelper, Action.ToWeakPtr(), ChangeTypeDelegate, true)
 			]
 		];
 }
@@ -938,40 +914,53 @@ void FCadenceVariablePropertyCustomization::CustomizeHeader(TSharedRef<IProperty
 {
 }
 
+FDetailWidgetRow& FCadenceVariablePropertyCustomization::CreateVariableDisplay(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, UCadenceVariable* Variable, FChangeVariableTypeDelegate InChangeTypeDelegate, bool InShowContainerType)
+{
+	TSharedPtr<FCadenceVariableAction> Action = MakeShareable(new FCadenceVariableAction(Variable));
+
+	FPropertyEditorModule& EditModule = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	FSinglePropertyParams Params;
+	Params.NamePlacement = EPropertyNamePlacement::Hidden;
+	auto NameElement = EditModule.CreateSingleProperty(Variable, FName(TEXT("UserVariableName")), Params);
+	auto ValueElement = EditModule.CreateSingleProperty(Variable, FName(TEXT("Value")), Params);
+	
+	return ChildBuilder.AddCustomRow(FText::FromString(TEXT("Variable")))
+			            .NameContent()
+						[			
+							PropertyHandle->CreatePropertyNameWidget()
+						]
+						.ValueContent()
+						[
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot()
+							.AutoWidth()
+							.MinWidth(200)
+							.Padding(0, 0, 10, 0)
+							[
+								NameElement.ToSharedRef()
+							]
+							+ SHorizontalBox::Slot()
+							.AutoWidth()
+							[
+								SNew(SCadencePinTypeSelectorHelper, Action.ToWeakPtr(), InChangeTypeDelegate, InShowContainerType)
+							]
+							+ SHorizontalBox::Slot()
+							.AutoWidth()
+							[				
+								ValueElement.ToSharedRef()
+							]
+						];
+}
+
 void FCadenceVariablePropertyCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle,
-	IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
+                                                              IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
 	UObject* VariableObj = nullptr;
 	PropertyHandle->GetValue(VariableObj);
 	UCadenceVariable* Variable = Cast<UCadenceVariable>(VariableObj);
 	check(Variable);
 	
-	TSharedPtr<FCadenceVariableAction> Action = MakeShareable(new FCadenceVariableAction(Variable));
-
-	FPropertyEditorModule& EditModule = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	FSinglePropertyParams Params;
-	Params.NamePlacement = EPropertyNamePlacement::Hidden;
-	auto Element = EditModule.CreateSingleProperty(Variable, FName(TEXT("Value")), Params);
-	
-	ChildBuilder.AddCustomRow(FText::FromString(TEXT("Variable")))
-		.NameContent()
-		[			
-			PropertyHandle->CreatePropertyNameWidget()
-		]
-		.ValueContent()
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SNew(SPinTypeSelectorHelper, Action.ToWeakPtr(), ChangeTypeDelegate, bShowContainerType)
-			]
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[				
-				Element.ToSharedRef()
-			]
-		];
+	CreateVariableDisplay(PropertyHandle, ChildBuilder, Variable, ChangeTypeDelegate, bShowContainerType);
 }
 
 TSharedRef<IPropertyTypeCustomization> FCadenceVariableArrayPropertyCustomization::MakeInstance()

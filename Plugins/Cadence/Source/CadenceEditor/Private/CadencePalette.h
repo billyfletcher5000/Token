@@ -7,6 +7,7 @@
 #include "SGraphPalette.h"
 #include "UObject/Object.h"
 
+struct FCadenceVariableAction;
 class UCadenceVariable;
 class UCadenceVariableArray;
 class UCadenceAsset;
@@ -113,6 +114,40 @@ private:
 	TSharedPtr<SWidget> LibraryWrapper;
 };
 
+/*******************************************************************************
+* SCadencePinTypeSelectorHelper
+*******************************************************************************/
+DECLARE_DELEGATE_OneParam(FOnPinTypeChanged, const FEdGraphPinType&)
+
+class SCadencePinTypeSelectorHelper : public SCompoundWidget
+{
+public:
+	SLATE_BEGIN_ARGS( SCadencePinTypeSelectorHelper ) {}
+		SLATE_EVENT(FOnPinTypeChanged, OnTypeChanged)
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments& InArgs, TWeakPtr<FCadenceVariableAction> InAction, const FChangeVariableTypeDelegate& InChangeTypeDelegate, bool InShowContainerTypeSelector = false);
+
+private:
+	void ConstructInternal(const FArguments& InArgs);	
+	FEdGraphPinType OnGetVarType() const;
+	void OnVarTypeChanged(const FEdGraphPinType& InNewPinType);
+
+private:
+	/** The action that the owning palette entry represents */
+	TWeakPtr<FCadenceVariableAction> ActionPtr;
+
+	/** Variable Property to change the type of */
+	TWeakObjectPtr<UCadenceVariable> Variable;
+	
+	FChangeVariableTypeDelegate ChangeTypeDelegate;
+
+	bool bShowContainerTypeSelector = false;
+
+	/** Event when type has changed */
+	FOnPinTypeChanged OnTypeChanged;
+};
+
 class FCadenceVariableDetailCustomization : public IDetailCustomization
 {
 public:
@@ -144,6 +179,7 @@ public:
 	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 
+	static FDetailWidgetRow& CreateVariableDisplay(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, UCadenceVariable* Variable, FChangeVariableTypeDelegate InChangeTypeDelegate, bool InShowContainerType);
 protected:
 	FChangeVariableTypeDelegate ChangeTypeDelegate;
 	bool bShowContainerType = true;
