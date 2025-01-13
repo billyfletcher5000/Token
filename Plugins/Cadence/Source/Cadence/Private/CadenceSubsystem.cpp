@@ -55,6 +55,18 @@ TStatId UCadenceSubsystem::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UCadenceSubsystem, STATGROUP_Tickables);
 }
 
+UCadenceReactionGroup* UCadenceSubsystem::GetReactionGroupRuntimeInstance(UCadenceReactionGroup* InGroupAsset)
+{
+	if(ReactionGroupAssetToInstance.Contains(InGroupAsset))
+		return ReactionGroupAssetToInstance[InGroupAsset];
+
+	FString Name = InGroupAsset->GetFName().ToString() + "_Inst";
+	UCadenceReactionGroup* Instance = DuplicateObject<UCadenceReactionGroup>(InGroupAsset, this, FName(Name));
+
+	ReactionGroupAssetToInstance.Add(InGroupAsset, Instance);
+	return Instance;
+}
+
 UCadenceGraphRunner* UCadenceSubsystem::CreateRunner(UCadenceAssetInstance* InAssetInstance, UCadenceGraph* InGraph)
 {	
 	UCadenceGraphRunner* Runner = NewObject<UCadenceGraphRunner>(this);

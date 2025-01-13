@@ -3,6 +3,9 @@
 
 #include "Graph/Nodes/CadenceReactionNodes.h"
 
+#include "CadenceSubsystem.h"
+
+
 void UCadenceSetReactionGroupValuesNode::CreateInputPins()
 {
 	Super::CreateInputPins();
@@ -37,8 +40,18 @@ ECadenceNodeExecuteResult UCadenceSetReactionGroupValuesNode::Execute(UCadenceCo
 	UCadenceReactionGroup* Group = GroupVariable->GetValue();
 	if(!Group)
 		return ECadenceNodeExecuteResult::Failed;
+	
+	UWorld* World = GetWorld();
+	if(!ensure(World))
+		return ECadenceNodeExecuteResult::Failed;
+	
+	UCadenceSubsystem* Subsystem = World->GetSubsystem<UCadenceSubsystem>();
+	if(!ensure(Subsystem))
+		return ECadenceNodeExecuteResult::Failed;
 
-	for(UCadenceVariable* GroupItemVariable : Group->GetVariables())
+	UCadenceReactionGroup* GroupInstance = Subsystem->GetReactionGroupRuntimeInstance(Group);
+
+	for(UCadenceVariable* GroupItemVariable : GroupInstance->GetVariables())
 	{
 		UCadenceGraphNodePin* Pin = GetInputPin(GroupItemVariable->GetUserVariableName());
 		if(!Pin->HasConnections())
@@ -153,8 +166,18 @@ ECadenceNodeExecuteResult UCadenceBreakReactionGroupNode::Execute(UCadenceContex
 	UCadenceReactionGroup* Group = GroupVariable->GetValue();
 	if(!Group)
 		return ECadenceNodeExecuteResult::Failed;
+	
+	UWorld* World = GetWorld();
+	if(!ensure(World))
+		return ECadenceNodeExecuteResult::Failed;
+	
+	UCadenceSubsystem* Subsystem = World->GetSubsystem<UCadenceSubsystem>();
+	if(!ensure(Subsystem))
+		return ECadenceNodeExecuteResult::Failed;
 
-	for(UCadenceVariable* GroupItemVariable : Group->GetVariables())
+	UCadenceReactionGroup* GroupInstance = Subsystem->GetReactionGroupRuntimeInstance(Group);
+
+	for(UCadenceVariable* GroupItemVariable : GroupInstance->GetVariables())
 	{
 		UCadenceGraphNodePin* Pin = GetInputPin(GroupItemVariable->GetUserVariableName());
 		UCadenceVariable* PinVariable = Pin->GetVariable();

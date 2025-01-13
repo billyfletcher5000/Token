@@ -34,7 +34,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	// End UTickableWorldSubsystem
-	
+
+	UCadenceReactionGroup* GetReactionGroupRuntimeInstance(UCadenceReactionGroup* InGroupAsset);	
 
 	UFUNCTION(BlueprintCallable)
 	void Notify_SectionStart(UMovieSceneSequence* Sequence, UCadenceSequencerSection* Section);
@@ -69,4 +70,7 @@ private:
 
 	UPROPERTY()
 	TArray<UCadenceGraphRunner*> EndedRunners;
+
+	UPROPERTY(Transient)
+	TMap<UCadenceReactionGroup*, UCadenceReactionGroup*> ReactionGroupAssetToInstance;
 };

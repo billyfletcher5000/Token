@@ -18,5 +18,5 @@ class UCadenceReactionGroupFunctionLibrary : public UBlueprintFunctionLibrary
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "ReactionGroup", meta = (ReactionGroupPin="InReactionGroup"))
-	static CADENCE_API UCadenceVariable* GetReactionGroupVariable(UCadenceReactionGroup* InReactionGroup, FName VariableName);
+	static CADENCE_API UCadenceVariable* GetReactionGroupVariable(UObject* InInstigator, UCadenceReactionGroup* InReactionGroup, FName VariableName);
 };
