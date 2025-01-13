@@ -3,11 +3,13 @@
 
 #include "Graph/Nodes/CadenceTriggerNodes.h"
 
+#include "Cadence.h"
 #include "CadenceSubsystem.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadencePinConstants.h"
 #include "Graph/CadenceVariable.h"
 #include "Triggers/CadenceTrigger.h"
+#include "CadenceAssetInstance.h"
 
 void UCadenceWaitForTriggerNode::CreateInputPins()
 {

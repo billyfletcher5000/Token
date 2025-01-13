@@ -4,6 +4,7 @@
 #include "Graph/Nodes/CadenceFlowNodes.h"
 
 #include "CadenceAsset.h"
+#include "CadenceAssetInstance.h"
 #include "CadenceSubsystem.h"
 #include "Graph/CadenceGraph.h"
 #include "Graph/CadenceGraphRunner.h"

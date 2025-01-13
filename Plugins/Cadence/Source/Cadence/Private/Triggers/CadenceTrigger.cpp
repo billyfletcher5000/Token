@@ -4,8 +4,7 @@
 #include "Triggers/CadenceTrigger.h"
 
 #include "Cadence.h"
-#include "CadenceContext.h"
-#include "CadenceSubsystem.h"
+#include "CadenceAssetInstance.h"
 
 void UCadenceTriggerRunner::Trigger()
 {

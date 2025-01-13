@@ -3,6 +3,7 @@
 
 #include "Graph/Nodes/CadenceDurationNodes.h"
 
+#include "CadenceAssetInstance.h"
 #include "CadenceSubsystem.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadencePinConstants.h"
