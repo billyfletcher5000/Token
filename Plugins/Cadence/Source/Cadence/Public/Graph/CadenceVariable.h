@@ -7,6 +7,7 @@
 #include "CadenceContext.h"
 #include "UObject/Object.h"
 #include "CadencePinConstants.h"
+#include "Reaction/CadenceReactionGroup.h"
 #include "CadenceVariable.generated.h"
 
 class UCadenceTriggerData;
@@ -41,7 +42,8 @@ public:
 	virtual void SetFromString(const FString& InStringValue) { }
 	virtual FString ConvertToValueString() const { return FString(); }
 
-	DECLARE_MULTICAST_DELEGATE(FOnValueChanged);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnValueChanged);
+	UPROPERTY(BlueprintAssignable)
 	FOnValueChanged OnValueChanged;
 	
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnUserVariableNameChanged, const FName& /* InName */);
@@ -114,7 +116,7 @@ private:
 	FGuid GUID;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableArray : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -154,7 +156,7 @@ private:
 	TSubclassOf<UCadenceVariable> VariableClass;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableInt : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -167,7 +169,7 @@ public:
 	{
 		UCadenceVariableInt* CastedVariable = Cast<UCadenceVariableInt>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override
@@ -175,6 +177,7 @@ public:
 		return EqualsHelper(this, OtherVariable);
 	}
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	int32 GetValue() const { return Value; }
 	void SetValue(const int32& InValue) { SetValueHelper(Value, InValue); }
 
@@ -183,12 +186,12 @@ public:
 	virtual void SetFromString(const FString& InStringValue) override;
 	virtual FString ConvertToValueString() const override;
 
-private:
+public:
 	UPROPERTY(EditAnywhere)
 	int32 Value;
 };
 
-UCLASS(EditInlineNew)
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableFloat : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -201,7 +204,7 @@ public:
 	{
 		UCadenceVariableFloat* CastedVariable = Cast<UCadenceVariableFloat>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override
@@ -209,6 +212,7 @@ public:
 		return EqualsHelper(this, OtherVariable);
 	}
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	float GetValue() const { return Value; }
 	void SetValue(const float& InValue) { SetValueHelper(Value, InValue); }
 
@@ -222,7 +226,7 @@ private:
 	float Value;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableDouble : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -235,7 +239,7 @@ public:
 	{
 		UCadenceVariableDouble* CastedVariable = Cast<UCadenceVariableDouble>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override
@@ -243,6 +247,7 @@ public:
 		return EqualsHelper(this, OtherVariable);
 	}
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	double GetValue() const { return Value; }
 	void SetValue(const double& InValue) { SetValueHelper(Value, InValue); }
 
@@ -256,7 +261,7 @@ private:
 	double Value;
 };
 
-UCLASS(EditInlineNew)
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableBool : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -269,7 +274,7 @@ public:
 	{
 		UCadenceVariableBool* CastedVariable = Cast<UCadenceVariableBool>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override
@@ -277,6 +282,7 @@ public:
 		return EqualsHelper(this, OtherVariable);
 	}
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool GetValue() const { return Value; }
 	void SetValue(const bool& InValue) { SetValueHelper(Value, InValue); }
 
@@ -290,7 +296,7 @@ private:
 	bool Value;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableVector : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -303,7 +309,7 @@ public:
 	{
 		UCadenceVariableVector* CastedVariable = Cast<UCadenceVariableVector>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override
@@ -311,6 +317,7 @@ public:
 		return EqualsHelper(this, OtherVariable);
 	}
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FVector GetValue() const { return Value; }
 	void SetValue(const FVector& InValue) { SetValueHelper(Value, InValue); }
 
@@ -326,7 +333,7 @@ private:
 	FVector Value;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableVector2D : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -339,7 +346,7 @@ public:
 	{
 		UCadenceVariableVector2D* CastedVariable = Cast<UCadenceVariableVector2D>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override
@@ -347,6 +354,7 @@ public:
 		return EqualsHelper(this, OtherVariable);
 	}
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FVector2D GetValue() const { return Value; }
 	void SetValue(const FVector2D& InValue) { SetValueHelper(Value, InValue); }
 
@@ -360,7 +368,7 @@ private:
 	FVector2D Value;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableRotator : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -373,7 +381,7 @@ public:
 	{
 		UCadenceVariableRotator* CastedVariable = Cast<UCadenceVariableRotator>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override
@@ -381,6 +389,7 @@ public:
 		return EqualsHelper(this, OtherVariable);
 	}
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FRotator GetValue() const { return Value; }
 	void SetValue(const FRotator& InValue) { SetValueHelper(Value, InValue); }
 
@@ -394,7 +403,7 @@ private:
 	FRotator Value;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableString : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -407,7 +416,7 @@ public:
 	{
 		UCadenceVariableString* CastedVariable = Cast<UCadenceVariableString>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override
@@ -415,6 +424,7 @@ public:
 		return EqualsHelper(this, OtherVariable);
 	}
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FString GetValue() const { return Value; }
 	void SetValue(const FString& InValue) { SetValueHelper(Value, InValue); }
 
@@ -428,7 +438,7 @@ private:
 	FString Value;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableName : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -441,7 +451,7 @@ public:
 	{
 		UCadenceVariableName* CastedVariable = Cast<UCadenceVariableName>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override
@@ -449,6 +459,7 @@ public:
 		return EqualsHelper(this, OtherVariable);
 	}
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FName GetValue() const { return Value; }
 	void SetValue(const FName& InValue) { SetValueHelper(Value, InValue); }
 
@@ -462,7 +473,7 @@ private:
 	FName Value;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableText : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -475,11 +486,12 @@ public:
 	{
 		UCadenceVariableText* CastedVariable = Cast<UCadenceVariableText>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override;
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FText GetValue() const { return Value; }
 	void SetValue(const FText& InValue)
 	{
@@ -500,7 +512,7 @@ private:
 	FText Value;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableUObject : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -513,7 +525,7 @@ public:
 	{
 		UCadenceVariableUObject* CastedVariable = Cast<UCadenceVariableUObject>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override
@@ -521,7 +533,8 @@ public:
 		return EqualsHelper(this, OtherVariable);
 	}
 	
-	TObjectPtr<UObject> GetValue() const { return Value; }
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UObject* GetValue() const { return Value; }
 	void SetValue(const TObjectPtr<UObject>& InValue) { SetValueHelper(Value, InValue); }
 
 	virtual bool SupportsDefault() const override { return true; }
@@ -548,7 +561,7 @@ public:
 	{
 		UCadenceVariableEnum* CastedVariable = Cast<UCadenceVariableEnum>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override
@@ -558,6 +571,7 @@ public:
 
 	virtual bool IsEnum() const override { return true; }
 	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	int64 GetValue() const { return Value; }
 	void SetValue(const int64& InValue) { SetValueHelper(Value, InValue); }
 
@@ -591,16 +605,21 @@ protected:
 	UEnum* EnumType = nullptr;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class UCadenceVariableQuantizationPeriod : public UCadenceVariableEnum
 {
 	GENERATED_BODY()
 
 public:
 	UCadenceVariableQuantizationPeriod();
+
+	EQuartzCommandQuantization GetEnumValue() const
+	{
+		return static_cast<EQuartzCommandQuantization>(GetValue());
+	}
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableActor : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -619,7 +638,8 @@ public:
 
 	virtual void OnParentNodeReleased(UCadenceContext* InContext) override;
 	
-	TObjectPtr<AActor> GetValue() const { return Value; }
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	AActor* GetValue() const { return Value; }
 	void SetValue(const TObjectPtr<AActor>& InValue) { SetValueHelper(Value, InValue); }
 
 private:
@@ -627,7 +647,7 @@ private:
 	TObjectPtr<AActor> Value;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableTrigger : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -640,7 +660,7 @@ public:
 	{
 		UCadenceVariableTrigger* CastedVariable = Cast<UCadenceVariableTrigger>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override
@@ -648,7 +668,8 @@ public:
 		return EqualsHelper(this, OtherVariable);
 	}
 	
-	TObjectPtr<UCadenceTriggerData> GetValue() const { return Value; }
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UCadenceTriggerData* GetValue() const { return Value; }
 	void SetValue(const TObjectPtr<UCadenceTriggerData>& InValue) { SetValueHelper(Value, InValue); }
 
 private:
@@ -656,7 +677,7 @@ private:
 	TObjectPtr<UCadenceTriggerData> Value;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CADENCE_API UCadenceVariableCadenceAsset : public UCadenceVariable
 {
 	GENERATED_BODY()
@@ -670,7 +691,7 @@ public:
 	{
 		UCadenceVariableCadenceAsset* CastedVariable = Cast<UCadenceVariableCadenceAsset>(OtherVariable);
 		if(ensure(CastedVariable))
-			Value = CastedVariable->GetValue();
+			SetValue(CastedVariable->GetValue());
 	}
 	
 	virtual bool Equals(UCadenceVariable* OtherVariable) override
@@ -678,7 +699,8 @@ public:
 		return EqualsHelper(this, OtherVariable);
 	}
 	
-	TObjectPtr<UCadenceAsset> GetValue() const { return Value; }
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UCadenceAsset* GetValue() const { return Value; }
 	void SetValue(const TObjectPtr<UCadenceAsset>& InValue) { SetValueHelper(Value, InValue); }
 
 	virtual bool SupportsDefault() const override { return true; }
@@ -688,4 +710,39 @@ public:
 private:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCadenceAsset> Value;
+};
+
+UCLASS(BlueprintType)
+class CADENCE_API UCadenceVariableReactionGroup : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_ReactionGroup; }
+	virtual FLinearColor GetPinColor() const override { return FCadenceVariableColorConstants::VC_ReactionGroup; }
+	virtual UObject* GetPinSubCategoryObject() const override { return UCadenceReactionGroup::StaticClass(); }
+
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
+	{
+		UCadenceVariableReactionGroup* CastedVariable = Cast<UCadenceVariableReactionGroup>(OtherVariable);
+		if(ensure(CastedVariable))
+			SetValue(CastedVariable->GetValue());
+	}
+	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
+	}
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UCadenceReactionGroup* GetValue() const { return Value; }
+	void SetValue(const TObjectPtr<UCadenceReactionGroup>& InValue) { SetValueHelper(Value, InValue); }
+
+	virtual bool SupportsDefault() const override { return true; }
+	virtual void SetFromString(const FString& InStringValue) override;
+	virtual FString ConvertToValueString() const override;
+
+private:
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UCadenceReactionGroup> Value;
 };

@@ -89,6 +89,7 @@ class CADENCE_API UCadenceRunGraphNode_Base : public UCadenceLatentNode
 	
 public:
 	virtual void CreateInputPins() override;
+	virtual void CreateOutputPins() override;
 	virtual UCadenceGraph* GetGraph() const PURE_VIRTUAL(UCadenceGraph::GetGraph, return nullptr;);
 	
 #if WITH_EDITOR
@@ -96,7 +97,12 @@ public:
 #endif
 
 protected:
-	void UpdateVariablePins();
+	UFUNCTION()
+	void UpdateVariableInputPins();
+	
+	UFUNCTION()
+	void UpdateVariableOutputPins();
+	
 	virtual void CreateLatentActions(TArray<TScriptInterface<ICadenceTickableAction>>& InActionList, UCadenceContext* InContext) override;
 
 	UPROPERTY()
@@ -142,5 +148,4 @@ public:
 
 private:
 	TWeakObjectPtr<UCadenceVariable> ValueChangedVariable;
-	FDelegateHandle OnGraphPinValueChangedHandle;
 };

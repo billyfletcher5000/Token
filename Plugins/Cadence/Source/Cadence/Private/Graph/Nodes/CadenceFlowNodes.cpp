@@ -168,10 +168,16 @@ void UCadenceForLoopRunner::CreateNextPathway()
 void UCadenceRunGraphNode_Base::CreateInputPins()
 {
 	Super::CreateInputPins();
-	UpdateVariablePins();
+	UpdateVariableInputPins();
 }
 
-void UCadenceRunGraphNode_Base::UpdateVariablePins()
+void UCadenceRunGraphNode_Base::CreateOutputPins()
+{
+	Super::CreateOutputPins();
+	UpdateVariableOutputPins();
+}
+
+void UCadenceRunGraphNode_Base::UpdateVariableInputPins()
 {	
 	UCadenceGraph* Graph = GetGraph();
 	if(!Graph)
@@ -195,7 +201,14 @@ void UCadenceRunGraphNode_Base::UpdateVariablePins()
 	{
 		VariableInputPins.Add(AddInputVariablePinUnique(InputVariable->GetUserVariableName(), InputVariable->GetClass()));
 	}
+}
 
+void UCadenceRunGraphNode_Base::UpdateVariableOutputPins()
+{
+	UCadenceGraph* Graph = GetGraph();
+	if(!Graph)
+		return;
+	
 	TArray<TObjectPtr<UCadenceVariable>> OutputVariables = Graph->GetOutputVariables();
 
 	auto RemoveNotInOutputList = [&] (UCadenceGraphNodePin* Pin)
@@ -280,15 +293,16 @@ void UCadenceRunGraphAssetNode::CreateInputPins()
 {
 	Super::CreateInputPins();
 	
-	if(OnGraphPinValueChangedHandle.IsValid() && ValueChangedVariable.IsValid())
+	if(ValueChangedVariable.IsValid())
 	{
-		ValueChangedVariable->OnValueChanged.Remove(OnGraphPinValueChangedHandle);
-		OnGraphPinValueChangedHandle.Reset();
+		ValueChangedVariable->OnValueChanged.RemoveDynamic(this, &UCadenceRunGraphAssetNode::UpdateVariableInputPins);
+		ValueChangedVariable->OnValueChanged.RemoveDynamic(this, &UCadenceRunGraphAssetNode::UpdateVariableOutputPins);
 	}
 	
 	UCadenceGraphNodePin* Pin = AddInputVariablePin(FCadencePinConstants::Pin_CadenceAsset, UCadenceVariableCadenceAsset::StaticClass(), 1);
 	ValueChangedVariable = Pin->GetVariable();
-	OnGraphPinValueChangedHandle = ValueChangedVariable->OnValueChanged.AddUObject(this, &UCadenceRunGraphAssetNode::UpdateVariablePins);
+	ValueChangedVariable->OnValueChanged.AddUniqueDynamic(this, &UCadenceRunGraphAssetNode::UpdateVariableInputPins);
+	ValueChangedVariable->OnValueChanged.AddUniqueDynamic(this, &UCadenceRunGraphAssetNode::UpdateVariableOutputPins);
 }
 
 UCadenceGraph* UCadenceRunGraphAssetNode::GetGraph() const

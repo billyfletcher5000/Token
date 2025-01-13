@@ -17,6 +17,6 @@ public:
 	TArray<TObjectPtr<UCadenceVariable>> const& GetVariables() const { return Variables; }
 
 	// Public for detail customization, please use GetVariables() from C++
-	UPROPERTY(EditInstanceOnly, Category="Data")
+	UPROPERTY(EditInstanceOnly, Category="Data", BlueprintReadOnly)
 	TArray<TObjectPtr<UCadenceVariable>> Variables;
 };

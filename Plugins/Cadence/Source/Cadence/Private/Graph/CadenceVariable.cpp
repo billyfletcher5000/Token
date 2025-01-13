@@ -328,7 +328,7 @@ UCadenceVariableQuantizationPeriod::UCadenceVariableQuantizationPeriod()
 void UCadenceVariableActor::CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext)
 {
 	UCadenceVariableActor* CastedVariable = Cast<UCadenceVariableActor>(OtherVariable);
-	Value = CastedVariable->GetValue();
+	SetValue(CastedVariable->GetValue());
 
 	if(InContext)
 	{
@@ -354,6 +354,16 @@ void UCadenceVariableCadenceAsset::SetFromString(const FString& InStringValue)
 }
 
 FString UCadenceVariableCadenceAsset::ConvertToValueString() const
+{
+	return FUObjectStringHelper::ConvertToValueString(Value);
+}
+
+void UCadenceVariableReactionGroup::SetFromString(const FString& InStringValue)
+{
+	SetValue(FUObjectStringHelper::SetFromString<UCadenceReactionGroup>(InStringValue));
+}
+
+FString UCadenceVariableReactionGroup::ConvertToValueString() const
 {
 	return FUObjectStringHelper::ConvertToValueString(Value);
 }

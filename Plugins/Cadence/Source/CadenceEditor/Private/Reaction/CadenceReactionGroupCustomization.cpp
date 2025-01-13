@@ -4,14 +4,19 @@
 #include "Reaction/CadenceReactionGroupCustomization.h"
 
 #include "CadenceGraphSchema.h"
+#include "CadenceMetadata.h"
 #include "CadencePalette.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
 #include "ISinglePropertyView.h"
+#include "K2Node_CallFunction.h"
+#include "K2Node_VariableGet.h"
 #include "PropertyCustomizationHelpers.h"
+#include "SGraphPinNameList.h"
 #include "Graph/CadenceVariable.h"
 #include "Reaction/CadenceReactionGroup.h"
+#include "SGraphPin.h"
 
 const FString DefaultVariableNameBase = TEXT("NewVar");
 
@@ -164,4 +169,53 @@ void FCadenceReactionGroupCustomization::OnGenerateVariable(TSharedRef<IProperty
 							ValueElement.ToSharedRef()
 						]
 					];
+}
+
+TSharedPtr<SGraphPin> FCadenceReactionGroupBPPanelPinFactory::CreatePin(UEdGraphPin* InPin) const
+{
+	if (InPin->PinType.PinCategory == UEdGraphSchema_K2::PC_Name)
+	{
+		UObject* Outer = InPin->GetOuter();
+
+		// Create drop down combo boxes for DataTable and CurveTable RowName pins
+		const UEdGraphPin* ReactionGroupPin = nullptr;
+		if (Outer->IsA(UK2Node_CallFunction::StaticClass()))
+		{
+			const UK2Node_CallFunction* CallFunctionNode = CastChecked<UK2Node_CallFunction>(Outer);
+			if (CallFunctionNode)
+			{
+				const UFunction* FunctionToCall = CallFunctionNode->GetTargetFunction();
+				if (FunctionToCall)
+				{
+					const FString& ReactionGroupPinName = FunctionToCall->GetMetaData(FCadenceMetadata::MD_ReactionGroupPin);
+					ReactionGroupPin = CallFunctionNode->FindPin(ReactionGroupPinName);
+				}
+			}
+		}
+
+		if (ReactionGroupPin)
+		{
+			if (ReactionGroupPin->DefaultObject != nullptr && ReactionGroupPin->LinkedTo.Num() == 0)
+			{
+				if (ReactionGroupPin->DefaultObject->IsA(UCadenceReactionGroup::StaticClass()))
+				{
+					UCadenceReactionGroup* ReactionGroup = (UCadenceReactionGroup*)ReactionGroupPin->DefaultObject;
+					if (ReactionGroup)
+					{
+						TArray<TSharedPtr<FName>> VariableNames;
+						/** Extract all the row names from the RowMap */
+						for(UCadenceVariable* Variable : ReactionGroup->Variables)
+						{
+							/** Create a simple array of the row names */
+							TSharedPtr<FName> VariableNameItem = MakeShareable(new FName(Variable->GetUserVariableName()));
+							VariableNames.Add(VariableNameItem);
+						}
+						return SNew(SGraphPinNameList, InPin, VariableNames);
+					}
+				}
+			}
+		}
+	}
+
+	return nullptr;
 }

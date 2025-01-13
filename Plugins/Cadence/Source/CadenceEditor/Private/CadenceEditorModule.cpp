@@ -46,6 +46,9 @@ void FCadenceEditorModule::StartupModule()
 
 	TSharedPtr<FCadenceReactionGroupAssetAction> ReactionGroupAssetAction = MakeShareable(new FCadenceReactionGroupAssetAction(AssetType));
 	AssetToolsModule.RegisterAssetTypeActions(ReactionGroupAssetAction.ToSharedRef());
+	
+	TSharedPtr<FCadenceReactionGroupBPPanelPinFactory> ReactionGroupBPPanelPinFactory = MakeShareable(new FCadenceReactionGroupBPPanelPinFactory());
+	FEdGraphUtilities::RegisterVisualPinFactory(ReactionGroupBPPanelPinFactory);
 
 	// Create Style Set
 	StyleSet = MakeShareable(new FSlateStyleSet(StyleSetName));

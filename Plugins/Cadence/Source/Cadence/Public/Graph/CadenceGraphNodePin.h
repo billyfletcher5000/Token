@@ -67,6 +67,9 @@ public:
 
 	int32 GetWildcardId() const { return WildcardId; }
 	void SetWildcardId(const int32& InWildcardId) { WildcardId = InWildcardId; }
+
+	bool IsDefaultDisabled() const { return bDisableDefault; }
+	void SetDefaultDisabled(const bool& InValue) { bDisableDefault = InValue; }
 	
 private:
 	UPROPERTY()
@@ -80,6 +83,9 @@ private:
 
 	UPROPERTY()
 	bool bIsExec = false;
+
+	UPROPERTY()
+	bool bDisableDefault = false;
 	
 	UPROPERTY()
 	TArray<TObjectPtr<UCadenceGraphNodePin>> ConnectedPins;
