@@ -136,7 +136,7 @@ public:
 	virtual bool IsArray() const override { return true; }	
 
 	TArray<UCadenceVariable*> GetValue() const { return Value; }
-	void SetValue(const TArray<UCadenceVariable*>& InValue);
+	void SetValue(const TArray<UCadenceVariable*>& InValue, bool InDuplicateVariables = true);
 
 	TSubclassOf<UCadenceVariable> GetVariableClass() const { return VariableClass; }
 	void SetVariableClass(const TSubclassOf<UCadenceVariable>& InVariableClass);

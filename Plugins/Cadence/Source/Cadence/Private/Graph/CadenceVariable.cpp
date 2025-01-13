@@ -7,46 +7,7 @@
 #include "CadenceAsset.h"
 #include "Actors/CadenceActorLifetime.h"
 #include "Graph/CadenceGraphNode.h"
-
-class FUObjectStringHelper
-{
-public:
-	template<typename T>
-	static T* SetFromString(const FString& InStringValue)
-	{
-		FString ObjectPathLocal = InStringValue;
-		ConstructorHelpers::StripObjectClass(ObjectPathLocal);
-
-		// If this is not a full object path it's a relative path so should be saved as a string
-		if (FPackageName::IsValidObjectPath(ObjectPathLocal))
-		{
-			FSoftObjectPath AssetRef = ObjectPathLocal;
-			// @todo: why are we resolving here? We should resolve explicitly 
-			// during load or not at all
-			if(!GCompilingBlueprint)
-			{
-				return Cast<T>(AssetRef.TryLoad());
-			}
-			else
-			{
-				return Cast<T>(AssetRef.ResolveObject());
-			}
-		}
-		else
-		{
-			return nullptr;
-		}
-	}
-
-	template<typename T>
-	static FString ConvertToValueString(TObjectPtr<T> InValue)
-	{
-		if(InValue)
-			return InValue.GetPath();
-		
-		return FString();
-	}
-};
+#include "Utility/UObjectStringHelper.h"
 
 UCadenceVariableArray* UCadenceVariableArray::Create(TSubclassOf<UCadenceVariable> InVariableClass, UObject* InOuter)
 {
@@ -99,7 +60,7 @@ bool UCadenceVariableArray::Equals(UCadenceVariable* OtherVariable)
 	return false;
 }
 
-void UCadenceVariableArray::SetValue(const TArray<UCadenceVariable*>& InValue)
+void UCadenceVariableArray::SetValue(const TArray<UCadenceVariable*>& InValue, bool InDuplicateVariables)
 {
 	Value.Empty();
 	for(UCadenceVariable* Var : InValue)
@@ -107,7 +68,7 @@ void UCadenceVariableArray::SetValue(const TArray<UCadenceVariable*>& InValue)
 		if(!ensure(Var->IsA(VariableClass)))
 			return;
 		
-		Value.Add(DuplicateObject(Var, this->GetOuter()));
+		Value.Add(InDuplicateVariables ? DuplicateObject(Var, this->GetOuter()) : Var);
 	}
 
 	OnValueChanged.Broadcast();

@@ -167,6 +167,16 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePin(const FN
 	return Pin;
 }
 
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePinArray(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex)
+{
+	if(!ensureMsgf(GetInputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin")))
+		return nullptr;
+		
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariablePin(InPinName, InVariableClass, true);
+	AddPinToList(Pin, InputPins, InIndex);
+	return Pin;
+}
+
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePinUnique(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex)
 {
 	UCadenceGraphNodePin* Pin = GetInputPin(InPinName);
@@ -209,6 +219,16 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePin(const F
 		return nullptr;
 		
 	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariablePin(InPinName, InVariableClass);
+	AddPinToList(Pin, OutputPins, InIndex);
+	return Pin;
+}
+
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePinArray(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex)
+{
+	if(!ensureMsgf(GetOutputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin")))
+		return nullptr;
+		
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariablePin(InPinName, InVariableClass, true);
 	AddPinToList(Pin, OutputPins, InIndex);
 	return Pin;
 }

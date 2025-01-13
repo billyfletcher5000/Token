@@ -414,7 +414,7 @@ void SCadencePaletteItem::Construct(const FArguments& InArgs, FCreateWidgetForAc
 		}
 		if (Variable)
 		{
-			IconWidget = SNew(SCadencePinTypeSelectorHelper, Action, FChangeVariableTypeDelegate::CreateSP(ApplicationPtr.Pin().ToSharedRef(), &FCadenceGraphApplication::ChangeVariableType))
+			IconWidget = SNew(SCadencePinTypeSelectorHelper, Action, FChangeVariableTypeDelegate::CreateSP(ApplicationPtr.Pin().ToSharedRef(), &FCadenceGraphApplication::ChangeVariableType), true)
 				.IsEnabled(bIsEditingEnabled)
 				.OnTypeChanged(this, &SCadencePaletteItem::OnPinTypeChanged);
 

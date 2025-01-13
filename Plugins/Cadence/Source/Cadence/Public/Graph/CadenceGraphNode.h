@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CadenceGraphCore.h"
 #include "CadenceGraphNodePin.h"
 #include "CadenceVariable.h"
 
@@ -91,11 +90,13 @@ public:
 protected:
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputExecPin(const FName& InPinName, const int32& InIndex = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputExecPin(const FName& InPinName, const int32& InIndex = -1);
-	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex = -1);	
+	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex = -1);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariablePinArray(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex = -1);	
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariablePinUnique(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId = 0, const int32& InIndex = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddInputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId = 0, const int32& InIndex = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex = -1);
+	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePinArray(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePinUnique(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId = 0, const int32& InIndex = -1);
 	virtual TObjectPtr<UCadenceGraphNodePin> AddOutputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId = 0, const int32& InIndex = -1);
@@ -185,6 +186,82 @@ protected:
 			return false;
 
 		OutValue = Variable->template GetValue<TVal>();		
+		return true;
+	}
+
+	template<typename TVar, typename TVal>
+	bool SetOutputPinValue(const FName& InPinName, TVal InValue)
+	{
+		UCadenceGraphNodePin* Pin = GetOutputPin(InPinName);
+		if(!IsValid(Pin))
+			return false;
+
+		TVar* Variable = Pin->GetVariable<TVar>();
+		if(!IsValid(Variable))
+			return false;
+		
+		Variable->SetValue(InValue);		
+		return true;
+	}
+
+	template<typename TVar, typename TVal>
+	bool SetOutputPinValueEnum(const FName& InPinName, TVal InValue)
+	{
+		UCadenceGraphNodePin* Pin = GetOutputPin(InPinName);
+		if(!IsValid(Pin))
+			return false;
+
+		TVar* Variable = Pin->GetVariable<TVar>();
+		if(!IsValid(Variable))
+			return false;
+
+		Variable->template SetValue<TVar>(InValue);		
+		return true;
+	}
+
+	template<typename TVar, typename TVal>
+	bool SetOutputPinValueArray(const FName& InPinName, TArray<TVal> InValue)
+	{
+		UCadenceGraphNodePin* Pin = GetOutputPin(InPinName);
+		if(!IsValid(Pin))
+			return false;
+
+		UCadenceVariableArray* ArrayVariable = Pin->GetVariable<UCadenceVariableArray>();
+		if(!IsValid(ArrayVariable))
+			return false;
+
+		TArray<UCadenceVariable*> Values;
+		for(TVal& Val : InValue)
+		{
+			TVar* ItemVariable = NewObject<TVar>(ArrayVariable->GetOuter());
+			ItemVariable->SetValue(Val);
+			Values.Add(ItemVariable);
+		}
+		
+		ArrayVariable->SetValue(Values, false);
+		return true;
+	}
+
+	template<typename TVar, typename TVal>
+	bool SetOutputPinValueArrayEnum(const FName& InPinName, TArray<TVal> InValue)
+	{
+		UCadenceGraphNodePin* Pin = GetOutputPin(InPinName);
+		if(!IsValid(Pin))
+			return false;
+
+		UCadenceVariableArray* ArrayVariable = Pin->GetVariable<TVar>();
+		if(!IsValid(ArrayVariable))
+			return false;
+
+		TArray<UCadenceVariable*> Values;
+		for(TVal& Val : InValue)
+		{
+			TVar* ItemVariable = NewObject<TVar>(ArrayVariable->GetOuter());
+			ItemVariable->template SetValue<TVar>(Val);
+			Values.Add(ItemVariable);
+		}
+		
+		ArrayVariable->SetValue(Values, false);
 		return true;
 	}
 

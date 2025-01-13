@@ -27,7 +27,8 @@ public class Cadence : ModuleRules
 			{
 				"Core", 
 				"MovieScene",
-				"LevelSequence",
+				"LevelSequence", 
+				"AudioSynesthesia",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
