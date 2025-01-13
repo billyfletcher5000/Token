@@ -27,6 +27,8 @@ namespace FCadencePinConstants
 	static const FName Pin_Object = TEXT("Object");
 	static const FName Pin_Enum = TEXT("Enum");
 
+	static const FName Pin_Section = TEXT("Section");
+	static const FName Pin_Count = TEXT("Count");
 	static const FName Pin_Period = TEXT("Period");
 
 	static const FName Pin_Depth = TEXT("Depth");
@@ -48,7 +50,7 @@ namespace FCadencePinConstants
 
 	static const FName Pin_CadenceAsset = TEXT("Cadence Asset");
 
-	static const FName Pin_ReactionGroup = TEXT("Reaction Group");
+	static const FName Pin_ReactionGroup = TEXT("Reaction Group");	
 }
 
 namespace FCadencePinCategoryConstants
@@ -70,7 +72,8 @@ namespace FCadencePinCategoryConstants
 	static const FName PC_Actor = TEXT("Actor");	
 	static const FName PC_Trigger = TEXT("Trigger");
 	static const FName PC_CadenceAsset = TEXT("CadenceAsset");
-	static const FName PC_ReactionGroup = TEXT("ReactionGroup");
+	static const FName PC_ReactionGroup = TEXT("ReactionGroup");	
+	static const FName PC_SectionName = TEXT("SectionName");
 }
 
 namespace FCadencePinSubCategoryConstants
@@ -96,5 +99,6 @@ namespace FCadenceVariableColorConstants
 	static constexpr FLinearColor VC_Actor = FLinearColor(0.3f, 0.3f, 0.95f); 
 	static constexpr FLinearColor VC_Trigger = FLinearColor(0.75f, 0.0f, 0.0f);
 	static constexpr FLinearColor VC_CadenceAsset = FLinearColor(0.6f, 0.2f, 0.3f);	
-	static constexpr FLinearColor VC_ReactionGroup = FLinearColor(0.635f, 0.0f, 1.0f);	
+	static constexpr FLinearColor VC_ReactionGroup = FLinearColor(0.635f, 0.0f, 1.0f);
+	static constexpr FLinearColor VC_SectionName = FLinearColor(0.869f, 0.371f, 0.775f);
 }

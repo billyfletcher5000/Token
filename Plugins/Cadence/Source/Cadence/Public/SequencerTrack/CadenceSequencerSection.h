@@ -25,6 +25,8 @@ struct FCadenceSectionName
 	GENERATED_BODY()
 
 public:
+	bool operator==(const FCadenceSectionName& InOther) const { return Name == InOther.Name; }
+	
 	UPROPERTY(EditAnywhere)
 	FString Name = "Section";
 };

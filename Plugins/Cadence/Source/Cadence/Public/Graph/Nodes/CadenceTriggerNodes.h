@@ -62,6 +62,7 @@ class CADENCE_API UCadenceQuantizedTimeTriggerNode : public UCadenceGraphNode
 	GENERATED_BODY()
 
 public:
+	virtual void CreateInputPins() override;
 	virtual void CreateOutputPins() override;
 	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 
@@ -70,13 +71,6 @@ public:
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Quantized Time Trigger")); }
 	virtual FText GetNodeCategory() const override { return FCadenceTriggerConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceTriggerConstants::NodeTitleColor; }
-
-public:
-	UPROPERTY(EditAnywhere)
-	EQuartzCommandQuantization TimePeriod;
-
-	UPROPERTY(EditAnywhere)
-	int32 Count = 1;
 };
 
 UCLASS()
@@ -85,6 +79,7 @@ class CADENCE_API UCadenceSequenceSectionTriggerNode : public UCadenceGraphNode
 	GENERATED_BODY()
 
 public:
+	virtual void CreateInputPins() override;
 	virtual void CreateOutputPins() override;
 	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 
@@ -93,11 +88,4 @@ public:
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Sequence Section Trigger")); }
 	virtual FText GetNodeCategory() const override { return FCadenceTriggerConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceTriggerConstants::NodeTitleColor; }
-
-public:
-	UPROPERTY(EditAnywhere)
-	FCadenceSectionName Section;
-
-	UPROPERTY(EditAnywhere)
-	int32 Count = 1;
 };

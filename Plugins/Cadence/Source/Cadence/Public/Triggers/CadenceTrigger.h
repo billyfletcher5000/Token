@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SequencerTrack/CadenceSequencerSection.h"
 #include "TickableActions/ICadenceTickableAction.h"
 
 #include "CadenceTrigger.generated.h"
@@ -155,7 +156,7 @@ public:
 	
 public:
 	UPROPERTY()
-	FString SectionName;
+	FCadenceSectionName SectionName;
 
 	UPROPERTY()
 	ECadenceTriggerSequenceSectionPhase Phase;

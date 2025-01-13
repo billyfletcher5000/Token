@@ -97,6 +97,6 @@ bool UCadenceTriggerSequenceSectionRunner::Tick(const float& InDeltaSeconds)
 
 void UCadenceTriggerSequenceSectionRunner::OnSectionPhaseComplete(FString InSectionName)
 {
-	if(!bIsConditionSatisfied && InSectionName == Data->SectionName)
+	if(!bIsConditionSatisfied && InSectionName == Data->SectionName.Name)
 		bIsConditionSatisfied = true;
 }

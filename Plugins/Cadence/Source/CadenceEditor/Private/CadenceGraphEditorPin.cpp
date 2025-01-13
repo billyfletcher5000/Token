@@ -3,7 +3,10 @@
 #include "CadenceGraphEditorPin.h"
 
 #include "CadenceGraphEditor.h"
+#include "CadenceGraphEditorNode.h"
+#include "SGraphPinNameList.h"
 #include "EdGraph/EdGraphPin.h"
+#include "Graph/CadenceGraph.h"
 #include "Graph/CadencePinConstants.h"
 
 #include "KismetPins/SGraphPinBool.h"
@@ -19,15 +22,8 @@ TSharedPtr<SGraphPin> FCadenceGraphEditorPanelPinFactory::CreatePin(UEdGraphPin*
 {
 	if (InPin)
 	{
-		if (const UEdGraphNode* OwningNode = InPin->GetOwningNode())
-		{
-			// only create pins within optimus graphs
-			if (Cast<UCadenceGraphEditor>(OwningNode->GetGraph()) == nullptr)
-			{
-				return nullptr;
-			}
-		}
-		else
+		UCadenceGraphEditorNode* EditorNode = Cast<UCadenceGraphEditorNode>(InPin->GetOwningNode());
+		if (!EditorNode)
 		{
 			return nullptr;
 		}
@@ -70,6 +66,23 @@ TSharedPtr<SGraphPin> FCadenceGraphEditorPanelPinFactory::CreatePin(UEdGraphPin*
 
 		if (InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Enum && InPin->PinType.PinSubCategoryObject != nullptr && InPin->PinType.PinSubCategoryObject->IsA(UEnum::StaticClass()))
 			return SNew(SGraphPinEnum, InPin);
+
+		if(InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_SectionName)
+		{
+			// TODO: Replace this with SGraphPinCadenceSectionName that does the same conversion
+			if(UCadenceGraphEditor* EditorGraph = Cast<UCadenceGraphEditor>(EditorNode->GetGraph()))
+			{
+				if(UCadenceGraph* Graph = EditorGraph->GetRuntimeGraph())
+				{
+					TArray<TSharedPtr<FName>> SectionNames;
+					TArray<UCadenceSequencerSection*> Sections = Graph->GetSections();
+					for(UCadenceSequencerSection* Section : Sections)
+						SectionNames.Add(MakeShareable(new FName(Section->SectionName.Name)));
+
+					return SNew(SGraphPinNameList, InPin, SectionNames);
+				}
+			}
+		}
 
 		if(InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Object
 			|| InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Actor

@@ -128,6 +128,66 @@ protected:
 		return Pin;
 	}
 
+	template<typename TVar, typename TVal>
+	bool GetInputPinValue(const FName& InPinName, TVal& OutValue)
+	{
+		UCadenceGraphNodePin* Pin = GetInputPin(InPinName);
+		if(!IsValid(Pin))
+			return false;
+
+		TVar* Variable = Pin->GetVariable<TVar>();
+		if(!IsValid(Variable))
+			return false;
+
+		OutValue = Variable->GetValue();		
+		return true;
+	}
+
+	template<typename TVar, typename TVal>
+	bool GetInputPinValueEnum(const FName& InPinName, TVal& OutValue)
+	{
+		UCadenceGraphNodePin* Pin = GetInputPin(InPinName);
+		if(!IsValid(Pin))
+			return false;
+
+		TVar* Variable = Pin->GetVariable<TVar>();
+		if(!IsValid(Variable))
+			return false;
+
+		OutValue = Variable->template GetValue<TVal>();		
+		return true;
+	}
+
+	template<typename TVar, typename TVal>
+	bool GetOutputPinValue(const FName& InPinName, TVal& OutValue)
+	{
+		UCadenceGraphNodePin* Pin = GetOutputPin(InPinName);
+		if(!IsValid(Pin))
+			return false;
+
+		TVar* Variable = Pin->GetVariable<TVar>();
+		if(!IsValid(Variable))
+			return false;
+
+		OutValue = Variable->GetValue();		
+		return true;
+	}
+
+	template<typename TVar, typename TVal>
+	bool GetOutputPinValueEnum(const FName& InPinName, TVal& OutValue)
+	{
+		UCadenceGraphNodePin* Pin = GetOutputPin(InPinName);
+		if(!IsValid(Pin))
+			return false;
+
+		TVar* Variable = Pin->GetVariable<TVar>();
+		if(!IsValid(Variable))
+			return false;
+
+		OutValue = Variable->template GetValue<TVal>();		
+		return true;
+	}
+
 private:
 	static TObjectPtr<UCadenceGraphNodePin> GetPinFromArray(const TArray<TObjectPtr<UCadenceGraphNodePin>>& InPinArray, const FName& InPinName);
 

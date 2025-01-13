@@ -8,8 +8,10 @@
 #include "UObject/Object.h"
 #include "CadencePinConstants.h"
 #include "Reaction/CadenceReactionGroup.h"
+#include "SequencerTrack/CadenceSequencerSection.h"
 #include "CadenceVariable.generated.h"
 
+struct FCadenceSectionName;
 class UCadenceTriggerData;
 
 /**
@@ -745,4 +747,39 @@ public:
 private:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCadenceReactionGroup> Value;
+};
+
+UCLASS(BlueprintType)
+class CADENCE_API UCadenceVariableSectionName : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_SectionName; }
+	virtual FLinearColor GetPinColor() const override { return FCadenceVariableColorConstants::VC_SectionName; }
+
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
+	{
+		UCadenceVariableSectionName* CastedVariable = Cast<UCadenceVariableSectionName>(OtherVariable);
+		if(ensure(CastedVariable))
+			SetValue(CastedVariable->GetValue());
+	}
+	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
+	}
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FCadenceSectionName GetValue() const { return Value; }
+	void SetValue(const FCadenceSectionName& InValue) { SetValueHelper(Value, InValue); }
+
+	virtual bool SupportsDefault() const override { return true; }
+	
+	virtual void SetFromString(const FString& InStringValue) override;
+	virtual FString ConvertToValueString() const override;
+
+private:
+	UPROPERTY(EditAnywhere)
+	FCadenceSectionName Value;
 };

@@ -367,3 +367,17 @@ FString UCadenceVariableReactionGroup::ConvertToValueString() const
 {
 	return FUObjectStringHelper::ConvertToValueString(Value);
 }
+
+void UCadenceVariableSectionName::SetFromString(const FString& InStringValue)
+{
+	if(Value.Name != InStringValue)
+	{
+		Value.Name = InStringValue;
+		OnValueChanged.Broadcast();
+	}
+}
+
+FString UCadenceVariableSectionName::ConvertToValueString() const
+{
+	return Value.Name;
+}

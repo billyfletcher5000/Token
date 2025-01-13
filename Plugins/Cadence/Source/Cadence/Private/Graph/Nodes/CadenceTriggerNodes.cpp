@@ -85,6 +85,14 @@ bool UCadenceTriggerSequenceNode::CanRemovePin(const UCadenceGraphNodePin* Pin) 
 	return !Pin->IsExec() && InputPins.Contains(Pin) && InputPins.Num() > 2;
 }
 
+void UCadenceQuantizedTimeTriggerNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+	
+	AddInputVariablePinDefault<UCadenceVariableQuantizationPeriod>(FCadencePinConstants::Pin_Period, EQuartzCommandQuantization::Bar);
+	AddInputVariablePinDefault<UCadenceVariableInt>(FCadencePinConstants::Pin_Count, 1);
+}
+
 void UCadenceQuantizedTimeTriggerNode::CreateOutputPins()
 {	
 	Super::CreateOutputPins();
@@ -97,12 +105,22 @@ ECadenceNodeExecuteResult UCadenceQuantizedTimeTriggerNode::Execute(UCadenceCont
 	UCadenceVariableTrigger* OutputVariable = OutputPin->GetVariable<UCadenceVariableTrigger>();
 
 	UCadenceTriggerQuantizedTimeData* Data = NewObject<UCadenceTriggerQuantizedTimeData>();
-	Data->TimePeriod = TimePeriod;
-	Data->Count = Count;
+	if(!GetInputPinValueEnum<UCadenceVariableQuantizationPeriod, EQuartzCommandQuantization>(FCadencePinConstants::Pin_Period, Data->TimePeriod))
+		return ECadenceNodeExecuteResult::Failed;
+	
+	if(!GetInputPinValue<UCadenceVariableInt, int32>(FCadencePinConstants::Pin_Count, Data->Count))
+		return ECadenceNodeExecuteResult::Failed;
 	
 	OutputVariable->SetValue(Data);
 	
 	return ECadenceNodeExecuteResult::Complete;
+}
+
+void UCadenceSequenceSectionTriggerNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+	AddInputVariablePin(FCadencePinConstants::Pin_Section, UCadenceVariableSectionName::StaticClass());
+	AddInputVariablePinDefault<UCadenceVariableInt>(FCadencePinConstants::Pin_Count, 1);
 }
 
 void UCadenceSequenceSectionTriggerNode::CreateOutputPins()
@@ -118,8 +136,12 @@ ECadenceNodeExecuteResult UCadenceSequenceSectionTriggerNode::Execute(UCadenceCo
 
 	UCadenceTriggerSequenceSectionData* Data = NewObject<UCadenceTriggerSequenceSectionData>();
 	Data->AssetInstance = InContext->AssetInstance;
-	Data->SectionName = Section.Name;
-	Data->Count = Count;
+
+	if(!GetInputPinValue<UCadenceVariableSectionName, FCadenceSectionName>(FCadencePinConstants::Pin_Section, Data->SectionName))
+		return ECadenceNodeExecuteResult::Failed;
+	
+	if(!GetInputPinValue<UCadenceVariableInt, int32>(FCadencePinConstants::Pin_Count, Data->Count))
+		return ECadenceNodeExecuteResult::Failed;
 	
 	OutputVariable->SetValue(Data);
 	
