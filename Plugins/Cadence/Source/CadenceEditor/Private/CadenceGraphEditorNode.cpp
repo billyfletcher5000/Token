@@ -255,13 +255,10 @@ void UCadenceGraphEditorNode::CreatePinInternal(const EEdGraphPinDirection& InDi
 		if(CDO->IsArray())
 		{
 			ContainerType = EPinContainerType::Array;
-			if(UCadenceVariableArray* VariableArray = InPin->GetVariable<UCadenceVariableArray>(false))
+			if(TSubclassOf<UCadenceVariable> SubVarClass = InPin->GetVariableSecondaryClass())
 			{
-				if(TSubclassOf<UCadenceVariable> SubVarClass = VariableArray->GetVariableClass())
-				{
-					UCadenceVariable* SubCDO = SubVarClass->GetDefaultObject<UCadenceVariable>();
-					PinCategory = SubCDO->GetPinCategory();
-				}
+				UCadenceVariable* SubCDO = SubVarClass->GetDefaultObject<UCadenceVariable>();
+				PinCategory = SubCDO->GetPinCategory();
 			}
 		}
 	}

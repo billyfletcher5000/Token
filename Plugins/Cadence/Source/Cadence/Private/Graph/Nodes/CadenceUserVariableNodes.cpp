@@ -11,13 +11,11 @@
 void UCadenceUserVariableGetterNode::CreateOutputPins()
 {
 	Super::CreateOutputPins();
-	UCadenceGraphNodePin* Pin = AddOutputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable->GetClass());
 	
 	if(UCadenceVariableArray* ArrayVariable = Cast<UCadenceVariableArray>(SourceVariable))
-	{		
-		UCadenceVariableArray* NewArrayVariable = UCadenceVariableArray::Create(ArrayVariable->GetVariableClass(), Pin);
-		Pin->SetVariable(NewArrayVariable);
-	}
+		AddOutputVariablePinArray(FCadencePinConstants::Pin_Value, ArrayVariable->GetVariableClass());	
+	else	
+		AddOutputVariablePin(FCadencePinConstants::Pin_Value, SourceVariable->GetClass());	
 }
 
 ECadenceNodeExecuteResult UCadenceUserVariableGetterNode::Execute(UCadenceContext* InContext)

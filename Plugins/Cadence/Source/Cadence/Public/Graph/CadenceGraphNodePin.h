@@ -53,6 +53,9 @@ public:
 	
 	TSubclassOf<UCadenceVariable> GetVariableClass() const { return VariableClass; }
 	void SetVariableClass(const TSubclassOf<UCadenceVariable>& InVariableClass);
+	
+	TSubclassOf<UCadenceVariable> GetVariableSecondaryClass() const { return VariableSecondaryClass; }
+	void SetVariableSecondaryClass(const TSubclassOf<UCadenceVariable>& InVariableClass);
 
 	template<typename T = UCadenceVariable>
 	T* GetVariable(bool AutoCreate = true);
@@ -94,6 +97,9 @@ private:
 	TSubclassOf<UCadenceVariable> VariableClass;
 
 	UPROPERTY()
+	TSubclassOf<UCadenceVariable> VariableSecondaryClass;
+
+	UPROPERTY()
 	TObjectPtr<UCadenceVariable> Variable;
 
 	UPROPERTY()
@@ -118,5 +124,9 @@ template <typename T>
 T* UCadenceGraphNodePin::CreateVariable()
 {
 	Variable = NewObject<UCadenceVariable>(this, VariableClass);
+	
+	if(UCadenceVariableArray* ArrayVariable = Cast<UCadenceVariableArray>(Variable))
+		ArrayVariable->SetVariableClass(VariableSecondaryClass);
+	
 	return Cast<T>(Variable);
 }

@@ -157,7 +157,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputExecPin(const FName
 	return Pin;
 }
 
-TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePin(const FName& InPinName, const TSubclassOf<UCadenceVariable>& InVariableClass, const int32& InIndex)
 {	
 	if(!ensureMsgf(GetInputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin")))
 		return nullptr;
@@ -167,7 +167,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePin(const FN
 	return Pin;
 }
 
-TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePinArray(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePinArray(const FName& InPinName, const TSubclassOf<UCadenceVariable>& InVariableClass, const int32& InIndex)
 {
 	if(!ensureMsgf(GetInputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin")))
 		return nullptr;
@@ -177,7 +177,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePinArray(con
 	return Pin;
 }
 
-TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePinUnique(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePinUnique(const FName& InPinName, const TSubclassOf<UCadenceVariable>& InVariableClass, const int32& InIndex)
 {
 	UCadenceGraphNodePin* Pin = GetInputPin(InPinName);
 	if(Pin)
@@ -213,7 +213,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariableWildcardArra
 	return Pin;
 }
 
-TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePin(const FName& InPinName, const TSubclassOf<UCadenceVariable>& InVariableClass, const int32& InIndex)
 {
 	if(!ensureMsgf(GetOutputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin")))
 		return nullptr;
@@ -223,7 +223,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePin(const F
 	return Pin;
 }
 
-TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePinArray(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePinArray(const FName& InPinName, const TSubclassOf<UCadenceVariable>& InVariableClass, const int32& InIndex)
 {
 	if(!ensureMsgf(GetOutputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin")))
 		return nullptr;
@@ -233,7 +233,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePinArray(co
 	return Pin;
 }
 
-TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePinUnique(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const int32& InIndex)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePinUnique(const FName& InPinName, const TSubclassOf<UCadenceVariable>& InVariableClass, const int32& InIndex)
 {
 	UCadenceGraphNodePin* Pin = GetOutputPin(InPinName);
 	if(Pin)
@@ -282,14 +282,22 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateExecPin(const FName& I
 	return Pin;
 }
 
-TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariablePin(const FName& InPinName, const TObjectPtr<UClass>& InVariableClass, const bool InIsArray)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariablePin(const FName& InPinName, const TSubclassOf<UCadenceVariable>& InVariableClass, const bool InIsArray)
 {	
 	UCadenceGraphNodePin* Pin = NewObject<UCadenceGraphNodePin>(this);
 
 	Pin->SetParentNode(this);
 	Pin->SetPinName(InPinName);
 	Pin->SetIsExec(false);
-	Pin->SetVariableClass(InVariableClass);
+	if(InIsArray)
+	{
+		Pin->SetVariableClass(UCadenceVariableArray::StaticClass());
+		Pin->SetVariableSecondaryClass(InVariableClass);
+	}
+	else
+	{
+		Pin->SetVariableClass(InVariableClass);
+	}
 	Pin->GenerateGUID();
 	Pin->SetFlags(RF_Transactional);
 
@@ -483,8 +491,7 @@ void UCadenceGraphNode::OnPinConnectedToWildcardPin(UCadenceGraphNodePin* InConn
 	{
 		if(Pin->GetVariableClass() == UCadenceVariableArray::StaticClass())
 		{
-			UCadenceVariableArray* PinArray = Pin->GetVariable<UCadenceVariableArray>();
-			PinArray->SetVariableClass(TargetClass);
+			Pin->SetVariableSecondaryClass(TargetClass);
 		}
 		else
 		{
@@ -516,8 +523,7 @@ void UCadenceGraphNode::OnPinConnectionsClearedFromWildcardPin(UCadenceGraphNode
 	{
 		if(Pin->GetVariableClass() == UCadenceVariableArray::StaticClass())
 		{
-			UCadenceVariableArray* PinArray = Pin->GetVariable<UCadenceVariableArray>();
-			PinArray->SetVariableClass(nullptr);
+			Pin->SetVariableSecondaryClass(nullptr);
 		}
 		else
 		{

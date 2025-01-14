@@ -76,6 +76,15 @@ void UCadenceGraphNodePin::SetVariableClass(const TSubclassOf<UCadenceVariable>&
 	}
 }
 
+void UCadenceGraphNodePin::SetVariableSecondaryClass(const TSubclassOf<UCadenceVariable>& InVariableClass)
+{
+	if(VariableSecondaryClass != InVariableClass)
+	{
+		VariableSecondaryClass = InVariableClass;
+		Variable = nullptr;
+	}
+}
+
 void UCadenceGraphNodePin::SetVariable(UCadenceVariable* InVariable)
 {
 	if(InVariable->IsA(VariableClass))
