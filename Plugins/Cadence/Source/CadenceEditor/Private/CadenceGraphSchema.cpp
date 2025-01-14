@@ -120,7 +120,7 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 
 		UCadenceGraphNodePin* RuntimePinA = A->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeA->GetInputPin(A->PinName) : RuntimeNodeA->GetOutputPin(A->PinName);
 		UCadenceGraphNodePin* RuntimePinB = B->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeB->GetInputPin(B->PinName) : RuntimeNodeB->GetOutputPin(B->PinName);
-
+		
 		TSubclassOf<UCadenceVariable> RuntimePinAVarClass = RuntimePinA->GetVariableClass();
 		TSubclassOf<UCadenceVariable> RuntimePinBVarClass = RuntimePinB->GetVariableClass();
 		
@@ -133,6 +133,15 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 			if(UCadenceVariableArray* ArrayVariable = Cast<UCadenceVariableArray>(RuntimePinB->GetVariable()))			
 				RuntimePinBVarClass = ArrayVariable->GetVariableClass();
 		}
+
+		bool PinAIsWildcardWithRestrictions = RuntimePinA->IsWildcardPin() && RuntimePinA->HasRestrictedWildcardAllowedTypes();
+		bool PinBIsWildcardWithRestrictions = RuntimePinB->IsWildcardPin() && RuntimePinB->HasRestrictedWildcardAllowedTypes();
+		
+		if(PinAIsWildcardWithRestrictions && !RuntimePinA->GetAllowedWildcardTypes().Contains(RuntimePinBVarClass))
+			return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Wildcard does not accept this type of pin!"));
+
+		if(PinBIsWildcardWithRestrictions && !RuntimePinB->GetAllowedWildcardTypes().Contains(RuntimePinAVarClass))
+			return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Wildcard does not accept this type of pin!"));
 		
 		if(RuntimePinA && RuntimePinB
 			&& IsValid(RuntimePinAVarClass) // If null/invalid, it's a wildcard and can be connected to anything, including other wildcards (for now) 

@@ -3,10 +3,19 @@
 
 #include "Graph/CadenceGraphNode.h"
 
+#include "Cadence.h"
 #include "Algo/ForEach.h"
 #include "Graph/CadenceGraph.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/CadencePinConstants.h"
+
+namespace FCadenceGraphNodeHelper
+{
+	static bool AreAllowedTypeSetsEquivalent(const TSet<TSubclassOf<UCadenceVariable>>& SetA, const TSet<TSubclassOf<UCadenceVariable>>& SetB)
+	{
+		return SetA.Difference(SetB).Num() == 0;		
+	}
+}
 
 void UCadenceGraphNode::PostLoad()
 {
@@ -201,14 +210,28 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariablePinUnique(co
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId, const int32& InIndex)
 {
-	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId);
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, {});
+	AddPinToList(Pin, InputPins, InIndex);
+	return Pin;
+}
+
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariableWildcardPin(const FName& InPinName, const TSet<TSubclassOf<UCadenceVariable>>& InAllowedTypes, const int32& InWildcardId, const int32& InIndex)
+{
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, InAllowedTypes);
 	AddPinToList(Pin, InputPins, InIndex);
 	return Pin;
 }
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId, const int32& InIndex)
 {
-	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, true);
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, {}, true);
+	AddPinToList(Pin, InputPins, InIndex);
+	return Pin;
+}
+
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputVariableWildcardArrayPin(const FName& InPinName, const TSet<TSubclassOf<UCadenceVariable>>& InAllowedTypes, const int32& InWildcardId, const int32& InIndex)
+{
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, InAllowedTypes, true);
 	AddPinToList(Pin, InputPins, InIndex);
 	return Pin;
 }
@@ -257,14 +280,28 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariablePinUnique(c
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariableWildcardPin(const FName& InPinName, const int32& InWildcardId, const int32& InIndex)
 {
-	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, false);
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, {}, false);
+	AddPinToList(Pin, OutputPins, InIndex);
+	return Pin;
+}
+
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariableWildcardPin(const FName& InPinName, const TSet<TSubclassOf<UCadenceVariable>>& InAllowedTypes, const int32& InWildcardId, const int32& InIndex)
+{
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, InAllowedTypes, false);
 	AddPinToList(Pin, OutputPins, InIndex);
 	return Pin;
 }
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariableWildcardArrayPin(const FName& InPinName, const int32& InWildcardId, const int32& InIndex)
 {
-	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, true);
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, {}, true);
+	AddPinToList(Pin, OutputPins, InIndex);
+	return Pin;
+}
+
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddOutputVariableWildcardArrayPin(const FName& InPinName, const TSet<TSubclassOf<UCadenceVariable>>& InAllowedTypes, const int32& InWildcardId, const int32& InIndex)
+{
+	TObjectPtr<UCadenceGraphNodePin> Pin = CreateVariableWildcardPin(InPinName, InWildcardId, InAllowedTypes, true);
 	AddPinToList(Pin, OutputPins, InIndex);
 	return Pin;
 }
@@ -304,7 +341,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariablePin(const FNam
 	return Pin;
 }
 
-TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariableWildcardPin(const FName& InPinName, const int32& InWildcardId, const bool InIsArray)
+TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariableWildcardPin(const FName& InPinName, const int32& InWildcardId, const TSet<TSubclassOf<UCadenceVariable>>& InAllowedTypes, const bool InIsArray)
 {
 	int32 WildcardId = InWildcardId;
 	if(!ensureMsgf(WildcardId != -1, TEXT("Cannot use -1 as wildcard ID, reserved for initialisation purposes")))
@@ -318,6 +355,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariableWildcardPin(co
 	Pin->SetWildcardId(WildcardId);
 	Pin->GenerateGUID();
 	Pin->SetFlags(RF_Transactional);
+	Pin->SetAllowedWildcardTypes(InAllowedTypes);
 
 	Pin->OnPinConnected.AddUObject(this, &UCadenceGraphNode::OnPinConnectedToWildcardPin, Pin);
 	Pin->OnConnectionsCleared.AddUObject(this, &UCadenceGraphNode::OnPinConnectionsClearedFromWildcardPin, Pin);	

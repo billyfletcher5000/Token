@@ -32,9 +32,9 @@ ECadenceNodeExecuteResult UCadenceBranchNode::Execute(UCadenceContext* InContext
 TArray<UCadenceGraphNodePin*> UCadenceBranchNode::GetActuatingOutputExecPins() const
 {
 	UCadenceGraphNodePin* ConditionPin = GetInputPin(FCadencePinConstants::Pin_Condition);
-	UCadenceVariableBool* BoolVariabble = ConditionPin->GetVariable<UCadenceVariableBool>();
+	UCadenceVariableBool* BoolVariable = ConditionPin->GetVariable<UCadenceVariableBool>();
 	
-	return { BoolVariabble->GetValue() ? GetOutputPin(FCadencePinConstants::Pin_True) : GetOutputPin(FCadencePinConstants::Pin_False) };
+	return { BoolVariable->GetValue() ? GetOutputPin(FCadencePinConstants::Pin_True) : GetOutputPin(FCadencePinConstants::Pin_False) };
 }
 
 void UCadenceForNode::CreateInputPins()

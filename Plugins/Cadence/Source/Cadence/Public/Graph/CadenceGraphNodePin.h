@@ -68,8 +68,13 @@ public:
 	void OverrideVariable(UCadenceVariable* InVariable) { VariableOverride = InVariable; }
 	void ClearOverrideVariable() { VariableOverride = nullptr; }
 
+	bool IsWildcardPin() const { return WildcardId != -1; }
 	int32 GetWildcardId() const { return WildcardId; }
 	void SetWildcardId(const int32& InWildcardId) { WildcardId = InWildcardId; }
+
+	bool HasRestrictedWildcardAllowedTypes() const { return AllowedWildcardTypes.Num() > 0; }
+	TSet<TSubclassOf<UCadenceVariable>> GetAllowedWildcardTypes() const { return AllowedWildcardTypes; }
+	void SetAllowedWildcardTypes(const TSet<TSubclassOf<UCadenceVariable>>& InTypes)  { AllowedWildcardTypes = InTypes; }
 
 	bool IsDefaultDisabled() const { return bDisableDefault; }
 	void SetDefaultDisabled(const bool& InValue) { bDisableDefault = InValue; }
@@ -106,6 +111,9 @@ private:
 	int32 WildcardId = -1;
 
 	TWeakObjectPtr<UCadenceVariable> VariableOverride;
+
+	UPROPERTY()
+	TSet<TSubclassOf<UCadenceVariable>> AllowedWildcardTypes;
 };
 
 template <typename T>
