@@ -68,7 +68,7 @@ ECadenceNodeExecuteResult UCadenceTriggerSequenceNode::Execute(UCadenceContext* 
 	return ECadenceNodeExecuteResult::Complete;
 }
 
-TObjectPtr<UCadenceGraphNodePin> UCadenceTriggerSequenceNode::AddUserInputPin()
+UCadenceGraphNodePin* UCadenceTriggerSequenceNode::AddUserInputPin()
 {
 	FString PinName = FCadencePinConstants::Pin_Trigger.ToString() + " " + GetNameForAdditionalPin(PinIndex).ToString();
 	PinIndex++;	

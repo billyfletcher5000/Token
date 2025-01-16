@@ -50,7 +50,12 @@ namespace FCadencePinConstants
 
 	static const FName Pin_CadenceAsset = TEXT("Cadence Asset");
 
-	static const FName Pin_ReactionGroup = TEXT("Reaction Group");	
+	static const FName Pin_ReactionGroup = TEXT("Reaction Group");
+
+	static const FName Pin_Primary = TEXT("Primary");
+	static const FName Pin_Secondary = TEXT("Secondary");
+	static const FName Pin_Result = TEXT("Result");
+	static const FName Pin_Unnamed = TEXT("");
 }
 
 namespace FCadencePinCategoryConstants

@@ -41,7 +41,7 @@ public:
 	virtual void CreateOutputPins() override;
 	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 
-	virtual TObjectPtr<UCadenceGraphNodePin> AddUserInputPin() override;
+	virtual UCadenceGraphNodePin* AddUserInputPin() override;
 	virtual bool RemoveUserInputPin(UCadenceGraphNodePin* Pin) override;
 	virtual bool CanRemovePin(const UCadenceGraphNodePin* Pin) const override;
 	

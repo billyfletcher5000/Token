@@ -37,6 +37,9 @@ public:
 	
 	void SetPinName(const FName& InPinName) { PinName = InPinName; }
 	FName GetPinName() const { return PinName; }
+
+	bool GetShouldHidePinName() const { return bHidePinName; }
+	void SetShouldHidePinName(const bool& InValue) { bHidePinName = InValue; }
 	
 	void GenerateGUID();
 	void SetGUID(const FGuid& InGUID) { GUID = InGUID; }
@@ -85,6 +88,9 @@ private:
 
 	UPROPERTY()
 	FName PinName;
+
+	UPROPERTY()
+	bool bHidePinName = false;
 	
 	UPROPERTY(NonPIEDuplicateTransient, TextExportTransient, NonTransactional)
 	FGuid GUID;

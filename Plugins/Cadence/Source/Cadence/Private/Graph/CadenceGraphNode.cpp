@@ -150,6 +150,11 @@ TArray<UCadenceGraphNodePin*> UCadenceGraphNode::GetPinsWithWildcard(const int32
 	return OutPins;
 }
 
+int32 UCadenceGraphNode::GetInputPinIndex(UCadenceGraphNodePin* InPin) const
+{
+	return InputPins.IndexOfByKey(InPin);
+}
+
 TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::AddInputExecPin(const FName& InPinName, const int32& InIndex)
 {
 	ensureMsgf(GetInputPin(InPinName) == nullptr, TEXT("Cannot add pin with same name as existing pin"));

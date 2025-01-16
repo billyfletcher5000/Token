@@ -59,7 +59,7 @@ public:
 	/**
 	* Add an additional input pin to this node
 	*/
-	virtual TObjectPtr<UCadenceGraphNodePin> AddUserInputPin() = 0;
+	virtual UCadenceGraphNodePin* AddUserInputPin() = 0;
 
 	void AddUserInputPinWithoutReturn() { AddUserInputPin(); }
 

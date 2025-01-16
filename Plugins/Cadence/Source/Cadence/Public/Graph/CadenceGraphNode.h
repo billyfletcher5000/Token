@@ -36,6 +36,7 @@ public:
 	
 	virtual FText GetNodeTitle() const { return GetNodeMenuName(); }
 	virtual FText GetNodeMenuName() const { return FText::FromString(StaticClass()->GetName()); }
+	virtual FText GetNodeShortDisplayName() const { return GetNodeMenuName(); }
 	virtual FText GetNodeCategory() const { return FText::FromName(NAME_Default); }
 	virtual FText GetCreateNodeTooltip() const { return FText::FromString(TEXT("Create new node"));}
 	virtual FLinearColor GetNodeTitleColor() const { return FLinearColor::Blue; }
@@ -85,6 +86,8 @@ public:
 
 	bool HasAnyPinsWithWildcard(const int32& InWildcardId);
 	TArray<UCadenceGraphNodePin*> GetPinsWithWildcard(const int32& InWildcardId);
+
+	int32 GetInputPinIndex(UCadenceGraphNodePin* InPin) const;
 #endif
 	
 protected:
