@@ -8,6 +8,13 @@
 class UCadenceVariable;
 class UCadenceOperation;
 
+struct FCadenceOperationBaseBucket
+{
+	TSubclassOf<UCadenceOperation> Class;
+	TArray<FCadenceOperationBaseBucket> ChildBuckets;
+	TArray<TSubclassOf<UCadenceOperation>> LeafClasses;
+};
+
 class FCadenceGraphOperationResolver
 {
 public:
@@ -15,8 +22,23 @@ public:
 
 	void UpdateClassList();
 
-	UCadenceOperation* TryCreateMostAppropriateOperation(const TSubclassOf<UCadenceOperation>& InOperationBase, const TSubclassOf<UCadenceVariable>& InVariableClassA, const TSubclassOf<UCadenceVariable>& InVariableClassB, UObject* InOuter, const bool& InAreMultipleOfA = false, const bool& InAreMultipleOfB = false);
+	UCadenceOperation* TryCreateMostAppropriateOperation(const TSubclassOf<UCadenceOperation>& InOperationBase,
+														 const TSubclassOf<UCadenceVariable>& InVariableClassA,
+														 const TSubclassOf<UCadenceVariable>& InVariableClassB,														 
+														 const TSubclassOf<UCadenceVariable>& InVariableClassReturn,
+														 UObject* InOuter,
+														 bool& OutPrimarySecondaryReversed,
+														 const bool& InAreMultipleOfA = false,
+														 const bool& InAreMultipleOfB = false);
 
 private:
-	TArray<TSubclassOf<UCadenceOperation>> OperationTypes;
+	UCadenceOperation* TryCreateMostAppropriateOperation(const TSubclassOf<UCadenceOperation>& InOperationBase,
+														 const TSubclassOf<UCadenceVariable>& InVariableClassA,
+														 const TSubclassOf<UCadenceVariable>& InVariableClassB,														 
+														 const TSubclassOf<UCadenceVariable>& InVariableClassResult,
+														 UObject* InOuter,
+														 const bool& InAreMultipleOfB = false);
+
+	
+	FCadenceOperationBaseBucket RootBucket;
 };

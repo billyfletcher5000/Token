@@ -79,13 +79,40 @@ bool UCadenceOperationNode_Base::CanRemovePin(const UCadenceGraphNodePin* Pin) c
 }
 
 #if WITH_EDITOR
-void UCadenceOperationNode_Base::SetOperation(UCadenceOperation* InOperation)
+void UCadenceOperationNode_Base::SetOperation(UCadenceOperation* InOperation, const bool& bInIsReversed)
 {
-	if(Operation != InOperation)
+	if(Operation != InOperation || (Operation != nullptr && bIsOperationReversed != bInIsReversed))
 	{
 		Operation = InOperation;
+		bIsOperationReversed = bInIsReversed;
 		RefreshPins();
 	}
+}
+
+UClass* UCadenceOperationNode_Base::GetPrimaryVariableType() const
+{
+	if(!PrimaryInputPin.IsValid())
+		return nullptr;
+
+	return PrimaryInputPin->GetVariableClass();
+}
+
+UClass* UCadenceOperationNode_Base::GetSecondaryVariableType() const
+{
+	TWeakObjectPtr<UCadenceGraphNodePin> Pin = SecondaryInputPins.Last();
+
+	if(!Pin.IsValid())
+		return nullptr;
+
+	return Pin->GetVariableClass();
+}
+
+UClass* UCadenceOperationNode_Base::GetResultVariableType() const
+{	
+	if(!ResultOutputPin.IsValid())
+		return nullptr;
+
+	return ResultOutputPin->GetVariableClass();
 }
 #endif
 
@@ -107,6 +134,32 @@ bool UCadenceOperationNode_Base::RefreshInputPins()
 		{
 			if(PrimaryInputPin->GetVariableClass() != PrimaryVariableClass)
 			{
+				// Check for existing secondary pin that matches the primary type and is the only connected secondary pin
+				if(!PrimaryInputPin->HasConnections())
+				{
+					TWeakObjectPtr<UCadenceGraphNodePin> SwapCandidate = nullptr;
+					for(TWeakObjectPtr<UCadenceGraphNodePin>& SecondaryPin : SecondaryInputPins)
+					{
+						if(SecondaryPin->HasConnections() && SecondaryPin->GetVariableClass() == PrimaryVariableClass)
+						{
+							if(SwapCandidate != nullptr)
+							{
+								SwapCandidate = nullptr;
+								break;								
+							}
+
+							SwapCandidate = SecondaryPin;
+						}
+					}
+
+					if(SwapCandidate.IsValid())
+					{
+						PrimaryInputPin->SetVariableClass(nullptr);
+						SecondaryInputPins.Add(PrimaryInputPin);
+						PrimaryInputPin = SwapCandidate;
+					}
+				}
+				
 				PrimaryInputPin->SetVariableClass(PrimaryVariableClass);
 				bAnyChanges = true;
 			}
@@ -236,10 +289,10 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceOperationNode_Base::AddSecondaryInputPi
 
 UClass* UCadenceOperationNode_Base::GetPrimaryVariableClass() const
 {
-	return IsValid(Operation) ? Operation->GetPrimaryType() : nullptr;
+	return IsValid(Operation) ? (bIsOperationReversed ? Operation->GetSecondaryType() : Operation->GetPrimaryType()) : nullptr;
 }
 
 UClass* UCadenceOperationNode_Base::GetSecondaryVariableClass() const
 {
-	return IsValid(Operation) ? Operation->GetSecondaryType() : nullptr;
+	return IsValid(Operation) ? (bIsOperationReversed ? Operation->GetPrimaryType() : Operation->GetSecondaryType()) : nullptr;
 }

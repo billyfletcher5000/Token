@@ -6,9 +6,12 @@
 #include "CadenceGraphDetailsTab.h"
 #include "SPinTypeSelector.h"
 #include "Graph/CadenceGraph.h"
+#include "CadenceGraphOperationResolver.h"
 
 #include "CadenceGraphSchema.generated.h"
 
+class UCadenceGraphNodePin;
+class UCadenceOperationNode_Base;
 class UCadenceGraphEditor;
 class UCadenceGraph;
 class UCadenceAsset;
@@ -69,7 +72,11 @@ private:
 	
 	void GenerateColorMap();
 	TArray<UCadenceVariable*> GetVariableTypeCDOs(bool InFilterForCreate = true) const;
+	bool CheckOperationConnection(UCadenceOperationNode_Base* InOperationNode, UCadenceGraphNodePin* InPin, UClass* InOtherPinVarClass) const;
+	void UpdateOperationNodeOperation(UCadenceOperationNode_Base* InNode) const;
 	
-private:
 	TMap<FName, FLinearColor> PinCategoryToColor;
+
+	TSharedRef<FCadenceGraphOperationResolver> OperationResolver;
+	static TSharedPtr<FCadenceGraphOperationResolver> OperationResolverStatic;
 };

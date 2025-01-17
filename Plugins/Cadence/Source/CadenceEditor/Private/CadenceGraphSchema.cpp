@@ -9,6 +9,7 @@
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorNode.h"
 #include "CadenceGraphEditorRerouteNode.h"
+#include "CadenceGraphOperationResolver.h"
 #include "CadenceGraphPropertyCustomization.h"
 #include "Graph/CadenceGraphNode.h"
 #include "Graph/CadenceGraphNodePin.h"
@@ -17,15 +18,24 @@
 #include "Graph/CadencePinConstants.h"
 #include "Graph/Nodes/CadenceUserVariableNodes.h"
 #include "Graph/CadenceVariable.h"
+#include "Graph/Nodes/CadenceOperationNodes.h"
 #include "Graph/Nodes/CadenceRerouteNodes.h"
 
 const FName UCadenceGraphSchema::PC_Exec = TEXT("exec");
 const FName UCadenceGraphSchema::PC_Wildcard = TEXT("wildcard");
-const FString UCadenceGraphSchema::DefaultVariableNameBase = TEXT("NewVar"); 
+const FString UCadenceGraphSchema::DefaultVariableNameBase = TEXT("NewVar");
+TSharedPtr<FCadenceGraphOperationResolver> UCadenceGraphSchema::OperationResolverStatic = nullptr;
 
 UCadenceGraphSchema::UCadenceGraphSchema()
 {
 	GenerateColorMap();
+
+	if(!OperationResolverStatic.IsValid())
+	{
+		OperationResolverStatic = MakeShared<FCadenceGraphOperationResolver>();
+	}
+
+	OperationResolver = OperationResolverStatic.ToSharedRef();	
 }
 
 void UCadenceGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const
@@ -115,14 +125,31 @@ const FPinConnectionResponse UCadenceGraphSchema::CanCreateConnection(const UEdG
 		const UCadenceGraphEditorNode* CadenceEditorNodeA = Cast<UCadenceGraphEditorNode>(A->GetOwningNode());
 		const UCadenceGraphEditorNode* CadenceEditorNodeB = Cast<UCadenceGraphEditorNode>(B->GetOwningNode());
 
-		const UCadenceGraphNode* RuntimeNodeA = CadenceEditorNodeA->GetRuntimeGraphNode();
-		const UCadenceGraphNode* RuntimeNodeB = CadenceEditorNodeB->GetRuntimeGraphNode();
-
+		UCadenceGraphNode* RuntimeNodeA = CadenceEditorNodeA->GetRuntimeGraphNode();
+		UCadenceGraphNode* RuntimeNodeB = CadenceEditorNodeB->GetRuntimeGraphNode();	
+		
 		UCadenceGraphNodePin* RuntimePinA = A->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeA->GetInputPin(A->PinName) : RuntimeNodeA->GetOutputPin(A->PinName);
 		UCadenceGraphNodePin* RuntimePinB = B->Direction == EEdGraphPinDirection::EGPD_Input ? RuntimeNodeB->GetInputPin(B->PinName) : RuntimeNodeB->GetOutputPin(B->PinName);
 		
 		TSubclassOf<UCadenceVariable> RuntimePinAVarClass = RuntimePinA->GetVariableClass();
 		TSubclassOf<UCadenceVariable> RuntimePinBVarClass = RuntimePinB->GetVariableClass();
+
+		if(RuntimePinAVarClass == nullptr && RuntimePinBVarClass == nullptr)
+			return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Wildcard pins cannot be connected to each other!"));
+		
+		UCadenceOperationNode_Base* OperationNodeA = Cast<UCadenceOperationNode_Base>(RuntimeNodeA);
+		UCadenceOperationNode_Base* OperationNodeB = Cast<UCadenceOperationNode_Base>(RuntimeNodeB);
+
+		if(IsValid(OperationNodeA) && RuntimePinA->IsWildcardPin() && RuntimePinAVarClass == nullptr)
+		{
+			if(!CheckOperationConnection(OperationNodeA, RuntimePinA, RuntimePinBVarClass))
+				return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("No operation exists that accepts these inputs/outputs!"));
+		}
+		else if(IsValid(OperationNodeB) && RuntimePinB->IsWildcardPin() && RuntimePinBVarClass == nullptr)
+		{			
+			if(!CheckOperationConnection(OperationNodeB, RuntimePinB, RuntimePinAVarClass))
+				return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("No operation exists that accepts these inputs/outputs!"));
+		}
 		
 		if(RuntimePinA->GetVariableClass() == UCadenceVariableArray::StaticClass()
 			&& RuntimePinB->GetVariableClass() == UCadenceVariableArray::StaticClass())
@@ -205,6 +232,12 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 
 	ensure(RuntimePinA);
 	ensure(RuntimePinB);
+
+	if(UCadenceOperationNode_Base* OpNode = Cast<UCadenceOperationNode_Base>(RuntimeNodeA))
+		UpdateOperationNodeOperation(OpNode);
+	
+	if(UCadenceOperationNode_Base* OpNode = Cast<UCadenceOperationNode_Base>(RuntimeNodeB))
+		UpdateOperationNodeOperation(OpNode);
 
 	RuntimeNodeA->GetParentGraph()->Modify();
 
@@ -354,7 +387,6 @@ void UCadenceGraphSchema::OnPinConnectionDoubleCicked(UEdGraphPin* PinA, UEdGrap
 		RuntimeGraph->RemoveNode(RerouteNode);
 		return;
 	}
-
 	
 	RuntimeGraph->Modify();
 	RuntimeGraph->AddNode(RerouteNode);
@@ -622,4 +654,45 @@ TArray<UCadenceVariable*> UCadenceGraphSchema::GetVariableTypeCDOs(bool InFilter
 	}
 
 	return VariableCDOs;
+}
+
+bool UCadenceGraphSchema::CheckOperationConnection(UCadenceOperationNode_Base* InOperationNode, UCadenceGraphNodePin* InPin, UClass* InOtherPinVarClass) const
+{
+	if(InOperationNode->IsPinPrimary(InPin))
+	{
+		if(!InOperationNode->IsPrimaryTypeAllowed(InOtherPinVarClass))
+			return false;
+	}
+	else if(InOperationNode->IsPinSecondary(InPin))
+	{
+		if(!InOperationNode->IsSecondaryTypeAllowed(InOtherPinVarClass))
+			return false;		
+	}
+	else if(InOperationNode->IsPinResult(InPin))
+	{
+		if(!InOperationNode->IsResultTypeAllowed(InOtherPinVarClass))
+			return false;				
+	}
+
+	return true;
+}
+
+void UCadenceGraphSchema::UpdateOperationNodeOperation(UCadenceOperationNode_Base* InNode) const
+{
+	UClass* PrimaryType = InNode->GetPrimaryVariableType();
+	UClass* SecondaryType = InNode->GetSecondaryVariableType();
+	UClass* ResultType = InNode->GetResultVariableType();
+
+	if(PrimaryType == nullptr && SecondaryType == nullptr && ResultType == nullptr)
+	{
+		InNode->SetOperation(nullptr, false);
+		return;
+	}
+
+	bool bMultipleSecondaries = InNode->HasMultipleSecondaryPins();
+
+	bool ArePrimarySecondaryReversed = false;
+	UCadenceOperation* Operation = OperationResolver->TryCreateMostAppropriateOperation(InNode->GetOperationBase(), PrimaryType, SecondaryType, ResultType, InNode, ArePrimarySecondaryReversed, false, bMultipleSecondaries);
+
+	InNode->SetOperation(Operation, ArePrimarySecondaryReversed);
 }

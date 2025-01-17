@@ -381,7 +381,7 @@ class CADENCE_API UCadenceAddNode : public UCadenceOperationNode_Base
 
 public:
 #if WITH_EDITOR
-	virtual TSubclassOf<UCadenceOperation> GetOperationBase() override { return UCadenceOpAdd::StaticClass(); } 
+	virtual TSubclassOf<UCadenceOperation> GetOperationBase() const override { return UCadenceOpAdd::StaticClass(); } 
 #endif
 	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Add")); }
@@ -397,7 +397,7 @@ class CADENCE_API UCadenceSubtractNode : public UCadenceOperationNode_Base
 
 public:
 #if WITH_EDITOR
-	virtual TSubclassOf<UCadenceOperation> GetOperationBase() override { return UCadenceOpSubtract::StaticClass(); }
+	virtual TSubclassOf<UCadenceOperation> GetOperationBase() const override { return UCadenceOpSubtract::StaticClass(); }
 #endif
 	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Subtract")); }
@@ -413,7 +413,7 @@ class CADENCE_API UCadenceMultiplyNode : public UCadenceOperationNode_Base
 
 public:
 #if WITH_EDITOR
-	virtual TSubclassOf<UCadenceOperation> GetOperationBase() override { return UCadenceOpMultiply::StaticClass(); }
+	virtual TSubclassOf<UCadenceOperation> GetOperationBase() const override { return UCadenceOpMultiply::StaticClass(); }
 #endif
 	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Multiply")); }
@@ -429,7 +429,7 @@ class CADENCE_API UCadenceDivideNode : public UCadenceOperationNode_Base
 
 public:
 #if WITH_EDITOR
-	virtual TSubclassOf<UCadenceOperation> GetOperationBase() override { return UCadenceOpDivide::StaticClass(); }
+	virtual TSubclassOf<UCadenceOperation> GetOperationBase() const override { return UCadenceOpDivide::StaticClass(); }
 #endif
 	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Divide")); }

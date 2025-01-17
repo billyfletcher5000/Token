@@ -42,17 +42,30 @@ public:
 	virtual bool IsPure() const override { return true; }	
 
 #if WITH_EDITOR
-	virtual TSubclassOf<UCadenceOperation> GetOperationBase() { return UCadenceOperation::StaticClass(); }
-	void SetOperation(UCadenceOperation* InOperation);
+	virtual TSubclassOf<UCadenceOperation> GetOperationBase() const { return UCadenceOperation::StaticClass(); }
+	void SetOperation(UCadenceOperation* InOperation, const bool& bInIsReversed);
+
+	bool IsPinPrimary(UCadenceGraphNodePin* InPin) const { return PrimaryInputPin == InPin; }
+	bool IsPinSecondary(UCadenceGraphNodePin* InPin) const { return SecondaryInputPins.Contains(InPin); }
+	bool IsPinResult(UCadenceGraphNodePin* InPin) const { return ResultOutputPin == InPin; }
+
+	UClass* GetPrimaryVariableType() const;
+	UClass* GetSecondaryVariableType() const;
+	UClass* GetResultVariableType() const;
+
+	bool HasMultipleSecondaryPins() const { return SecondaryInputPins.Num() > 1; }
 #endif
 
 #if WITH_EDITORONLY_DATA
 	void SetPrimaryAllowedTypes(const TSet<TSubclassOf<UCadenceVariable>>& InTypes) { PrimaryAllowedTypes = InTypes; }
 	TSet<TSubclassOf<UCadenceVariable>>& GetPrimaryAllowedTypes() { return PrimaryAllowedTypes; }
+	bool IsPrimaryTypeAllowed(UClass* InType) const { return PrimaryAllowedTypes.IsEmpty() || PrimaryAllowedTypes.Contains(InType); }
 	void SetSecondaryAllowedTypes(const TSet<TSubclassOf<UCadenceVariable>>& InTypes) { SecondaryAllowedTypes = InTypes; }
 	TSet<TSubclassOf<UCadenceVariable>>& GetSecondaryAllowedTypes() { return SecondaryAllowedTypes; }
+	bool IsSecondaryTypeAllowed(UClass* InType) const { return SecondaryAllowedTypes.IsEmpty() || SecondaryAllowedTypes.Contains(InType); }
 	void SetResultAllowedTypes(const TSet<TSubclassOf<UCadenceVariable>>& InTypes) { ResultAllowedTypes = InTypes; }
 	TSet<TSubclassOf<UCadenceVariable>>& GetResultAllowedTypes() { return ResultAllowedTypes; }
+	bool IsResultTypeAllowed(UClass* InType) const { return ResultAllowedTypes.IsEmpty() || ResultAllowedTypes.Contains(InType); }
 #endif
 
 protected:
@@ -68,6 +81,9 @@ private:
 private:
 	UPROPERTY()
 	TObjectPtr<UCadenceOperation> Operation;
+
+	UPROPERTY()
+	bool bIsOperationReversed;
 	
 	UPROPERTY()
 	int32 PinIndex = 0;
