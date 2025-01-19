@@ -44,6 +44,7 @@ public:
 	virtual void PrepareForCopying() override;
 	virtual void PreEditUndo() override;
 	virtual void PostEditUndo() override;
+	virtual void ReconstructNode() override;
 	// End UEdGraphNode
 
 private:

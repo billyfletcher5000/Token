@@ -7,9 +7,11 @@
 #include "CadenceGraphEditor.h"
 #include "CadenceGraphEditorGridNode.h"
 #include "CadenceGraphEditorNode.h"
+#include "CadenceGraphPropertyCustomization.h"
 #include "CadenceGraphSchema.h"
 #include "Graph/CadenceGraphNodePin.h"
 #include "Graph/Nodes/CadenceGridNodes.h"
+#include "Graph/Nodes/CadenceOperationNodes.h"
 #include "Graph/Nodes/CadenceUserVariableNodes.h"
 
 UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode)
@@ -42,6 +44,13 @@ UEdGraphNode* FNewNodeAction::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* 
 		Node = NodeCreator.CreateNode(false);
 		Node->Construct(RuntimeNode);
 		NodeCreator.Finalize();
+	}
+
+	if(UCadenceOperationNode_Base* OperationNode = Cast<UCadenceOperationNode_Base>(RuntimeNode))
+	{
+		UE_LOG(LogCadenceEditor, Log, TEXT("FNewNodeAction::PerformAction UpdateOperationNode"));
+		const UCadenceGraphSchema* CadenceGraphSchema = Cast<UCadenceGraphSchema>(ParentEditorGraph->GetSchema());
+		CadenceGraphSchema->UpdateOperationNode(OperationNode);
 	}
 
 	if (FromPin)

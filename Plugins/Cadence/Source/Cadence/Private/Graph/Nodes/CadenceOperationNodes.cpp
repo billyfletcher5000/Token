@@ -79,19 +79,21 @@ bool UCadenceOperationNode_Base::CanRemovePin(const UCadenceGraphNodePin* Pin) c
 }
 
 #if WITH_EDITOR
-void UCadenceOperationNode_Base::SetOperation(UCadenceOperation* InOperation, const bool& bInIsReversed)
+bool UCadenceOperationNode_Base::SetOperation(UCadenceOperation* InOperation, const bool& bInIsReversed)
 {
 	if(Operation != InOperation || (Operation != nullptr && bIsOperationReversed != bInIsReversed))
 	{
 		Operation = InOperation;
 		bIsOperationReversed = bInIsReversed;
-		RefreshPins();
+		return RefreshPins();
 	}
+
+	return false;
 }
 
 UClass* UCadenceOperationNode_Base::GetPrimaryVariableType() const
 {
-	if(!PrimaryInputPin.IsValid())
+	if(!PrimaryInputPin.IsValid() || !PrimaryInputPin->HasConnections())
 		return nullptr;
 
 	return PrimaryInputPin->GetVariableClass();
@@ -99,17 +101,18 @@ UClass* UCadenceOperationNode_Base::GetPrimaryVariableType() const
 
 UClass* UCadenceOperationNode_Base::GetSecondaryVariableType() const
 {
-	TWeakObjectPtr<UCadenceGraphNodePin> Pin = SecondaryInputPins.Last();
+	for(auto& Pin : SecondaryInputPins)
+	{
+		if(Pin.IsValid() && Pin->HasConnections())
+			return Pin->GetVariableClass();
+	}
 
-	if(!Pin.IsValid())
-		return nullptr;
-
-	return Pin->GetVariableClass();
+	return nullptr;
 }
 
 UClass* UCadenceOperationNode_Base::GetResultVariableType() const
 {	
-	if(!ResultOutputPin.IsValid())
+	if(!ResultOutputPin.IsValid() || !ResultOutputPin->HasConnections())
 		return nullptr;
 
 	return ResultOutputPin->GetVariableClass();
@@ -265,7 +268,7 @@ bool UCadenceOperationNode_Base::RefreshOutputPins()
 		}
 		else
 		{
-			ResultOutputPin = AddInputVariableWildcardPin(FCadencePinConstants::Pin_Result, ResultAllowedTypes, PrimaryWildcardId);
+			ResultOutputPin = AddOutputVariableWildcardPin(FCadencePinConstants::Pin_Result, ResultAllowedTypes, PrimaryWildcardId);
 			ResultOutputPin->SetShouldHidePinName(true);
 			bAnyChanges = true;
 		}
@@ -276,7 +279,7 @@ bool UCadenceOperationNode_Base::RefreshOutputPins()
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceOperationNode_Base::AddSecondaryInputPin()
 {
-	FString PinName = FCadencePinConstants::Pin_Unnamed.ToString() + " " + GetNameForAdditionalPin(PinIndex).ToString();
+	FString PinName = FCadencePinConstants::Pin_Secondary.ToString() + " " + GetNameForAdditionalPin(PinIndex).ToString();
 	PinIndex++;
 
 	UCadenceGraphNodePin* Pin = AddInputVariableWildcardPin(FName(PinName), SecondaryWildcardId);

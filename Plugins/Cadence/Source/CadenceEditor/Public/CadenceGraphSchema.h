@@ -52,6 +52,8 @@ public:
 	bool ArePinTypesCompatible(const FEdGraphPinType& InPinTypeA, const FEdGraphPinType& InPinTypeB) const;
 	void GetVariableTypeTree(TArray<FPinTypeTreeItem>& OutTypeTreeArray, ETypeTreeFilter InTreeFilter) const;
 	UClass* GetVariableClassFromPinType(const FEdGraphPinType& EdGraphPin) const;
+	
+	void UpdateOperationNode(UCadenceOperationNode_Base* InNode) const;
 
 	// Returns pointer to the variable or its replacement
 	UCadenceVariable* ChangeVariableType(UCadenceVariable* InVar, UCadenceGraph* InGraph, UCadenceGraphEditor* InEditorGraph, const FEdGraphPinType& InEdGraphPinType) const;
@@ -60,6 +62,7 @@ public:
 	
 	bool VariableAlreadyExistsWithName(TArray<FCadenceNamedVariable>& UserVariableArray, const FName& InName) const;
 	FName GetUniqueDefaultVariableName(TArray<FCadenceNamedVariable>& UserVariableArray) const;
+	void ConvertPinType(UCadenceGraphNodePin* InPin, const UEdGraphPin* InEdPin, TSubclassOf<UCadenceVariable> InNewType) const;
 
 public:
 	static const FName PC_Exec;
@@ -73,10 +76,8 @@ private:
 	void GenerateColorMap();
 	TArray<UCadenceVariable*> GetVariableTypeCDOs(bool InFilterForCreate = true) const;
 	bool CheckOperationConnection(UCadenceOperationNode_Base* InOperationNode, UCadenceGraphNodePin* InPin, UClass* InOtherPinVarClass) const;
-	void UpdateOperationNodeOperation(UCadenceOperationNode_Base* InNode) const;
 	
 	TMap<FName, FLinearColor> PinCategoryToColor;
 
-	TSharedRef<FCadenceGraphOperationResolver> OperationResolver;
-	static TSharedPtr<FCadenceGraphOperationResolver> OperationResolverStatic;
+	TSharedPtr<FCadenceGraphOperationResolver> OperationResolver;
 };

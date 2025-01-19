@@ -24,18 +24,11 @@
 const FName UCadenceGraphSchema::PC_Exec = TEXT("exec");
 const FName UCadenceGraphSchema::PC_Wildcard = TEXT("wildcard");
 const FString UCadenceGraphSchema::DefaultVariableNameBase = TEXT("NewVar");
-TSharedPtr<FCadenceGraphOperationResolver> UCadenceGraphSchema::OperationResolverStatic = nullptr;
 
 UCadenceGraphSchema::UCadenceGraphSchema()
 {
 	GenerateColorMap();
-
-	if(!OperationResolverStatic.IsValid())
-	{
-		OperationResolverStatic = MakeShared<FCadenceGraphOperationResolver>();
-	}
-
-	OperationResolver = OperationResolverStatic.ToSharedRef();	
+	OperationResolver = MakeShared<FCadenceGraphOperationResolver>();
 }
 
 void UCadenceGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const
@@ -233,11 +226,6 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 	ensure(RuntimePinA);
 	ensure(RuntimePinB);
 
-	if(UCadenceOperationNode_Base* OpNode = Cast<UCadenceOperationNode_Base>(RuntimeNodeA))
-		UpdateOperationNodeOperation(OpNode);
-	
-	if(UCadenceOperationNode_Base* OpNode = Cast<UCadenceOperationNode_Base>(RuntimeNodeB))
-		UpdateOperationNodeOperation(OpNode);
 
 	RuntimeNodeA->GetParentGraph()->Modify();
 
@@ -269,7 +257,21 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 			
 		default:
 			break;
-	}	
+	}
+	
+	if(UCadenceOperationNode_Base* OpNode = Cast<UCadenceOperationNode_Base>(RuntimeNodeA))
+	{
+		UE_LOG(LogCadenceEditor, Log, TEXT("UCadenceGraphSchema::TryCreateConnection UpdateOperationNode A"));
+		UpdateOperationNode(OpNode);
+		EditorNodeA->ReconstructNode();
+	}
+	
+	if(UCadenceOperationNode_Base* OpNode = Cast<UCadenceOperationNode_Base>(RuntimeNodeB))
+	{
+		UE_LOG(LogCadenceEditor, Log, TEXT("UCadenceGraphSchema::TryCreateConnection UpdateOperationNode B"));
+		UpdateOperationNode(OpNode);
+		EditorNodeB->ReconstructNode();
+	}
 	
 	return Super::TryCreateConnection(A, B);
 }
@@ -307,6 +309,13 @@ void UCadenceGraphSchema::BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNodeN
 			RerouteNode->Modify();
 			RerouteNode->CheckRerouteTypeValid();
 		}
+		else if(UCadenceOperationNode_Base* OperationNode = Cast<UCadenceOperationNode_Base>(RuntimePin->GetParentNode()))
+		{
+			OperationNode->Modify();
+			UE_LOG(LogCadenceEditor, Log, TEXT("UCadenceGraphSchema::BreakPinLinks UpdateOperationNode"));
+			UpdateOperationNode(OperationNode);
+			CadenceGraphEditorNode->ReconstructNode();
+		}
 	}
 	
 	Super::BreakPinLinks(TargetPin, bSendsNodeNotifcation);
@@ -339,10 +348,30 @@ void UCadenceGraphSchema::BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin
 		RuntimeTargetPin->DisconnectPin(RuntimeSourcePin);
 
 		if(UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(RuntimeSourcePin->GetParentNode()))
+		{
+			RerouteNode->Modify();
 			RerouteNode->CheckRerouteTypeValid();
+		}
+		else if(UCadenceOperationNode_Base* OperationNode = Cast<UCadenceOperationNode_Base>(RuntimeSourcePin->GetParentNode()))
+		{
+			UE_LOG(LogCadenceEditor, Log, TEXT("UCadenceGraphSchema::BreakSinglePinLink UpdateOperationNode Source"));
+			OperationNode->Modify();
+			UpdateOperationNode(OperationNode);
+			SourceEditorNode->ReconstructNode();
+		}
 
 		if(UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(RuntimeTargetPin->GetParentNode()))
+		{
+			RerouteNode->Modify();
 			RerouteNode->CheckRerouteTypeValid();
+		}
+		else if(UCadenceOperationNode_Base* OperationNode = Cast<UCadenceOperationNode_Base>(RuntimeTargetPin->GetParentNode()))
+		{
+			UE_LOG(LogCadenceEditor, Log, TEXT("UCadenceGraphSchema::BreakSinglePinLink UpdateOperationNode Target"));
+			OperationNode->Modify();
+			UpdateOperationNode(OperationNode);
+			TargetEditorNode->ReconstructConnections();
+		}
 	}
 	
 	Super::BreakSinglePinLink(SourcePin, TargetPin);
@@ -616,6 +645,19 @@ FName UCadenceGraphSchema::GetUniqueDefaultVariableName(TArray<FCadenceNamedVari
 	return CurrentTestName;
 }
 
+void UCadenceGraphSchema::ConvertPinType(UCadenceGraphNodePin* InPin, const UEdGraphPin* InEdPin, TSubclassOf<UCadenceVariable> InNewType) const
+{
+	if(IsValid(InPin))
+	{
+		if(InPin->GetVariableClass() == UCadenceVariableArray::StaticClass())
+			InPin->SetVariableSecondaryClass(InNewType);
+		else
+			InPin->SetVariableClass(InNewType);
+
+		InEdPin->GetOwningNode()->ReconstructNode();
+	}
+}
+
 bool UCadenceGraphSchema::IsVariablePinCategory(const FName& InPinCategory)
 {
 	return InPinCategory != PC_Exec;
@@ -677,22 +719,92 @@ bool UCadenceGraphSchema::CheckOperationConnection(UCadenceOperationNode_Base* I
 	return true;
 }
 
-void UCadenceGraphSchema::UpdateOperationNodeOperation(UCadenceOperationNode_Base* InNode) const
+#define B_TO_A(b) FString(b ? TEXT("true") : TEXT("false"))
+
+void UCadenceGraphSchema::UpdateOperationNode(UCadenceOperationNode_Base* InNode) const
 {
+	FString DebugOutput = TEXT("UpdateOperationNode:\n");
 	UClass* PrimaryType = InNode->GetPrimaryVariableType();
 	UClass* SecondaryType = InNode->GetSecondaryVariableType();
 	UClass* ResultType = InNode->GetResultVariableType();
 
+	bool bShouldCreateOperation = true;
+	
 	if(PrimaryType == nullptr && SecondaryType == nullptr && ResultType == nullptr)
-	{
-		InNode->SetOperation(nullptr, false);
-		return;
-	}
+		bShouldCreateOperation = false;
+
+	DebugOutput.Append(FString::Printf(TEXT("\tbShouldCreateOperation: %s\n"), *B_TO_A(bShouldCreateOperation)));
 
 	bool bMultipleSecondaries = InNode->HasMultipleSecondaryPins();
 
-	bool ArePrimarySecondaryReversed = false;
-	UCadenceOperation* Operation = OperationResolver->TryCreateMostAppropriateOperation(InNode->GetOperationBase(), PrimaryType, SecondaryType, ResultType, InNode, ArePrimarySecondaryReversed, false, bMultipleSecondaries);
+	TArray<FCadenceOperationResolverResult> ResolverResults = OperationResolver->GetAppropriateOperationClasses(
+		InNode->GetOperationBase(), PrimaryType, SecondaryType, ResultType, false, bMultipleSecondaries);
 
-	InNode->SetOperation(Operation, ArePrimarySecondaryReversed);
+	DebugOutput.Append(TEXT("\tResolverResults:\n"));
+
+	for(auto& Result : ResolverResults)
+	{
+		DebugOutput.Append(FString::Printf(TEXT("\t\tOperationType: %s\n"), *Result.OperationType->GetFName().ToString()));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tbIsReversedOrder: %s\n"), *B_TO_A(Result.bIsReversedOrder)));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tPrimaryVariableType: %s\n"), *Result.PrimaryVariableType->GetFName().ToString()));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tSecondaryVariableType: %s\n"), *Result.SecondaryVariableType->GetFName().ToString()));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tResultVariableType: %s\n"), *Result.ResultVariableType->GetFName().ToString()));
+	}
+	
+	// Now calculate allowed types
+	TSet<TSubclassOf<UCadenceVariable>> PrimaryAllowedTypes;
+	TSet<TSubclassOf<UCadenceVariable>> SecondaryAllowedTypes;
+	TSet<TSubclassOf<UCadenceVariable>> ResultAllowedTypes;
+
+	bool bHasDefinedPrimaryType = PrimaryType != nullptr;
+	bool bHasDefinedSecondaryType = SecondaryType != nullptr;
+	bool bHasDefinedResultType = ResultType != nullptr;
+
+	if(bHasDefinedPrimaryType)
+		PrimaryAllowedTypes.Add(PrimaryType);
+
+	if(bHasDefinedSecondaryType)
+		SecondaryAllowedTypes.Add(SecondaryType);
+
+	if(bHasDefinedResultType)
+		ResultAllowedTypes.Add(ResultType);
+
+	for(FCadenceOperationResolverResult& Result : ResolverResults)
+	{
+		if(!bHasDefinedPrimaryType)
+			PrimaryAllowedTypes.Add(Result.PrimaryVariableType);
+		if(!bHasDefinedSecondaryType)
+			SecondaryAllowedTypes.Add(Result.SecondaryVariableType);
+		if(!bHasDefinedResultType)
+			ResultAllowedTypes.Add(Result.ResultVariableType);			
+	}
+
+	InNode->SetPrimaryAllowedTypes(PrimaryAllowedTypes);
+	InNode->SetSecondaryAllowedTypes(SecondaryAllowedTypes);
+	InNode->SetResultAllowedTypes(ResultAllowedTypes);
+	
+	DebugOutput.Append(TEXT("\tPrimaryAllowedTypes:\n"));
+
+	for(auto& AllowedType : PrimaryAllowedTypes)
+		DebugOutput.Append(FString::Printf(TEXT("\t\t%s\n"), *AllowedType->GetFName().ToString()));
+	
+	DebugOutput.Append(TEXT("\tSecondaryAllowedTypes:\n"));
+
+	for(auto& AllowedType : SecondaryAllowedTypes)
+		DebugOutput.Append(FString::Printf(TEXT("\t\t%s\n"), *AllowedType->GetFName().ToString()));
+	
+	DebugOutput.Append(TEXT("\tResultAllowedTypes:\n"));
+
+	for(auto& AllowedType : ResultAllowedTypes)
+		DebugOutput.Append(FString::Printf(TEXT("\t\t%s\n"), *AllowedType->GetFName().ToString()));
+	
+	FCadenceOperationResolverResult& FirstResult = ResolverResults[0];
+
+	UCadenceOperation* Operation = nullptr;
+	if(bShouldCreateOperation)	
+		Operation = NewObject<UCadenceOperation>(InNode, FirstResult.OperationType);
+	
+	InNode->SetOperation(Operation, FirstResult.bIsReversedOrder);
+
+	UE_LOG(LogCadenceEditor, Log, TEXT("%s"), *DebugOutput);
 }

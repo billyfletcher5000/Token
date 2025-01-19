@@ -9,7 +9,7 @@ namespace FCadenceGraphOpResolverHelper
 {
 	static FCadenceOperationBaseBucket* GetOrCreateBucket(FCadenceOperationBaseBucket& InRootBucket, const TSubclassOf<UCadenceOperation>& InClass)
 	{
-		if(InClass->GetSuperClass() == InRootBucket.Class)
+		if(InClass == InRootBucket.Class)
 		{
 			return &InRootBucket;
 		}
@@ -78,45 +78,39 @@ void FCadenceGraphOperationResolver::UpdateClassList()
 	}
 }
 
-UCadenceOperation* FCadenceGraphOperationResolver::TryCreateMostAppropriateOperation(const TSubclassOf<UCadenceOperation>& InOperationBase,
+UE_DISABLE_OPTIMIZATION
+
+TArray<FCadenceOperationResolverResult> FCadenceGraphOperationResolver::GetAppropriateOperationClasses(const TSubclassOf<UCadenceOperation>& InOperationBase,
 	const TSubclassOf<UCadenceVariable>& InVariableClassA, const TSubclassOf<UCadenceVariable>& InVariableClassB,
-	const TSubclassOf<UCadenceVariable>& InVariableClassReturn, UObject* InOuter, bool& OutPrimarySecondaryReversed, const
+	const TSubclassOf<UCadenceVariable>& InVariableClassReturn, const
 	bool& InAreMultipleOfA, const bool& InAreMultipleOfB)
 {
 	// If all are 'wildcard' then there shouldn't be an operation as it's in its default state
-	if(InVariableClassA == nullptr && InVariableClassB == nullptr && InVariableClassReturn == nullptr)
-		return nullptr;
+	//if(InVariableClassA == nullptr && InVariableClassB == nullptr && InVariableClassReturn == nullptr)
+	//	return {};
 	
 	if(!ensureMsgf((InAreMultipleOfA && InAreMultipleOfB) == false, TEXT("Operations can only support multiple pins for one of the two types!")))
-		return nullptr;
+		return {};
 	
-	UCadenceOperation* Operation = nullptr;
-	
+	TArray<FCadenceOperationResolverResult> Results;
 	if(!InAreMultipleOfA)
 	{
-		Operation = TryCreateMostAppropriateOperation(InOperationBase, InVariableClassA, InVariableClassB, InVariableClassReturn, InOuter, InAreMultipleOfB);
-		if(IsValid(Operation))
-		{
-			OutPrimarySecondaryReversed = false;
-			return Operation;
-		}
+		 Results.Append(GetAppropriateOperationClassesInternal(
+			InOperationBase, InVariableClassA, InVariableClassB, InVariableClassReturn, InAreMultipleOfB, false));		
 	}
 
-	Operation = TryCreateMostAppropriateOperation(InOperationBase, InVariableClassB, InVariableClassA, InVariableClassReturn, InOuter, InAreMultipleOfA);
-	if(IsValid(Operation))
-	{
-		OutPrimarySecondaryReversed = true;
-		return Operation;
-	}
+	Results.Append(GetAppropriateOperationClassesInternal(
+		InOperationBase, InVariableClassB, InVariableClassA, InVariableClassReturn, InAreMultipleOfA, true));
 
-	return nullptr;
+	return Results;
 }
 
-UCadenceOperation* FCadenceGraphOperationResolver::TryCreateMostAppropriateOperation(
+TArray<FCadenceOperationResolverResult> FCadenceGraphOperationResolver::GetAppropriateOperationClassesInternal(
 	const TSubclassOf<UCadenceOperation>& InOperationBase, const TSubclassOf<UCadenceVariable>& InVariableClassA,
 	const TSubclassOf<UCadenceVariable>& InVariableClassB, const TSubclassOf<UCadenceVariable>& InVariableClassResult,
-	UObject* InOuter, const bool& InAreMultipleOfB)
+	const bool& InAreMultipleOfB, const bool& bIsReverseOrder)
 {
+	TArray<FCadenceOperationResolverResult> Result;
 	FCadenceOperationBaseBucket* Bucket = FCadenceGraphOpResolverHelper::GetOrCreateBucket(RootBucket, InOperationBase);
 	TArray<TSubclassOf<UCadenceOperation>> OperationTypes = FCadenceGraphOpResolverHelper::GatherClassesFromBucket(*Bucket);
 	
@@ -129,27 +123,32 @@ UCadenceOperation* FCadenceGraphOperationResolver::TryCreateMostAppropriateOpera
 		
 		if(!IsValid(OpCDO))
 			continue;
-		
+
+		TSubclassOf<UCadenceVariable> ResultType = OpCDO->GetResultType();
 		bool bResultTypeIsWildcard = InVariableClassResult == nullptr;
-		bool bIsResultTypeSatisfied = bResultTypeIsWildcard || (OpCDO->GetResultType() == InVariableClassA);
+		bool bIsResultTypeSatisfied = bResultTypeIsWildcard || (ResultType == InVariableClassA);
 		if(!bIsResultTypeSatisfied)
 			continue;
 
+		TSubclassOf<UCadenceVariable> PrimaryType = OpCDO->GetPrimaryType();
 		bool bPrimaryTypeIsWildcard = InVariableClassA == nullptr;
-		bool bIsPrimaryTypeSatisfied = bPrimaryTypeIsWildcard || (OpCDO->GetPrimaryType() == InVariableClassA);
+		bool bIsPrimaryTypeSatisfied = bPrimaryTypeIsWildcard || (PrimaryType == InVariableClassA);
 		if(!bIsPrimaryTypeSatisfied)
 			continue;
 
 		if(!OpCDO->SupportsAdditionalSecondary() && InAreMultipleOfB)
 			continue;
-		
+
+		TSubclassOf<UCadenceVariable> SecondaryType = OpCDO->GetSecondaryType();
 		bool bSecondaryTypeIsWildcard = InVariableClassB == nullptr;
-		bool bIsSecondaryTypeSatisfied = bSecondaryTypeIsWildcard || (OpCDO->GetPrimaryType() == InVariableClassB);
+		bool bIsSecondaryTypeSatisfied = bSecondaryTypeIsWildcard || (SecondaryType == InVariableClassB);
 		if(!bIsSecondaryTypeSatisfied)
 			continue;
 		
-		return NewObject<UCadenceOperation>(InOuter, OperationType);		
+		Result.Add(FCadenceOperationResolverResult {OperationType, PrimaryType, SecondaryType, ResultType, bIsReverseOrder});		
 	}
 
-	return nullptr;
+	return Result;
 }
+
+UE_ENABLE_OPTIMIZATION

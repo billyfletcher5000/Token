@@ -15,6 +15,15 @@ struct FCadenceOperationBaseBucket
 	TArray<TSubclassOf<UCadenceOperation>> LeafClasses;
 };
 
+struct FCadenceOperationResolverResult
+{
+	TSubclassOf<UCadenceOperation> OperationType;
+	TSubclassOf<UCadenceVariable> PrimaryVariableType;
+	TSubclassOf<UCadenceVariable> SecondaryVariableType;
+	TSubclassOf<UCadenceVariable> ResultVariableType;
+	bool bIsReversedOrder = false;
+};
+
 class FCadenceGraphOperationResolver
 {
 public:
@@ -22,22 +31,19 @@ public:
 
 	void UpdateClassList();
 
-	UCadenceOperation* TryCreateMostAppropriateOperation(const TSubclassOf<UCadenceOperation>& InOperationBase,
+	TArray<FCadenceOperationResolverResult> GetAppropriateOperationClasses(const TSubclassOf<UCadenceOperation>& InOperationBase,
 														 const TSubclassOf<UCadenceVariable>& InVariableClassA,
 														 const TSubclassOf<UCadenceVariable>& InVariableClassB,														 
 														 const TSubclassOf<UCadenceVariable>& InVariableClassReturn,
-														 UObject* InOuter,
-														 bool& OutPrimarySecondaryReversed,
-														 const bool& InAreMultipleOfA = false,
-														 const bool& InAreMultipleOfB = false);
+														 const bool& InAreMultipleOfA,
+														 const bool& InAreMultipleOfB);
 
 private:
-	UCadenceOperation* TryCreateMostAppropriateOperation(const TSubclassOf<UCadenceOperation>& InOperationBase,
+	TArray<FCadenceOperationResolverResult> GetAppropriateOperationClassesInternal(const TSubclassOf<UCadenceOperation>& InOperationBase,
 														 const TSubclassOf<UCadenceVariable>& InVariableClassA,
 														 const TSubclassOf<UCadenceVariable>& InVariableClassB,														 
-														 const TSubclassOf<UCadenceVariable>& InVariableClassResult,
-														 UObject* InOuter,
-														 const bool& InAreMultipleOfB = false);
+														 const TSubclassOf<UCadenceVariable>& InVariableClassResult,														 
+														 const bool& InAreMultipleOfB, const bool& bIsReverseOrder);
 
 	
 	FCadenceOperationBaseBucket RootBucket;

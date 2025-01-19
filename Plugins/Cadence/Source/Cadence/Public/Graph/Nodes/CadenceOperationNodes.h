@@ -43,7 +43,7 @@ public:
 
 #if WITH_EDITOR
 	virtual TSubclassOf<UCadenceOperation> GetOperationBase() const { return UCadenceOperation::StaticClass(); }
-	void SetOperation(UCadenceOperation* InOperation, const bool& bInIsReversed);
+	bool SetOperation(UCadenceOperation* InOperation, const bool& bInIsReversed);
 
 	bool IsPinPrimary(UCadenceGraphNodePin* InPin) const { return PrimaryInputPin == InPin; }
 	bool IsPinSecondary(UCadenceGraphNodePin* InPin) const { return SecondaryInputPins.Contains(InPin); }
