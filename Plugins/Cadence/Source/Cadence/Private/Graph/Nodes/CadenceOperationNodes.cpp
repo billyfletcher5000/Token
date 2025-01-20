@@ -3,6 +3,8 @@
 
 #include "Graph/Nodes/CadenceOperationNodes.h"
 
+#include "Cadence.h"
+
 
 const int32 UCadenceOperationNode_Base::PrimaryWildcardId = 0;
 const int32 UCadenceOperationNode_Base::SecondaryWildcardId = 1;
@@ -91,30 +93,39 @@ bool UCadenceOperationNode_Base::SetOperation(UCadenceOperation* InOperation, co
 	return false;
 }
 
-UClass* UCadenceOperationNode_Base::GetPrimaryVariableType() const
+UClass* UCadenceOperationNode_Base::GetPrimaryVariableType(const bool& InRequireConnection) const
 {
-	if(!PrimaryInputPin.IsValid() || !PrimaryInputPin->HasConnections())
+	if(!PrimaryInputPin.IsValid() || !HasAnyConnections())
 		return nullptr;
 
+	if(InRequireConnection && !PrimaryInputPin->HasConnections())
+		return nullptr;
+	
 	return PrimaryInputPin->GetVariableClass();
 }
 
-UClass* UCadenceOperationNode_Base::GetSecondaryVariableType() const
+UClass* UCadenceOperationNode_Base::GetSecondaryVariableType(const bool& InRequireConnection) const
 {
+	if(!HasAnyConnections())
+		return nullptr;
+	
 	for(auto& Pin : SecondaryInputPins)
 	{
-		if(Pin.IsValid() && Pin->HasConnections())
+		if(Pin.IsValid() && (!InRequireConnection || Pin->HasConnections()))
 			return Pin->GetVariableClass();
 	}
 
 	return nullptr;
 }
 
-UClass* UCadenceOperationNode_Base::GetResultVariableType() const
+UClass* UCadenceOperationNode_Base::GetResultVariableType(const bool& InRequireConnection) const
 {	
-	if(!ResultOutputPin.IsValid() || !ResultOutputPin->HasConnections())
+	if(!ResultOutputPin.IsValid() || !HasAnyConnections())
 		return nullptr;
 
+	if(InRequireConnection && !ResultOutputPin->HasConnections())
+		return nullptr;
+	
 	return ResultOutputPin->GetVariableClass();
 }
 #endif
@@ -157,12 +168,14 @@ bool UCadenceOperationNode_Base::RefreshInputPins()
 
 					if(SwapCandidate.IsValid())
 					{
+						UE_LOG(LogCadence, Log, TEXT("Swapping SecondaryPin \"%s\" to: nullptr"), *PrimaryInputPin->GetPinName().ToString());
 						PrimaryInputPin->SetVariableClass(nullptr);
 						SecondaryInputPins.Add(PrimaryInputPin);
 						PrimaryInputPin = SwapCandidate;
 					}
 				}
-				
+
+				UE_LOG(LogCadence, Log, TEXT("Setting PrimaryPin to: %s"), *PrimaryVariableClass->GetFName().ToString());				
 				PrimaryInputPin->SetVariableClass(PrimaryVariableClass);
 				bAnyChanges = true;
 			}
@@ -172,6 +185,7 @@ bool UCadenceOperationNode_Base::RefreshInputPins()
 			PrimaryInputPin = AddInputVariableWildcardPin(FCadencePinConstants::Pin_Primary, PrimaryAllowedTypes, PrimaryWildcardId);
 			PrimaryInputPin->SetShouldHidePinName(true);
 			PrimaryInputPin->SetVariableClass(GetPrimaryVariableClass());
+			UE_LOG(LogCadence, Log, TEXT("Creating PrimaryPin with: %s"), *PrimaryVariableClass->GetFName().ToString());	
 			bAnyChanges = true;
 		}
 	}
@@ -181,6 +195,7 @@ bool UCadenceOperationNode_Base::RefreshInputPins()
 		{
 			if(!PrimaryInputPin->HasConnections() && PrimaryInputPin->GetVariableClass() != nullptr)
 			{
+				UE_LOG(LogCadence, Log, TEXT("Setting PrimaryPin to: nullptr"));
 				PrimaryInputPin->SetVariableClass(nullptr);
 				bAnyChanges = true;
 			}
@@ -189,6 +204,7 @@ bool UCadenceOperationNode_Base::RefreshInputPins()
 		{
 			PrimaryInputPin = AddInputVariableWildcardPin(FCadencePinConstants::Pin_Primary, PrimaryAllowedTypes, PrimaryWildcardId);
 			PrimaryInputPin->SetShouldHidePinName(true);
+			UE_LOG(LogCadence, Log, TEXT("Creating PrimaryPin (wildcard)"));
 			bAnyChanges = true;
 		}
 	}
@@ -202,6 +218,7 @@ bool UCadenceOperationNode_Base::RefreshInputPins()
 		{
 			if(!SecondaryPin->HasConnections() && SecondaryPin->GetVariableClass() != SecondaryVariableClass)
 			{
+				UE_LOG(LogCadence, Log, TEXT("Setting SecondaryPin \"%s\" to: %s"), *SecondaryPin->GetPinName().ToString(), *SecondaryVariableClass->GetFName().ToString());
 				SecondaryPin->SetVariableClass(SecondaryVariableClass);
 				bAnyChanges = true;
 			}
@@ -213,6 +230,7 @@ bool UCadenceOperationNode_Base::RefreshInputPins()
 		{
 			if(!SecondaryPin->HasConnections() && SecondaryPin->GetVariableClass() != nullptr)
 			{
+				UE_LOG(LogCadence, Log, TEXT("Setting SecondaryPin \"%s\" to: nullptr"), *SecondaryPin->GetPinName().ToString());
 				SecondaryPin->SetVariableClass(nullptr);
 				bAnyChanges = true;
 			}
@@ -244,6 +262,7 @@ bool UCadenceOperationNode_Base::RefreshOutputPins()
 		{
 			if(ResultOutputPin->GetVariableClass() != ResultType)
 			{
+				UE_LOG(LogCadence, Log, TEXT("Setting ResultPin to: %s"), *ResultType->GetFName().ToString());	
 				ResultOutputPin->SetVariableClass(ResultType);
 				bAnyChanges = true;
 			}
@@ -253,6 +272,7 @@ bool UCadenceOperationNode_Base::RefreshOutputPins()
 			ResultOutputPin = AddOutputVariableWildcardPin(FCadencePinConstants::Pin_Result, ResultAllowedTypes, ResultWildcardId);
 			ResultOutputPin->SetShouldHidePinName(true);
 			ResultOutputPin->SetVariableClass(ResultType);
+			UE_LOG(LogCadence, Log, TEXT("Creating ResultPin with: %s"), *ResultType->GetFName().ToString());	
 			bAnyChanges = true;
 		}
 	}
@@ -263,13 +283,15 @@ bool UCadenceOperationNode_Base::RefreshOutputPins()
 			if(!ResultOutputPin->HasConnections() && ResultOutputPin->GetVariableClass() != nullptr)
 			{
 				ResultOutputPin->SetVariableClass(nullptr);
+				UE_LOG(LogCadence, Log, TEXT("Setting ResultPin to: nullptr"));
 				bAnyChanges = true;
 			}
 		}
 		else
 		{
 			ResultOutputPin = AddOutputVariableWildcardPin(FCadencePinConstants::Pin_Result, ResultAllowedTypes, PrimaryWildcardId);
-			ResultOutputPin->SetShouldHidePinName(true);
+			ResultOutputPin->SetShouldHidePinName(true);			
+			UE_LOG(LogCadence, Log, TEXT("Creating ResultPin (wildcard)"));
 			bAnyChanges = true;
 		}
 	}
@@ -283,9 +305,14 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceOperationNode_Base::AddSecondaryInputPi
 	PinIndex++;
 
 	UCadenceGraphNodePin* Pin = AddInputVariableWildcardPin(FName(PinName), SecondaryWildcardId);
-	Pin->SetVariableClass(GetSecondaryVariableClass());
+	UClass* SecondaryVariableClass = GetSecondaryVariableClass();
+	Pin->SetVariableClass(SecondaryVariableClass);
 	Pin->SetShouldHidePinName(true);
 	SecondaryInputPins.Add(Pin);
+
+	FString ClassName = SecondaryVariableClass != nullptr ? SecondaryVariableClass->GetFName().ToString() : TEXT("nullptr");
+	
+	UE_LOG(LogCadence, Log, TEXT("Creating SecondaryPin \"%s\" with: %s"), *PinName, *ClassName);
 	
 	return Pin;
 }
@@ -298,4 +325,21 @@ UClass* UCadenceOperationNode_Base::GetPrimaryVariableClass() const
 UClass* UCadenceOperationNode_Base::GetSecondaryVariableClass() const
 {
 	return IsValid(Operation) ? (bIsOperationReversed ? Operation->GetPrimaryType() : Operation->GetSecondaryType()) : nullptr;
+}
+
+bool UCadenceOperationNode_Base::HasAnyConnections() const
+{
+	if(PrimaryInputPin->HasConnections())
+		return true;
+
+	if(ResultOutputPin->HasConnections())
+		return true;
+
+	for(const TWeakObjectPtr<UCadenceGraphNodePin>& SecondaryPin : SecondaryInputPins)
+	{
+		if(SecondaryPin->HasConnections())
+			return true;
+	}
+	
+	return false;
 }

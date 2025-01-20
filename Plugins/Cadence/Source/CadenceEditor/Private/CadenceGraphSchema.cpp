@@ -654,6 +654,11 @@ void UCadenceGraphSchema::ConvertPinType(UCadenceGraphNodePin* InPin, const UEdG
 		else
 			InPin->SetVariableClass(InNewType);
 
+		if(UCadenceOperationNode_Base* OpNode = Cast<UCadenceOperationNode_Base>(InPin->GetParentNode()))
+		{
+			UpdateOperationNode(OpNode);
+		}
+
 		InEdPin->GetOwningNode()->ReconstructNode();
 	}
 }
@@ -740,7 +745,7 @@ void UCadenceGraphSchema::UpdateOperationNode(UCadenceOperationNode_Base* InNode
 	TArray<FCadenceOperationResolverResult> ResolverResults = OperationResolver->GetAppropriateOperationClasses(
 		InNode->GetOperationBase(), PrimaryType, SecondaryType, ResultType, false, bMultipleSecondaries);
 
-	DebugOutput.Append(TEXT("\tResolverResults:\n"));
+	DebugOutput.Append(TEXT("\tResolverResults No-Require-Connection:\n"));
 
 	for(auto& Result : ResolverResults)
 	{
@@ -749,7 +754,31 @@ void UCadenceGraphSchema::UpdateOperationNode(UCadenceOperationNode_Base* InNode
 		DebugOutput.Append(FString::Printf(TEXT("\t\tPrimaryVariableType: %s\n"), *Result.PrimaryVariableType->GetFName().ToString()));
 		DebugOutput.Append(FString::Printf(TEXT("\t\tSecondaryVariableType: %s\n"), *Result.SecondaryVariableType->GetFName().ToString()));
 		DebugOutput.Append(FString::Printf(TEXT("\t\tResultVariableType: %s\n"), *Result.ResultVariableType->GetFName().ToString()));
-	}
+	}	
+	
+	FCadenceOperationResolverResult ChosenOperationResult = ResolverResults[0];
+
+	UCadenceOperation* Operation = nullptr;
+	if(bShouldCreateOperation)	
+		Operation = NewObject<UCadenceOperation>(InNode, ChosenOperationResult.OperationType);
+
+	PrimaryType = InNode->GetPrimaryVariableType(true);
+	SecondaryType = InNode->GetSecondaryVariableType(true);
+	ResultType = InNode->GetResultVariableType(true);
+
+	ResolverResults = OperationResolver->GetAppropriateOperationClasses(
+		InNode->GetOperationBase(), PrimaryType, SecondaryType, ResultType, false, bMultipleSecondaries);
+
+	DebugOutput.Append(TEXT("\tResolverResults Yes-Require-Connection:\n"));
+
+	for(auto& Result : ResolverResults)
+	{
+		DebugOutput.Append(FString::Printf(TEXT("\t\tOperationType: %s\n"), *Result.OperationType->GetFName().ToString()));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tbIsReversedOrder: %s\n"), *B_TO_A(Result.bIsReversedOrder)));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tPrimaryVariableType: %s\n"), *Result.PrimaryVariableType->GetFName().ToString()));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tSecondaryVariableType: %s\n"), *Result.SecondaryVariableType->GetFName().ToString()));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tResultVariableType: %s\n"), *Result.ResultVariableType->GetFName().ToString()));
+	}	
 	
 	// Now calculate allowed types
 	TSet<TSubclassOf<UCadenceVariable>> PrimaryAllowedTypes;
@@ -772,9 +801,9 @@ void UCadenceGraphSchema::UpdateOperationNode(UCadenceOperationNode_Base* InNode
 	for(FCadenceOperationResolverResult& Result : ResolverResults)
 	{
 		if(!bHasDefinedPrimaryType)
-			PrimaryAllowedTypes.Add(Result.PrimaryVariableType);
+			PrimaryAllowedTypes.Add(Result.bIsReversedOrder ? Result.SecondaryVariableType : Result.PrimaryVariableType);
 		if(!bHasDefinedSecondaryType)
-			SecondaryAllowedTypes.Add(Result.SecondaryVariableType);
+			SecondaryAllowedTypes.Add(Result.bIsReversedOrder ? Result.PrimaryVariableType : Result.SecondaryVariableType);
 		if(!bHasDefinedResultType)
 			ResultAllowedTypes.Add(Result.ResultVariableType);			
 	}
@@ -798,13 +827,7 @@ void UCadenceGraphSchema::UpdateOperationNode(UCadenceOperationNode_Base* InNode
 	for(auto& AllowedType : ResultAllowedTypes)
 		DebugOutput.Append(FString::Printf(TEXT("\t\t%s\n"), *AllowedType->GetFName().ToString()));
 	
-	FCadenceOperationResolverResult& FirstResult = ResolverResults[0];
-
-	UCadenceOperation* Operation = nullptr;
-	if(bShouldCreateOperation)	
-		Operation = NewObject<UCadenceOperation>(InNode, FirstResult.OperationType);
-	
-	InNode->SetOperation(Operation, FirstResult.bIsReversedOrder);
+	InNode->SetOperation(Operation, ChosenOperationResult.bIsReversedOrder);
 
 	UE_LOG(LogCadenceEditor, Log, TEXT("%s"), *DebugOutput);
 }

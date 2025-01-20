@@ -28,7 +28,7 @@ public:
 	virtual FName GetPinSubCategory() const { return NAME_None; }
 	virtual UObject* GetPinSubCategoryObject() const { return nullptr; }
 	virtual FLinearColor GetPinColor() const PURE_VIRTUAL(UCadenceVariable::GetPinSubCategory, return FLinearColor::White;);
-	virtual FName GetDisplayName() const { return GetPinSubCategory(); }
+	virtual FName GetDisplayName() const { return GetPinCategory(); }
 	
 	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) PURE_VIRTUAL();	
 	virtual bool Equals(UCadenceVariable* OtherVariable) PURE_VIRTUAL(UCadenceVariable::Equals, return false;);

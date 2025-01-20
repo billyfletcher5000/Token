@@ -90,8 +90,6 @@ void UCadenceGraphEditorNode::GetNodeContextMenuActions(UToolMenu* Menu, UGraphN
 			static const FName ConvNodeName = FName("PromotableOperatorPinConvs");
 			static const FText ConvNodeStr = FText::FromString(TEXT("Pin Conversions"));
 
-			FToolMenuSection& ConversionSection = Menu->AddSection(ConvNodeName, ConvNodeStr);
-
 			UCadenceGraphNodePin* RuntimePin = Context->Pin->Direction == EGPD_Input ? OperationNode->GetInputPin(Context->Pin->PinName) : OperationNode->GetInputPin(Context->Pin->PinName);
 			if(IsValid(RuntimePin))
 			{
@@ -102,27 +100,33 @@ void UCadenceGraphEditorNode::GetNodeContextMenuActions(UToolMenu* Menu, UGraphN
 					PossibleTypes = OperationNode->GetSecondaryAllowedTypes();
 				else if(OperationNode->IsPinResult(RuntimePin))
 					PossibleTypes = OperationNode->GetResultAllowedTypes();
-				
-				// Add the options to the context menu
-				for (TSubclassOf<UCadenceVariable>& PinType : PossibleTypes)
+
+				if(!(PossibleTypes.Num() == 1 && PossibleTypes.Contains(RuntimePin->GetVariableClass())))
 				{
-					UCadenceVariable* CDO = PinType->GetDefaultObject<UCadenceVariable>();
-					FFormatNamedArguments Args;
-					Args.Add(TEXT("NewPinType"), FText::FromName(CDO->GetDisplayName()));
+					FToolMenuSection& ConversionSection = Menu->AddSection(ConvNodeName, ConvNodeStr);
+				
+					// Add the options to the context menu
+					for (TSubclassOf<UCadenceVariable>& PinType : PossibleTypes)
+					{
+						UCadenceVariable* TempInst = NewObject<UCadenceVariable>(GetTransientPackage(), PinType);
+						FFormatNamedArguments Args;
+						Args.Add(TEXT("NewPinType"), FText::FromName(TempInst->GetDisplayName()));
 
-					const FText PinConversionName = FText::Format(FText::FromString(TEXT("To {NewPinType}")), Args);
+						FName DisplayName = TempInst->GetDisplayName();
+						FString PinConversionName = FString::Printf(TEXT("To %s"), *DisplayName.ToString());
 
-					const UCadenceGraphSchema* CadenceSchema = Cast<UCadenceGraphSchema>(Context->Graph->GetSchema());
+						const UCadenceGraphSchema* CadenceSchema = Cast<UCadenceGraphSchema>(Context->Graph->GetSchema());
 
-					ConversionSection.AddMenuEntry(
-						FName(PinConversionName.ToString()),
-						PinConversionName,
-						FText::Format(FText::FromString(TEXT("Convert this pin type to '{NewPinType}'")), Args),
-						FSlateIcon(),
-						FUIAction(
-							FExecuteAction::CreateUObject(CadenceSchema, &UCadenceGraphSchema::ConvertPinType, RuntimePin, Context->Pin, PinType)
-						)
-					);
+						ConversionSection.AddMenuEntry(
+							FName(PinConversionName),
+							FText::FromString(PinConversionName),
+							FText::Format(FText::FromString(TEXT("Convert this pin type to '{NewPinType}'")), Args),
+							FSlateIcon(),
+							FUIAction(
+								FExecuteAction::CreateUObject(CadenceSchema, &UCadenceGraphSchema::ConvertPinType, RuntimePin, Context->Pin, PinType)
+							)
+						);
+					}
 				}
 			}
 		}
@@ -208,6 +212,7 @@ void UCadenceGraphEditorNode::ReconstructNode()
 {
 	RefreshPins();
 	ReconstructConnections();
+	GetGraph()->NotifyNodeChanged(this);
 }
 
 void UCadenceGraphEditorNode::RemoveUserInputPin(UCadenceGraphNodePin* Pin)

@@ -49,9 +49,9 @@ public:
 	bool IsPinSecondary(UCadenceGraphNodePin* InPin) const { return SecondaryInputPins.Contains(InPin); }
 	bool IsPinResult(UCadenceGraphNodePin* InPin) const { return ResultOutputPin == InPin; }
 
-	UClass* GetPrimaryVariableType() const;
-	UClass* GetSecondaryVariableType() const;
-	UClass* GetResultVariableType() const;
+	UClass* GetPrimaryVariableType(const bool& InRequireConnection = false) const;
+	UClass* GetSecondaryVariableType(const bool& InRequireConnection = false) const;
+	UClass* GetResultVariableType(const bool& InRequireConnection = false) const;
 
 	bool HasMultipleSecondaryPins() const { return SecondaryInputPins.Num() > 1; }
 #endif
@@ -77,6 +77,7 @@ private:
 	TObjectPtr<UCadenceGraphNodePin> AddSecondaryInputPin();
 	UClass* GetPrimaryVariableClass() const;
 	UClass* GetSecondaryVariableClass() const;
+	bool HasAnyConnections() const;
 
 private:
 	UPROPERTY()
