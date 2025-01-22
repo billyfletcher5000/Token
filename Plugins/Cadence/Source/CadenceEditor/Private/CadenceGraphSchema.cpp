@@ -263,7 +263,7 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 	{
 		UE_LOG(LogCadenceEditor, Log, TEXT("UCadenceGraphSchema::TryCreateConnection UpdateOperationNode A"));
 		UpdateOperationNode(OpNode);
-		EditorNodeA->ReconstructNode();
+		EditorNodeA->ReconstructNode();OpNode->GetParentGraph()->NotifyPinTypesChanged();
 	}
 	
 	if(UCadenceOperationNode_Base* OpNode = Cast<UCadenceOperationNode_Base>(RuntimeNodeB))
@@ -271,6 +271,7 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 		UE_LOG(LogCadenceEditor, Log, TEXT("UCadenceGraphSchema::TryCreateConnection UpdateOperationNode B"));
 		UpdateOperationNode(OpNode);
 		EditorNodeB->ReconstructNode();
+		OpNode->GetParentGraph()->NotifyPinTypesChanged();
 	}
 	
 	return Super::TryCreateConnection(A, B);

@@ -132,10 +132,10 @@ UClass* UCadenceOperationNode_Base::GetResultVariableType(const bool& InRequireC
 
 bool UCadenceOperationNode_Base::RefreshPins()
 {
-	if(RefreshInputPins() || RefreshOutputPins())
-		return true;
-	
-	return false;
+	bool bInputPinsChanged = RefreshInputPins();
+	bool bOutputPinsChanged = RefreshOutputPins();
+
+	return bInputPinsChanged || bOutputPinsChanged;
 }
 
 bool UCadenceOperationNode_Base::RefreshInputPins()
@@ -289,7 +289,7 @@ bool UCadenceOperationNode_Base::RefreshOutputPins()
 		}
 		else
 		{
-			ResultOutputPin = AddOutputVariableWildcardPin(FCadencePinConstants::Pin_Result, ResultAllowedTypes, PrimaryWildcardId);
+			ResultOutputPin = AddOutputVariableWildcardPin(FCadencePinConstants::Pin_Result, ResultAllowedTypes, ResultWildcardId);
 			ResultOutputPin->SetShouldHidePinName(true);			
 			UE_LOG(LogCadence, Log, TEXT("Creating ResultPin (wildcard)"));
 			bAnyChanges = true;
