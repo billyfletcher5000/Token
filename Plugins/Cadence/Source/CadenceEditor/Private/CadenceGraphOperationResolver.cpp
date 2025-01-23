@@ -125,13 +125,13 @@ TArray<FCadenceOperationResolverResult> FCadenceGraphOperationResolver::GetAppro
 			continue;
 
 		TSubclassOf<UCadenceVariable> ResultType = OpCDO->GetResultType();
-		bool bResultTypeIsWildcard = InVariableClassResult == nullptr;
-		bool bIsResultTypeSatisfied = bResultTypeIsWildcard || (ResultType == InVariableClassA);
+		bool bResultTypeIsWildcard = InVariableClassResult == nullptr || ResultType == nullptr;
+		bool bIsResultTypeSatisfied = bResultTypeIsWildcard || (ResultType == InVariableClassResult);
 		if(!bIsResultTypeSatisfied)
 			continue;
 
 		TSubclassOf<UCadenceVariable> PrimaryType = OpCDO->GetPrimaryType();
-		bool bPrimaryTypeIsWildcard = InVariableClassA == nullptr;
+		bool bPrimaryTypeIsWildcard = InVariableClassA == nullptr || PrimaryType == nullptr;
 		bool bIsPrimaryTypeSatisfied = bPrimaryTypeIsWildcard || (PrimaryType == InVariableClassA);
 		if(!bIsPrimaryTypeSatisfied)
 			continue;
@@ -140,7 +140,7 @@ TArray<FCadenceOperationResolverResult> FCadenceGraphOperationResolver::GetAppro
 			continue;
 
 		TSubclassOf<UCadenceVariable> SecondaryType = OpCDO->GetSecondaryType();
-		bool bSecondaryTypeIsWildcard = InVariableClassB == nullptr;
+		bool bSecondaryTypeIsWildcard = InVariableClassB == nullptr || SecondaryType == nullptr;
 		bool bIsSecondaryTypeSatisfied = bSecondaryTypeIsWildcard || (SecondaryType == InVariableClassB);
 		if(!bIsSecondaryTypeSatisfied)
 			continue;

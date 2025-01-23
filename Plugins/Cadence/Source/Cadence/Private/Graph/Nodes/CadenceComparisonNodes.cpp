@@ -5,109 +5,374 @@
 
 #include "Graph/CadenceVariable.h"
 
-namespace FCadenceComparisonNodeConstants
+namespace FCadenceComparisonOperationHelper
 {
-	static const TSet<TSubclassOf<UCadenceVariable>> AllowedVariableTypesNumeric =
+	template<typename TVarA, typename TVal>
+	bool PerformGreaterThanOperation(UCadenceVariable* InVariableA, UCadenceVariable* InVariableB, UCadenceVariable* InResultVariable)
+	{	
+		TVarA* VariableA = Cast<TVarA>(InVariableA);
+		if(!ensure(VariableA))
+			return false;
+
+		TVarA* VariableB = Cast<TVarA>(InVariableB);
+		if(!ensure(VariableB))
+			return false;
+
+		TVal ValueA = VariableA->GetValue();
+		TVal ValueB = VariableB->GetValue();
+
+		bool bResult = ValueA > ValueB;
+
+		UCadenceVariableBool* ResultVariable = Cast<UCadenceVariableBool>(InResultVariable);
+		if(!ensure(ResultVariable))
+			return false;
+
+		ResultVariable->SetValue(bResult);
+		return true;
+	}
+
+	template<typename TVarA, typename TVal>
+	bool PerformGreaterThanOrEqualOperation(UCadenceVariable* InVariableA, UCadenceVariable* InVariableB, UCadenceVariable* InResultVariable)
+	{	
+		TVarA* VariableA = Cast<TVarA>(InVariableA);
+		if(!ensure(VariableA))
+			return false;
+
+		TVarA* VariableB = Cast<TVarA>(InVariableB);
+		if(!ensure(VariableB))
+			return false;
+
+		TVal ValueA = VariableA->GetValue();
+		TVal ValueB = VariableB->GetValue();
+
+		bool bResult = ValueA >= ValueB;
+
+		UCadenceVariableBool* ResultVariable = Cast<UCadenceVariableBool>(InResultVariable);
+		if(!ensure(ResultVariable))
+			return false;
+
+		ResultVariable->SetValue(bResult);
+		return true;
+	}
+
+	template<typename TVarA, typename TVal>
+	bool PerformLessThanOperation(UCadenceVariable* InVariableA, UCadenceVariable* InVariableB, UCadenceVariable* InResultVariable)
+	{	
+		TVarA* VariableA = Cast<TVarA>(InVariableA);
+		if(!ensure(VariableA))
+			return false;
+
+		TVarA* VariableB = Cast<TVarA>(InVariableB);
+		if(!ensure(VariableB))
+			return false;
+
+		TVal ValueA = VariableA->GetValue();
+		TVal ValueB = VariableB->GetValue();
+
+		bool bResult = ValueA < ValueB;
+
+		UCadenceVariableBool* ResultVariable = Cast<UCadenceVariableBool>(InResultVariable);
+		if(!ensure(ResultVariable))
+			return false;
+
+		ResultVariable->SetValue(bResult);
+		return true;
+	}
+
+	template<typename TVarA, typename TVal>
+	bool PerformLessThanOrEqualOperation(UCadenceVariable* InVariableA, UCadenceVariable* InVariableB, UCadenceVariable* InResultVariable)
+	{	
+		TVarA* VariableA = Cast<TVarA>(InVariableA);
+		if(!ensure(VariableA))
+			return false;
+
+		TVarA* VariableB = Cast<TVarA>(InVariableB);
+		if(!ensure(VariableB))
+			return false;
+
+		TVal ValueA = VariableA->GetValue();
+		TVal ValueB = VariableB->GetValue();
+
+		bool bResult = ValueA <= ValueB;
+
+		UCadenceVariableBool* ResultVariable = Cast<UCadenceVariableBool>(InResultVariable);
+		if(!ensure(ResultVariable))
+			return false;
+
+		ResultVariable->SetValue(bResult);
+		return true;
+	}
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpComparison::GetResultType() const
+{
+	return UCadenceVariableBool::StaticClass();
+}
+
+bool UCadenceOpEqual::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
+{
+	bool bResult = true;
+
+	for(UCadenceVariable* VariableB : InVariableBs)
+	{
+		if(!InVariableA->Equals(VariableB))
 		{
-		UCadenceVariableInt::StaticClass(),
-		UCadenceVariableFloat::StaticClass(),
-		UCadenceVariableDouble::StaticClass(),
-		};
-}
-
-void UCadenceComparisonNode_Base::CreateInputPins()
-{
-	Super::CreateInputPins();
-	AddInputVariableWildcardPin(FCadenceComparisonNodeConstants::Pin_A, GetAllowedWildcardTypes());
-	AddInputVariableWildcardPin(FCadenceComparisonNodeConstants::Pin_B, GetAllowedWildcardTypes());
-}
-
-void UCadenceComparisonNode_Base::CreateOutputPins()
-{
-	Super::CreateOutputPins();
-	AddOutputVariablePin(FCadenceComparisonNodeConstants::Pin_Result, UCadenceVariableBool::StaticClass());
-}
-
-ECadenceNodeExecuteResult UCadenceComparisonNode_Base::Execute(UCadenceContext* InContext)
-{
-	UCadenceGraphNodePin* PinA = GetInputPin(FCadenceComparisonNodeConstants::Pin_A);
-	UCadenceGraphNodePin* PinB = GetInputPin(FCadenceComparisonNodeConstants::Pin_B);
-
-	//TODO: Find a nicer way of doing this
-	bool ValueFound = false;
-	bool Result = false;
+			bResult = false;
+			break;
+		}
+	}
 	
-	if(ProcessComparison<UCadenceVariableInt>(PinA, PinB, Result))
-		ValueFound = true;
-	else if(ProcessComparison<UCadenceVariableFloat>(PinA, PinB, Result))
-		ValueFound = true;
-	else if(ProcessComparison<UCadenceVariableDouble>(PinA, PinB, Result))
-		ValueFound = true;
-	else if(ProcessComparison<UCadenceVariableBool>(PinA, PinB, Result))
-		ValueFound = true;
+	UCadenceVariableBool* ResultBool = Cast<UCadenceVariableBool>(InResultVariable);
+	if(!ensure(ResultBool))
+		return false;
 
-	if(!ValueFound)
-		return ECadenceNodeExecuteResult::Failed;
+	ResultBool->SetValue(bResult);
+
+	return true;
+}
+
+bool UCadenceOpNotEqual::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
+{
+	bool bResult = true;
+
+	for(UCadenceVariable* VariableB : InVariableBs)
+	{
+		if(InVariableA->Equals(VariableB))
+		{
+			bResult = false;
+			break;
+		}
+	}
 	
-	SetOutputPinValue<UCadenceVariableBool, bool>(FCadenceComparisonNodeConstants::Pin_Result, Result);
+	UCadenceVariableBool* ResultBool = Cast<UCadenceVariableBool>(InResultVariable);
+	if(!ensure(ResultBool))
+		return false;
+
+	ResultBool->SetValue(bResult);
+
+	return true;
+}
+
+// Given we don't support conditional evaluation at this stage, this is essentially just a boolean only equal operation
+// TODO: Reimplement this node when conditional evaluation is possible, if it ever is
+bool UCadenceOpAND::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
+{
+	bool bResult = true;
+
+	for(UCadenceVariable* VariableB : InVariableBs)
+	{
+		if(!InVariableA->Equals(VariableB))
+		{
+			bResult = false;
+			break;
+		}
+	}
 	
-	return ECadenceNodeExecuteResult::Complete;
+	UCadenceVariableBool* ResultBool = Cast<UCadenceVariableBool>(InResultVariable);
+	if(!ensure(ResultBool))
+		return false;
+
+	ResultBool->SetValue(bResult);
+
+	return true;
 }
 
-TSet<TSubclassOf<UCadenceVariable>> UCadenceComparisonEqualsNode::GetAllowedWildcardTypes() const
+TSubclassOf<UCadenceVariable> UCadenceOpAND::GetPrimaryType() const
 {
-	return {};
+	return UCadenceVariableBool::StaticClass();
 }
 
-ECadenceNodeExecuteResult UCadenceComparisonEqualsNode::Execute(UCadenceContext* InContext)
+bool UCadenceOpOR::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
 {
-	// Equals and Not Equals are special cases as each Variable type has already implemented Equals therefore we can have it apply to all types
-	UCadenceGraphNodePin* PinA = GetInputPin(FCadenceComparisonNodeConstants::Pin_A);
-	UCadenceGraphNodePin* PinB = GetInputPin(FCadenceComparisonNodeConstants::Pin_B);
+	bool bResult = false;
 
-	UCadenceVariable* VariableA = PinA->GetVariable();
-	UCadenceVariable* VariableB = PinB->GetVariable();
-
-	SetOutputPinValue<UCadenceVariableBool, bool>(FCadenceComparisonNodeConstants::Pin_Result, VariableA->Equals(VariableB));
+	for(UCadenceVariable* VariableB : InVariableBs)
+	{
+		bResult |= InVariableA->Equals(VariableB);		
+	}
 	
-	return ECadenceNodeExecuteResult::Complete;
+	UCadenceVariableBool* ResultBool = Cast<UCadenceVariableBool>(InResultVariable);
+	if(!ensure(ResultBool))
+		return false;
+
+	ResultBool->SetValue(bResult);
+
+	return true;
 }
 
-TSet<TSubclassOf<UCadenceVariable>> UCadenceComparisonNotEqualsNode::GetAllowedWildcardTypes() const
+TSubclassOf<UCadenceVariable> UCadenceOpOR::GetPrimaryType() const
 {
-	return {};
+	return UCadenceVariableBool::StaticClass();
 }
 
-ECadenceNodeExecuteResult UCadenceComparisonNotEqualsNode::Execute(UCadenceContext* InContext)
+bool UCadenceOpGreaterThanInt::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
 {
-	// Equals and Not Equals are special cases as each Variable type has already implemented Equals therefore we can have it apply to all types
-	UCadenceGraphNodePin* PinA = GetInputPin(FCadenceComparisonNodeConstants::Pin_A);
-	UCadenceGraphNodePin* PinB = GetInputPin(FCadenceComparisonNodeConstants::Pin_B);
-
-	UCadenceVariable* VariableA = PinA->GetVariable();
-	UCadenceVariable* VariableB = PinB->GetVariable();
-
-	SetOutputPinValue<UCadenceVariableBool, bool>(FCadenceComparisonNodeConstants::Pin_Result, !VariableA->Equals(VariableB));
+	if(InVariableBs.Num() != 1)
+		return false;
 	
-	return ECadenceNodeExecuteResult::Complete;
+	return FCadenceComparisonOperationHelper::PerformGreaterThanOperation<UCadenceVariableInt, int32>(InVariableA, InVariableBs[0], InResultVariable);
 }
 
-TSet<TSubclassOf<UCadenceVariable>> UCadenceComparisonGreaterThanNode::GetAllowedWildcardTypes() const
+TSubclassOf<UCadenceVariable> UCadenceOpGreaterThanInt::GetPrimaryType() const
 {
-	return FCadenceComparisonNodeConstants::AllowedVariableTypesNumeric;
+	return UCadenceVariableInt::StaticClass();
 }
 
-TSet<TSubclassOf<UCadenceVariable>> UCadenceComparisonGreaterThanOrEqualsNode::GetAllowedWildcardTypes() const
+bool UCadenceOpGreaterThanFloat::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
 {
-	return FCadenceComparisonNodeConstants::AllowedVariableTypesNumeric;
+	if(InVariableBs.Num() != 1)
+		return false;
+	
+	return FCadenceComparisonOperationHelper::PerformGreaterThanOperation<UCadenceVariableFloat, float>(InVariableA, InVariableBs[0], InResultVariable);
 }
 
-TSet<TSubclassOf<UCadenceVariable>> UCadenceComparisonLessThanNode::GetAllowedWildcardTypes() const
+TSubclassOf<UCadenceVariable> UCadenceOpGreaterThanFloat::GetPrimaryType() const
 {
-	return FCadenceComparisonNodeConstants::AllowedVariableTypesNumeric;
+	return UCadenceVariableFloat::StaticClass();
 }
 
-TSet<TSubclassOf<UCadenceVariable>> UCadenceComparisonLessThanOrEqualsNode::GetAllowedWildcardTypes() const
+bool UCadenceOpGreaterThanDouble::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
 {
-	return FCadenceComparisonNodeConstants::AllowedVariableTypesNumeric;
+	if(InVariableBs.Num() != 1)
+		return false;
+	
+	return FCadenceComparisonOperationHelper::PerformGreaterThanOperation<UCadenceVariableDouble, double>(InVariableA, InVariableBs[0], InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpGreaterThanDouble::GetPrimaryType() const
+{
+	return UCadenceVariableDouble::StaticClass();
+}
+
+bool UCadenceOpGreaterThanOrEqualInt::ApplyOperation(UCadenceVariable* InVariableA,
+	TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable)
+{
+	if(InVariableBs.Num() != 1)
+		return false;
+	
+	return FCadenceComparisonOperationHelper::PerformGreaterThanOrEqualOperation<UCadenceVariableInt, int32>(InVariableA, InVariableBs[0], InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpGreaterThanOrEqualInt::GetPrimaryType() const
+{
+	return UCadenceVariableInt::StaticClass();
+}
+
+bool UCadenceOpGreaterThanOrEqualFloat::ApplyOperation(UCadenceVariable* InVariableA,
+	TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable)
+{
+	if(InVariableBs.Num() != 1)
+		return false;
+	
+	return FCadenceComparisonOperationHelper::PerformGreaterThanOrEqualOperation<UCadenceVariableFloat, float>(InVariableA, InVariableBs[0], InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpGreaterThanOrEqualFloat::GetPrimaryType() const
+{
+	return UCadenceVariableFloat::StaticClass();
+}
+
+bool UCadenceOpGreaterThanOrEqualDouble::ApplyOperation(UCadenceVariable* InVariableA,
+	TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable)
+{
+	if(InVariableBs.Num() != 1)
+		return false;
+	
+	return FCadenceComparisonOperationHelper::PerformGreaterThanOrEqualOperation<UCadenceVariableDouble, double>(InVariableA, InVariableBs[0], InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpGreaterThanOrEqualDouble::GetPrimaryType() const
+{
+	return UCadenceVariableDouble::StaticClass();
+}
+
+bool UCadenceOpLessThanInt::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
+{
+	if(InVariableBs.Num() != 1)
+		return false;
+	
+	return FCadenceComparisonOperationHelper::PerformLessThanOperation<UCadenceVariableInt, int32>(InVariableA, InVariableBs[0], InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpLessThanInt::GetPrimaryType() const
+{
+	return UCadenceVariableInt::StaticClass();
+}
+
+bool UCadenceOpLessThanFloat::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
+{
+	if(InVariableBs.Num() != 1)
+		return false;
+	
+	return FCadenceComparisonOperationHelper::PerformLessThanOperation<UCadenceVariableFloat, float>(InVariableA, InVariableBs[0], InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpLessThanFloat::GetPrimaryType() const
+{
+	return UCadenceVariableFloat::StaticClass();
+}
+
+bool UCadenceOpLessThanDouble::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
+{
+	if(InVariableBs.Num() != 1)
+		return false;
+	
+	return FCadenceComparisonOperationHelper::PerformLessThanOperation<UCadenceVariableDouble, double>(InVariableA, InVariableBs[0], InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpLessThanDouble::GetPrimaryType() const
+{
+	return UCadenceVariableDouble::StaticClass();
+}
+
+bool UCadenceOpLessThanOrEqualInt::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
+{
+	if(InVariableBs.Num() != 1)
+		return false;
+	
+	return FCadenceComparisonOperationHelper::PerformLessThanOrEqualOperation<UCadenceVariableInt, int32>(InVariableA, InVariableBs[0], InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpLessThanOrEqualInt::GetPrimaryType() const
+{
+	return UCadenceVariableInt::StaticClass();
+}
+
+bool UCadenceOpLessThanOrEqualFloat::ApplyOperation(UCadenceVariable* InVariableA,
+	TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable)
+{
+	if(InVariableBs.Num() != 1)
+		return false;
+	
+	return FCadenceComparisonOperationHelper::PerformLessThanOrEqualOperation<UCadenceVariableFloat, float>(InVariableA, InVariableBs[0], InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpLessThanOrEqualFloat::GetPrimaryType() const
+{
+	return UCadenceVariableFloat::StaticClass();
+}
+
+bool UCadenceOpLessThanOrEqualDouble::ApplyOperation(UCadenceVariable* InVariableA,
+	TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable)
+{
+	if(InVariableBs.Num() != 1)
+		return false;
+	
+	return FCadenceComparisonOperationHelper::PerformLessThanOrEqualOperation<UCadenceVariableDouble, double>(InVariableA, InVariableBs[0], InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpLessThanOrEqualDouble::GetPrimaryType() const
+{
+	return UCadenceVariableDouble::StaticClass();
 }

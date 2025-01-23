@@ -7,7 +7,7 @@
 #include "Graph/CadencePinConstants.h"
 #include "Graph/CadenceVariable.h"
 
-namespace FCadenceOperationHelper
+namespace FCadenceMathOperationHelper
 {
 	template<typename TVarA, typename TVarB, typename TVarR, typename TVal>
 	bool ApplyAddOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable)
@@ -117,7 +117,7 @@ namespace FCadenceOperationHelper
 bool UCadenceOpAddInt::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyAddOperation<UCadenceVariableInt, UCadenceVariableInt, UCadenceVariableInt, int32>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyAddOperation<UCadenceVariableInt, UCadenceVariableInt, UCadenceVariableInt, int32>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpAddInt::GetPrimaryType() const
@@ -128,7 +128,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpAddInt::GetPrimaryType() const
 bool UCadenceOpAddFloat::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyAddOperation<UCadenceVariableFloat, UCadenceVariableFloat, UCadenceVariableFloat, float>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyAddOperation<UCadenceVariableFloat, UCadenceVariableFloat, UCadenceVariableFloat, float>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpAddFloat::GetPrimaryType() const
@@ -139,7 +139,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpAddFloat::GetPrimaryType() const
 bool UCadenceOpAddDouble::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyAddOperation<UCadenceVariableDouble, UCadenceVariableDouble, UCadenceVariableDouble, double>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyAddOperation<UCadenceVariableDouble, UCadenceVariableDouble, UCadenceVariableDouble, double>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpAddDouble::GetPrimaryType() const
@@ -150,7 +150,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpAddDouble::GetPrimaryType() const
 bool UCadenceOpAddVector::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyAddOperation<UCadenceVariableVector, UCadenceVariableVector, UCadenceVariableVector, FVector>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyAddOperation<UCadenceVariableVector, UCadenceVariableVector, UCadenceVariableVector, FVector>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpAddVector::GetPrimaryType() const
@@ -161,7 +161,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpAddVector::GetPrimaryType() const
 bool UCadenceOpAddVector2D::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyAddOperation<UCadenceVariableVector2D, UCadenceVariableVector2D, UCadenceVariableVector2D, FVector2D>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyAddOperation<UCadenceVariableVector2D, UCadenceVariableVector2D, UCadenceVariableVector2D, FVector2D>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpAddVector2D::GetPrimaryType() const
@@ -172,7 +172,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpAddVector2D::GetPrimaryType() const
 bool UCadenceOpAddRotator::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyAddOperation<UCadenceVariableRotator, UCadenceVariableRotator, UCadenceVariableRotator, FRotator>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyAddOperation<UCadenceVariableRotator, UCadenceVariableRotator, UCadenceVariableRotator, FRotator>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpAddRotator::GetPrimaryType() const
@@ -183,7 +183,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpAddRotator::GetPrimaryType() const
 bool UCadenceOpSubtractInt::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplySubtractOperation<UCadenceVariableInt, UCadenceVariableInt, UCadenceVariableInt, int32>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplySubtractOperation<UCadenceVariableInt, UCadenceVariableInt, UCadenceVariableInt, int32>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpSubtractInt::GetPrimaryType() const
@@ -194,7 +194,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpSubtractInt::GetPrimaryType() const
 bool UCadenceOpSubtractFloat::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplySubtractOperation<UCadenceVariableFloat, UCadenceVariableFloat, UCadenceVariableFloat, float>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplySubtractOperation<UCadenceVariableFloat, UCadenceVariableFloat, UCadenceVariableFloat, float>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpSubtractFloat::GetPrimaryType() const
@@ -205,7 +205,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpSubtractFloat::GetPrimaryType() const
 bool UCadenceOpSubtractDouble::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplySubtractOperation<UCadenceVariableDouble, UCadenceVariableDouble, UCadenceVariableDouble, double>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplySubtractOperation<UCadenceVariableDouble, UCadenceVariableDouble, UCadenceVariableDouble, double>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpSubtractDouble::GetPrimaryType() const
@@ -216,7 +216,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpSubtractDouble::GetPrimaryType() const
 bool UCadenceOpSubtractVector::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplySubtractOperation<UCadenceVariableVector, UCadenceVariableVector, UCadenceVariableVector, FVector>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplySubtractOperation<UCadenceVariableVector, UCadenceVariableVector, UCadenceVariableVector, FVector>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpSubtractVector::GetPrimaryType() const
@@ -227,7 +227,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpSubtractVector::GetPrimaryType() const
 bool UCadenceOpSubtractVector2D::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplySubtractOperation<UCadenceVariableVector2D, UCadenceVariableVector2D, UCadenceVariableVector2D, FVector2D>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplySubtractOperation<UCadenceVariableVector2D, UCadenceVariableVector2D, UCadenceVariableVector2D, FVector2D>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpSubtractVector2D::GetPrimaryType() const
@@ -238,7 +238,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpSubtractVector2D::GetPrimaryType() const
 bool UCadenceOpSubtractRotator::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplySubtractOperation<UCadenceVariableRotator, UCadenceVariableRotator, UCadenceVariableRotator, FRotator>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplySubtractOperation<UCadenceVariableRotator, UCadenceVariableRotator, UCadenceVariableRotator, FRotator>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpSubtractRotator::GetPrimaryType() const
@@ -249,7 +249,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpSubtractRotator::GetPrimaryType() const
 bool UCadenceOpMultiplyInt::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyMultiplyOperation<UCadenceVariableInt, UCadenceVariableInt, UCadenceVariableInt, int32>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyMultiplyOperation<UCadenceVariableInt, UCadenceVariableInt, UCadenceVariableInt, int32>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpMultiplyInt::GetPrimaryType() const
@@ -260,7 +260,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpMultiplyInt::GetPrimaryType() const
 bool UCadenceOpMultiplyFloat::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyMultiplyOperation<UCadenceVariableFloat, UCadenceVariableFloat, UCadenceVariableFloat, float>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyMultiplyOperation<UCadenceVariableFloat, UCadenceVariableFloat, UCadenceVariableFloat, float>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpMultiplyFloat::GetPrimaryType() const
@@ -271,7 +271,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpMultiplyFloat::GetPrimaryType() const
 bool UCadenceOpMultiplyDouble::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyMultiplyOperation<UCadenceVariableDouble, UCadenceVariableDouble, UCadenceVariableDouble, double>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyMultiplyOperation<UCadenceVariableDouble, UCadenceVariableDouble, UCadenceVariableDouble, double>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpMultiplyDouble::GetPrimaryType() const
@@ -282,7 +282,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpMultiplyDouble::GetPrimaryType() const
 bool UCadenceOpMultiplyVectorFloat::ApplyOperation(UCadenceVariable* InVariableA,
 	TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyMultiplyOperation<UCadenceVariableVector, UCadenceVariableFloat, UCadenceVariableVector, FVector>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyMultiplyOperation<UCadenceVariableVector, UCadenceVariableFloat, UCadenceVariableVector, FVector>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpMultiplyVectorFloat::GetPrimaryType() const
@@ -298,7 +298,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpMultiplyVectorFloat::GetSecondaryType() 
 bool UCadenceOpMultiplyVector2DFloat::ApplyOperation(UCadenceVariable* InVariableA,
 	TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyMultiplyOperation<UCadenceVariableVector2D, UCadenceVariableFloat, UCadenceVariableVector2D, FVector2D>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyMultiplyOperation<UCadenceVariableVector2D, UCadenceVariableFloat, UCadenceVariableVector2D, FVector2D>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpMultiplyVector2DFloat::GetPrimaryType() const
@@ -314,7 +314,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpMultiplyVector2DFloat::GetSecondaryType(
 bool UCadenceOpMultiplyRotatorFloat::ApplyOperation(UCadenceVariable* InVariableA,
 	TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyMultiplyOperation<UCadenceVariableRotator, UCadenceVariableFloat, UCadenceVariableRotator, FRotator>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyMultiplyOperation<UCadenceVariableRotator, UCadenceVariableFloat, UCadenceVariableRotator, FRotator>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpMultiplyRotatorFloat::GetPrimaryType() const
@@ -330,7 +330,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpMultiplyRotatorFloat::GetSecondaryType()
 bool UCadenceOpDivideInt::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyDivideOperation<UCadenceVariableInt, UCadenceVariableInt, UCadenceVariableInt, int32>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyDivideOperation<UCadenceVariableInt, UCadenceVariableInt, UCadenceVariableInt, int32>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpDivideInt::GetPrimaryType() const
@@ -341,7 +341,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpDivideInt::GetPrimaryType() const
 bool UCadenceOpDivideFloat::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyDivideOperation<UCadenceVariableFloat, UCadenceVariableFloat, UCadenceVariableFloat, float>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyDivideOperation<UCadenceVariableFloat, UCadenceVariableFloat, UCadenceVariableFloat, float>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpDivideFloat::GetPrimaryType() const
@@ -352,7 +352,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpDivideFloat::GetPrimaryType() const
 bool UCadenceOpDivideDouble::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyDivideOperation<UCadenceVariableDouble, UCadenceVariableDouble, UCadenceVariableDouble, double>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyDivideOperation<UCadenceVariableDouble, UCadenceVariableDouble, UCadenceVariableDouble, double>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpDivideDouble::GetPrimaryType() const
@@ -363,7 +363,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpDivideDouble::GetPrimaryType() const
 bool UCadenceOpDivideVectorFloat::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
 	UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyDivideOperation<UCadenceVariableVector, UCadenceVariableFloat, UCadenceVariableVector, FVector>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyDivideOperation<UCadenceVariableVector, UCadenceVariableFloat, UCadenceVariableVector, FVector>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpDivideVectorFloat::GetPrimaryType() const
@@ -379,7 +379,7 @@ TSubclassOf<UCadenceVariable> UCadenceOpDivideVectorFloat::GetSecondaryType() co
 bool UCadenceOpDivideVector2DFloat::ApplyOperation(UCadenceVariable* InVariableA,
 	TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable)
 {
-	return FCadenceOperationHelper::ApplyDivideOperation<UCadenceVariableVector2D, UCadenceVariableFloat, UCadenceVariableVector2D, FVector2D>(InVariableA, InVariableBs, InResultVariable);
+	return FCadenceMathOperationHelper::ApplyDivideOperation<UCadenceVariableVector2D, UCadenceVariableFloat, UCadenceVariableVector2D, FVector2D>(InVariableA, InVariableBs, InResultVariable);
 }
 
 TSubclassOf<UCadenceVariable> UCadenceOpDivideVector2DFloat::GetPrimaryType() const

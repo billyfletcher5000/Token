@@ -17,10 +17,11 @@ public:
 	virtual bool ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* OutResultVariable) PURE_VIRTUAL(UCadenceArithmeticOperation::ApplyOperation, return false;);
 
 #if WITH_EDITOR
-	virtual TSubclassOf<UCadenceVariable> GetPrimaryType() const PURE_VIRTUAL(UCadenceArithmeticOperation::GetPrimaryType, return nullptr;);
+	virtual TSubclassOf<UCadenceVariable> GetPrimaryType() const { return nullptr; }
 	virtual TSubclassOf<UCadenceVariable> GetSecondaryType() const { return GetPrimaryType(); }
 	virtual TSubclassOf<UCadenceVariable> GetResultType() const { return GetPrimaryType(); }
 	virtual bool SupportsAdditionalSecondary() const { return false; }
+	virtual bool AllPinsShareWildcard() const { return false; }
 #endif
 };
 
@@ -43,6 +44,8 @@ public:
 
 #if WITH_EDITOR
 	virtual TSubclassOf<UCadenceOperation> GetOperationBase() const { return UCadenceOperation::StaticClass(); }
+	virtual bool SecondarySharesPrimaryWildcard() const { return false; }
+	virtual bool ResultSharesPrimaryWildcard() const { return false; }
 	bool SetOperation(UCadenceOperation* InOperation, const bool& bInIsReversed);
 
 	bool IsPinPrimary(UCadenceGraphNodePin* InPin) const { return PrimaryInputPin == InPin; }

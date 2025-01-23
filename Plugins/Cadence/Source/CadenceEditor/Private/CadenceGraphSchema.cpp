@@ -726,6 +726,7 @@ bool UCadenceGraphSchema::CheckOperationConnection(UCadenceOperationNode_Base* I
 }
 
 #define B_TO_A(b) FString(b ? TEXT("true") : TEXT("false"))
+#define SAFE_CLASS_NAME(a) a == nullptr ? TEXT("nullptr") : *a->GetFName().ToString()
 
 void UCadenceGraphSchema::UpdateOperationNode(UCadenceOperationNode_Base* InNode) const
 {
@@ -752,9 +753,9 @@ void UCadenceGraphSchema::UpdateOperationNode(UCadenceOperationNode_Base* InNode
 	{
 		DebugOutput.Append(FString::Printf(TEXT("\t\tOperationType: %s\n"), *Result.OperationType->GetFName().ToString()));
 		DebugOutput.Append(FString::Printf(TEXT("\t\tbIsReversedOrder: %s\n"), *B_TO_A(Result.bIsReversedOrder)));
-		DebugOutput.Append(FString::Printf(TEXT("\t\tPrimaryVariableType: %s\n"), *Result.PrimaryVariableType->GetFName().ToString()));
-		DebugOutput.Append(FString::Printf(TEXT("\t\tSecondaryVariableType: %s\n"), *Result.SecondaryVariableType->GetFName().ToString()));
-		DebugOutput.Append(FString::Printf(TEXT("\t\tResultVariableType: %s\n"), *Result.ResultVariableType->GetFName().ToString()));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tPrimaryVariableType: %s\n"), SAFE_CLASS_NAME(Result.PrimaryVariableType)));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tSecondaryVariableType: %s\n"), SAFE_CLASS_NAME(Result.SecondaryVariableType)));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tResultVariableType: %s\n"), SAFE_CLASS_NAME(Result.ResultVariableType)));
 	}	
 	
 	FCadenceOperationResolverResult ChosenOperationResult = ResolverResults[0];
@@ -776,9 +777,9 @@ void UCadenceGraphSchema::UpdateOperationNode(UCadenceOperationNode_Base* InNode
 	{
 		DebugOutput.Append(FString::Printf(TEXT("\t\tOperationType: %s\n"), *Result.OperationType->GetFName().ToString()));
 		DebugOutput.Append(FString::Printf(TEXT("\t\tbIsReversedOrder: %s\n"), *B_TO_A(Result.bIsReversedOrder)));
-		DebugOutput.Append(FString::Printf(TEXT("\t\tPrimaryVariableType: %s\n"), *Result.PrimaryVariableType->GetFName().ToString()));
-		DebugOutput.Append(FString::Printf(TEXT("\t\tSecondaryVariableType: %s\n"), *Result.SecondaryVariableType->GetFName().ToString()));
-		DebugOutput.Append(FString::Printf(TEXT("\t\tResultVariableType: %s\n"), *Result.ResultVariableType->GetFName().ToString()));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tPrimaryVariableType: %s\n"), SAFE_CLASS_NAME(Result.PrimaryVariableType)));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tSecondaryVariableType: %s\n"), SAFE_CLASS_NAME(Result.SecondaryVariableType)));
+		DebugOutput.Append(FString::Printf(TEXT("\t\tResultVariableType: %s\n"), SAFE_CLASS_NAME(Result.ResultVariableType)));
 	}	
 	
 	// Now calculate allowed types
@@ -801,11 +802,13 @@ void UCadenceGraphSchema::UpdateOperationNode(UCadenceOperationNode_Base* InNode
 
 	for(FCadenceOperationResolverResult& Result : ResolverResults)
 	{
-		if(!bHasDefinedPrimaryType)
-			PrimaryAllowedTypes.Add(Result.bIsReversedOrder ? Result.SecondaryVariableType : Result.PrimaryVariableType);
-		if(!bHasDefinedSecondaryType)
-			SecondaryAllowedTypes.Add(Result.bIsReversedOrder ? Result.PrimaryVariableType : Result.SecondaryVariableType);
-		if(!bHasDefinedResultType)
+		TSubclassOf<UCadenceVariable>& Primary = Result.bIsReversedOrder ? Result.SecondaryVariableType : Result.PrimaryVariableType;
+		TSubclassOf<UCadenceVariable>& Secondary = Result.bIsReversedOrder ? Result.PrimaryVariableType : Result.SecondaryVariableType;
+		if(!bHasDefinedPrimaryType && Primary != nullptr)
+			PrimaryAllowedTypes.Add(Primary);
+		if(!bHasDefinedSecondaryType && Secondary != nullptr)
+			SecondaryAllowedTypes.Add(Secondary);
+		if(!bHasDefinedResultType && Result.ResultVariableType != nullptr)
 			ResultAllowedTypes.Add(Result.ResultVariableType);			
 	}
 
@@ -816,17 +819,17 @@ void UCadenceGraphSchema::UpdateOperationNode(UCadenceOperationNode_Base* InNode
 	DebugOutput.Append(TEXT("\tPrimaryAllowedTypes:\n"));
 
 	for(auto& AllowedType : PrimaryAllowedTypes)
-		DebugOutput.Append(FString::Printf(TEXT("\t\t%s\n"), *AllowedType->GetFName().ToString()));
+		DebugOutput.Append(FString::Printf(TEXT("\t\t%s\n"), SAFE_CLASS_NAME(AllowedType)));
 	
 	DebugOutput.Append(TEXT("\tSecondaryAllowedTypes:\n"));
 
 	for(auto& AllowedType : SecondaryAllowedTypes)
-		DebugOutput.Append(FString::Printf(TEXT("\t\t%s\n"), *AllowedType->GetFName().ToString()));
+		DebugOutput.Append(FString::Printf(TEXT("\t\t%s\n"), SAFE_CLASS_NAME(AllowedType)));
 	
 	DebugOutput.Append(TEXT("\tResultAllowedTypes:\n"));
 
 	for(auto& AllowedType : ResultAllowedTypes)
-		DebugOutput.Append(FString::Printf(TEXT("\t\t%s\n"), *AllowedType->GetFName().ToString()));
+		DebugOutput.Append(FString::Printf(TEXT("\t\t%s\n"), SAFE_CLASS_NAME(AllowedType)));
 	
 	InNode->SetOperation(Operation, ChosenOperationResult.bIsReversedOrder);
 
