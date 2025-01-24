@@ -353,10 +353,24 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceGraphNode::CreateVariableWildcardPin(co
 		WildcardId = 1234567;
 	UCadenceGraphNodePin* Pin = NewObject<UCadenceGraphNodePin>(this);
 
+	TSubclassOf<UCadenceVariable> VariableClass = nullptr;
+	if(WildcardIdToVariableClass.Contains(InWildcardId))
+		VariableClass = WildcardIdToVariableClass[InWildcardId];	
+
 	Pin->SetParentNode(this);
 	Pin->SetPinName(InPinName);
 	Pin->SetIsExec(false);
-	Pin->SetVariableClass(InIsArray ? UCadenceVariableArray::StaticClass() : nullptr);
+	
+	if(InIsArray)
+	{
+		Pin->SetVariableClass(UCadenceVariableArray::StaticClass());
+		Pin->SetVariableSecondaryClass(VariableClass);
+	}
+	else
+	{
+		Pin->SetVariableClass(VariableClass);
+	}	
+	
 	Pin->SetWildcardId(WildcardId);
 	Pin->GenerateGUID();
 	Pin->SetFlags(RF_Transactional);
@@ -492,6 +506,12 @@ void UCadenceGraphNode::RebuildAndValidateWildcardToVariableClass()
 					WildcardIdToVariableClass.Add(WildcardId, PinVariableClass);
 				}
 			}
+
+			Pin->OnPinConnected.RemoveAll(this);
+			Pin->OnConnectionsCleared.RemoveAll(this);
+				
+			Pin->OnPinConnected.AddUObject(this, &UCadenceGraphNode::OnPinConnectedToWildcardPin, Pin);
+			Pin->OnConnectionsCleared.AddUObject(this, &UCadenceGraphNode::OnPinConnectionsClearedFromWildcardPin, Pin);	
 		}
 	}
 }

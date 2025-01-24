@@ -311,7 +311,9 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceOperationNode_Base::AddSecondaryInputPi
 
 	UCadenceGraphNodePin* Pin = AddInputVariableWildcardPin(FName(PinName), SecondarySharesPrimaryWildcard() ? PrimaryWildcardId : SecondaryWildcardId);
 	UClass* SecondaryVariableClass = GetSecondaryVariableClass();
-	Pin->SetVariableClass(SecondaryVariableClass);
+	if(IsValid(SecondaryVariableClass))
+		Pin->SetVariableClass(SecondaryVariableClass);
+	
 	Pin->SetShouldHidePinName(true);
 	SecondaryInputPins.Add(Pin);
 

@@ -281,7 +281,7 @@ void FCadenceGraphApplication::ReconstructEditorGraph()
 			NodeCreator.Finalize();
 		}		
         
-        WorkingGraphEditor->AddNode(Node, false, true);
+        //WorkingGraphEditor->AddNode(Node, false, true);
 	}
 
 	// Connect nodes after
