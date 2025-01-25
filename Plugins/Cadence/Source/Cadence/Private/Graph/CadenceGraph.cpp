@@ -134,6 +134,9 @@ TArray<UCadenceSequencerTrack*> UCadenceGraph::GetTracks() const
 
 TArray<UCadenceSequencerSection*> UCadenceGraph::GetSections() const
 {
+	if(!IsValid(Sequence))
+		return {};
+	
 	TArray<UCadenceSequencerSection*> OutSections;
 	
 	TArray<UMovieSceneTrack*> Tracks = Sequence->GetMovieScene()->GetTracks();

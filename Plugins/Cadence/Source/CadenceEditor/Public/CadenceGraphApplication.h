@@ -9,6 +9,7 @@
 #include "WorkflowOrientedApp/WorkflowTabFactory.h"
 #include "WorkflowOrientedApp/WorkflowTabManager.h"
 
+class UCadenceGraphNode;
 class UCadenceVariable;
 class UCadenceAsset;
 class UCadenceGraph;
@@ -84,6 +85,8 @@ private:
 	void ReconstructEditorGraph();
 	void OnWorkingAssetPreSave();
 	void OnEditorGraphUndoRedo();
+	void OnEditorGraphChanged(const FEdGraphEditAction& Action);
+	void OnPinTypesChanged(UCadenceGraphNode* InNode);
 	
 	// Begin UICommands
 	void DeleteSelectedNodes() const;	

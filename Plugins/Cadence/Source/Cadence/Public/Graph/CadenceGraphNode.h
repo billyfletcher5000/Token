@@ -88,6 +88,9 @@ public:
 	TArray<UCadenceGraphNodePin*> GetPinsWithWildcard(const int32& InWildcardId);
 
 	int32 GetInputPinIndex(UCadenceGraphNodePin* InPin) const;
+
+	bool IsPendingDeletion() const { return bIsPendingDeletion; }
+	void NotifyPendingDeletion() { bIsPendingDeletion = true; }
 #endif
 	
 protected:
@@ -301,4 +304,8 @@ private:
 	FString DebugName;
 
 	TMap<int32, UClass*> WildcardIdToVariableClass;
+
+#if WITH_EDITOR
+	bool bIsPendingDeletion = false;
+#endif
 };

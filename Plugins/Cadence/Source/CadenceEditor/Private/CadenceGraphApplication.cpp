@@ -15,6 +15,7 @@
 #include "CadencePalette.h"
 #include "CadenceSequencerSectionNameCustomization.h"
 #include "EdGraphUtilities.h"
+#include "GraphEditAction.h"
 #include "Framework/Commands/GenericCommands.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "IDetailsView.h"
@@ -50,7 +51,7 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 		WorkingAsset->GetPrimaryGraph()->SetFlags(RF_Transactional);
 	}
 
-	PinTypesChangedDelegateHandle = WorkingAsset->GetPrimaryGraph()->OnPinTypesChanged.AddRaw(this, &FCadenceGraphApplication::Refresh);
+	PinTypesChangedDelegateHandle = WorkingAsset->GetPrimaryGraph()->OnPinTypesChanged.AddRaw(this, &FCadenceGraphApplication::OnPinTypesChanged);
 
 	PreSaveDelegateHandle = WorkingAsset->OnPreSaveDelegate.AddRaw(this, &FCadenceGraphApplication::OnWorkingAssetPreSave);
 	
@@ -72,6 +73,8 @@ void FCadenceGraphApplication::InitEditor(const EToolkitMode::Type InMode, const
 	
 	ensure(WorkingGraphEditor);
 	WorkingGraphEditor->SetRuntimeGraph(WorkingAsset->GetPrimaryGraph());
+
+	WorkingGraphEditor->AddOnGraphChangedHandler(FOnGraphChanged::FDelegate::CreateRaw(this, &FCadenceGraphApplication::OnEditorGraphChanged));
 
 	UndoOrRedoPerformedDelegateHandle = WorkingGraphEditor->OnUndoOrRedoPerformed.AddRaw(this, &FCadenceGraphApplication::OnEditorGraphUndoRedo);
 
@@ -311,7 +314,66 @@ void FCadenceGraphApplication::OnEditorGraphUndoRedo()
 	TSharedPtr<SGraphEditor> GraphEditor = SlateGraphEditor.Pin();
 	GraphEditor->NotifyGraphChanged();
 	WorkingGraphEditor->NotifyGraphChanged();
-	ReconstructEditorGraph();
+	//ReconstructEditorGraph();
+}
+
+void FCadenceGraphApplication::OnEditorGraphChanged(const FEdGraphEditAction& Action)
+{
+	FString ActionType = TEXT("Unknown");
+	switch (Action.Action)
+	{
+	case EEdGraphActionType::GRAPHACTION_Default:
+		ActionType = TEXT("Default");
+		break;
+		
+	case EEdGraphActionType::GRAPHACTION_AddNode:
+		ActionType = TEXT("AddNode");
+		break;
+		
+	case EEdGraphActionType::GRAPHACTION_EditNode:
+		ActionType = TEXT("EditNode");
+		break;
+		
+	case EEdGraphActionType::GRAPHACTION_RemoveNode:
+		ActionType = TEXT("RemoveNode");
+		break;
+		
+	case EEdGraphActionType::GRAPHACTION_SelectNode:
+		ActionType = TEXT("SelectNode");
+		break;
+	}
+
+	FString NodeNames;
+	for (auto Node : Action.Nodes)
+	{
+		const UCadenceGraphEditorNode* EdNode = Cast<UCadenceGraphEditorNode>(Node);
+		if(EdNode && EdNode->GetRuntimeGraphNode())
+		{
+			NodeNames.Append(EdNode->GetRuntimeGraphNode()->GetNodeMenuName().ToString());
+			NodeNames.Append(TEXT(", "));
+		}		
+	}
+	
+	UE_LOG(LogCadenceEditor, Log, TEXT("OnEditorChanged: Action: %s | Nodes: %s"), *ActionType, *NodeNames);
+}
+
+void FCadenceGraphApplication::OnPinTypesChanged(UCadenceGraphNode* InNode)
+{
+	auto Result = WorkingGraphEditor->Nodes.FindByPredicate([&InNode] (UEdGraphNode* InEdNode)
+	{
+		if(UCadenceGraphEditorNode* CadenceEdNode = Cast<UCadenceGraphEditorNode>(InEdNode))
+		{
+			return CadenceEdNode->GetRuntimeGraphNode() == InNode;
+		}
+
+		return false;
+	});
+
+	if(Result)
+	{
+		UCadenceGraphEditorNode* EdNode = Cast<UCadenceGraphEditorNode>(*Result);
+		EdNode->ReconstructNode();
+	}
 }
 
 void FCadenceGraphApplication::DeleteSelectedNodes() const
@@ -319,6 +381,8 @@ void FCadenceGraphApplication::DeleteSelectedNodes() const
 	const FScopedTransaction Transaction(*FCadenceEditorConstants::ContextIdentifier, FText::FromString(TEXT("Cadence: Delete Node(s)")), nullptr);
 	TSharedPtr<SGraphEditor> SlateGraph = SlateGraphEditor.Pin();
 	const FGraphPanelSelectionSet& SelectedNodes = SlateGraph->GetSelectedNodes();
+
+	bool bChanged = false;
 	
 	for (FGraphPanelSelectionSet::TConstIterator NodeIt( SelectedNodes ); NodeIt; ++NodeIt)
 	{
@@ -326,17 +390,38 @@ void FCadenceGraphApplication::DeleteSelectedNodes() const
 		{
 			if (Node->CanUserDeleteNode())
 			{
+				UCadenceGraphNode* RuntimeNode = Node->GetRuntimeGraphNode();
+				RuntimeNode->NotifyPendingDeletion();
+			}
+		}
+	}
+	
+	for (FGraphPanelSelectionSet::TConstIterator NodeIt( SelectedNodes ); NodeIt; ++NodeIt)
+	{
+		if (UCadenceGraphEditorNode* Node = Cast<UCadenceGraphEditorNode>(*NodeIt))
+		{
+			if (Node->CanUserDeleteNode())
+			{				
 				if(UEdGraph* Graph = Node->GetGraph(); Graph != nullptr)
 				{
 					Graph->Modify();
+					Graph->GetSchema()->BreakNodeLinks(*Node);
 				}
-
+				
+				Node->DestroyNode();
+				
 				UCadenceGraphNode* RuntimeNode = Node->GetRuntimeGraphNode();
 				RuntimeNode->DestroyNode();
 
-				Node->DestroyNode();
+				bChanged = true;
 			}
 		}
+	}
+
+	if (bChanged)
+	{
+		SlateGraph->ClearSelectionSet();
+		SlateGraph->NotifyGraphChanged();
 	}
 }
 

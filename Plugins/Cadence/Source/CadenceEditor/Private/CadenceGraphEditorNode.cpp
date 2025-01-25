@@ -30,6 +30,11 @@ void UCadenceGraphEditorNode::Construct(TObjectPtr<UCadenceGraphNode> InRuntimeG
 
 void UCadenceGraphEditorNode::RefreshPins()
 {
+	for(UEdGraphPin* Pin : Pins)
+	{
+		Pin->BreakAllPinLinks(false, false);
+	}
+	
 	Pins.Empty();
 	
 	for(UCadenceGraphNodePin* RuntimeInputPin : RuntimeGraphNode->GetInputPins())

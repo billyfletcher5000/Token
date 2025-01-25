@@ -566,7 +566,7 @@ void UCadenceGraphNode::OnPinConnectedToWildcardPin(UCadenceGraphNodePin* InConn
 	WildcardIdToVariableClass.Add(WildcardId, TargetClass);
 
 #if WITH_EDITOR
-	GetParentGraph()->NotifyPinTypesChanged();
+	GetParentGraph()->NotifyPinTypesChanged(this);
 #endif
 }
 
@@ -598,6 +598,6 @@ void UCadenceGraphNode::OnPinConnectionsClearedFromWildcardPin(UCadenceGraphNode
 	WildcardIdToVariableClass.Remove(WildcardId);
 
 #if WITH_EDITOR
-	GetParentGraph()->NotifyPinTypesChanged();
+	GetParentGraph()->NotifyPinTypesChanged(this);
 #endif
 }

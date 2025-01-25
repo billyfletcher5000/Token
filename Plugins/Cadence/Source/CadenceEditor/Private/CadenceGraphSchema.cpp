@@ -258,20 +258,27 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 		default:
 			break;
 	}
+
+	bool bReconstructNodes = false;
 	
 	if(UCadenceOperationNode_Base* OpNode = Cast<UCadenceOperationNode_Base>(RuntimeNodeA))
 	{
 		UE_LOG(LogCadenceEditor, Log, TEXT("UCadenceGraphSchema::TryCreateConnection UpdateOperationNode A"));
 		UpdateOperationNode(OpNode);
-		EditorNodeA->ReconstructNode();OpNode->GetParentGraph()->NotifyPinTypesChanged();
+		bReconstructNodes = true;
 	}
 	
 	if(UCadenceOperationNode_Base* OpNode = Cast<UCadenceOperationNode_Base>(RuntimeNodeB))
 	{
 		UE_LOG(LogCadenceEditor, Log, TEXT("UCadenceGraphSchema::TryCreateConnection UpdateOperationNode B"));
 		UpdateOperationNode(OpNode);
+		bReconstructNodes = true;
+	}
+
+	if(bReconstructNodes)
+	{		
+		EditorNodeA->ReconstructNode();
 		EditorNodeB->ReconstructNode();
-		OpNode->GetParentGraph()->NotifyPinTypesChanged();
 	}
 	
 	return Super::TryCreateConnection(A, B);
@@ -279,12 +286,12 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 
 void UCadenceGraphSchema::BreakNodeLinks(UEdGraphNode& TargetNode) const
 {
-	const FScopedTransaction Transaction(*FCadenceEditorCommon::ContextIdentifier, FText::FromString(TEXT("Break Node Links")), nullptr);
+	/*const FScopedTransaction Transaction(*FCadenceEditorCommon::ContextIdentifier, FText::FromString(TEXT("Break Node Links")), nullptr);
 	if(UCadenceGraphEditorNode* CadenceGraphEditorNode = Cast<UCadenceGraphEditorNode>(&TargetNode); CadenceGraphEditorNode != nullptr)
 	{
 		CadenceGraphEditorNode->GetRuntimeGraphNode()->Modify();
 		CadenceGraphEditorNode->GetRuntimeGraphNode()->ClearConnections();
-	}
+	}*/
 	
 	Super::BreakNodeLinks(TargetNode);
 }
@@ -730,6 +737,9 @@ bool UCadenceGraphSchema::CheckOperationConnection(UCadenceOperationNode_Base* I
 
 void UCadenceGraphSchema::UpdateOperationNode(UCadenceOperationNode_Base* InNode) const
 {
+	if(InNode->IsPendingDeletion())
+		return;
+	
 	FString DebugOutput = TEXT("UpdateOperationNode:\n");
 	UClass* PrimaryType = InNode->GetPrimaryVariableType();
 	UClass* SecondaryType = InNode->GetSecondaryVariableType();

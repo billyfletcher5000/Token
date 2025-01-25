@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CadenceGraphNode.h"
 #include "UObject/Object.h"
 #include "LevelSequence.h"
 #include "CadenceGraph.generated.h"
@@ -69,10 +70,10 @@ public:
 	TArray<FName> CategorySorting;
 
 #if WITH_EDITOR
-	DECLARE_MULTICAST_DELEGATE(FOnPinTypesChanged);
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnPinTypesChanged, UCadenceGraphNode*);
 
 	FOnPinTypesChanged OnPinTypesChanged;
-	void NotifyPinTypesChanged() const { OnPinTypesChanged.Broadcast(); }
+	void NotifyPinTypesChanged(UCadenceGraphNode* InNode) const { OnPinTypesChanged.Broadcast(InNode); }
 #endif
 	
 private:
