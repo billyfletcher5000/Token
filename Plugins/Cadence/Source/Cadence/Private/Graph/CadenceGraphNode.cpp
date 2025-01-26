@@ -561,7 +561,8 @@ void UCadenceGraphNode::OnPinConnectedToWildcardPin(UCadenceGraphNodePin* InConn
 			Pin->SetVariableClass(TargetClass);
 		}		
 	};
-	
+
+	Modify();
 	Algo::ForEach(WildcardPins, SetClassLambda);
 	WildcardIdToVariableClass.Add(WildcardId, TargetClass);
 
