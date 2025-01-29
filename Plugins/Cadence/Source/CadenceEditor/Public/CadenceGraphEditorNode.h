@@ -55,7 +55,22 @@ private:
 	TObjectPtr<UCadenceGraphNode> RuntimeGraphNode;
 };
 
-class SGraphNodeUserAddablePins : public SGraphNode
+
+class SCadenceGraphNode : public SGraphNode
+{
+public:
+	SLATE_BEGIN_ARGS(SCadenceGraphNode){}
+	SLATE_END_ARGS()
+
+	void Construct( const FArguments& InArgs, UCadenceGraphEditorNode* InNode );
+	
+	virtual void MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty) override;
+
+protected:
+	virtual TSharedPtr<SGraphPin> CreatePinWidget(UEdGraphPin* Pin) const override;
+};
+
+class SGraphNodeUserAddablePins : public SCadenceGraphNode
 {
 public:
 	SLATE_BEGIN_ARGS(SGraphNodeUserAddablePins){}
@@ -69,17 +84,6 @@ protected:
 	virtual FReply OnAddPin() override;
 	virtual EVisibility IsAddPinButtonVisible() const override;
 	// End of SGraphNode interface
-};
-
-class SCadenceGraphNode : public SGraphNode
-{
-public:
-	SLATE_BEGIN_ARGS(SCadenceGraphNode){}
-	SLATE_END_ARGS()
-
-	void Construct( const FArguments& InArgs, UCadenceGraphEditorNode* InNode );
-	
-	virtual void MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty) override;
 };
 
 class FCadenceGraphEditorNodeFactory : public FGraphPanelNodeFactory

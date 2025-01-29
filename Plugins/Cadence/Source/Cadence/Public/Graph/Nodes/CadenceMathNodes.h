@@ -373,6 +373,98 @@ public:
 };
 // ~Divide Operations
 
+// Interpolation Operations
+UCLASS(Abstract)
+class UCadenceOpLerp : public UCadenceOperation
+{
+	GENERATED_BODY()
+
+public:
+#if WITH_EDITOR
+	virtual FName GetPrimaryPinName() const override { return FCadencePinConstants::Pin_A; }
+	virtual FName GetSecondaryPinName() const override  { return FCadencePinConstants::Pin_B; }
+	virtual bool ShouldHideInputPinNames() const override { return false; }
+#endif
+		
+	void SetT(const float& InT) { T = InT; }
+	float GetT() const { return T; }
+
+protected:
+	float T;
+};
+
+UCLASS()
+class UCadenceOpLerpFloat : public UCadenceOpLerp
+{
+	GENERATED_BODY()
+
+public:	
+	virtual bool ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable) override;
+
+#if WITH_EDITOR
+	virtual TSubclassOf<UCadenceVariable> GetPrimaryType() const override;
+	virtual bool SupportsAdditionalSecondary() const override { return true; }
+#endif
+};
+
+UCLASS()
+class UCadenceOpLerpDouble : public UCadenceOpLerp
+{
+	GENERATED_BODY()
+
+public:	
+	virtual bool ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable) override;
+
+#if WITH_EDITOR
+	virtual TSubclassOf<UCadenceVariable> GetPrimaryType() const override;
+	virtual bool SupportsAdditionalSecondary() const override { return true; }
+#endif
+};
+
+UCLASS()
+class UCadenceOpLerpVector : public UCadenceOpLerp
+{
+	GENERATED_BODY()
+
+public:	
+	virtual bool ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable) override;
+
+#if WITH_EDITOR
+	virtual TSubclassOf<UCadenceVariable> GetPrimaryType() const override;
+	virtual bool SupportsAdditionalSecondary() const override { return true; }
+#endif
+};
+
+UCLASS()
+class UCadenceOpLerpVector2D : public UCadenceOpLerp
+{
+	GENERATED_BODY()
+
+public:	
+	virtual bool ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable) override;
+
+#if WITH_EDITOR
+	virtual TSubclassOf<UCadenceVariable> GetPrimaryType() const override;
+	virtual bool SupportsAdditionalSecondary() const override { return true; }
+#endif
+};
+
+UCLASS()
+class UCadenceOpLerpRotator : public UCadenceOpLerp
+{
+	GENERATED_BODY()
+
+public:	
+	virtual bool ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs, UCadenceVariable* InResultVariable) override;
+
+#if WITH_EDITOR
+	virtual TSubclassOf<UCadenceVariable> GetPrimaryType() const override;
+	virtual bool SupportsAdditionalSecondary() const override { return true; }
+#endif
+};
+// ~Interpolation Operations
+
+
 // Nodes
 UCLASS()
 class CADENCE_API UCadenceAddNode : public UCadenceOperationNode_Base
@@ -434,6 +526,25 @@ public:
 	
 	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Divide")); }
 	virtual FText GetNodeShortDisplayName() const override { return FText::FromString(TEXT("/")); }
+	virtual FText GetNodeCategory() const override { return FCadenceMathNodeConstants::NodeCategory; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceMathNodeConstants::NodeTitleColor; }
+};
+
+UCLASS()
+class CADENCE_API UCadenceInterpolateNode : public UCadenceOperationNode_Base
+{
+	GENERATED_BODY()
+
+public:
+	void CreateInputPins() override;
+	ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
+	
+#if WITH_EDITOR
+	virtual TSubclassOf<UCadenceOperation> GetOperationBase() const override { return UCadenceOpLerp::StaticClass(); }
+#endif
+	
+	virtual FText GetNodeMenuName() const override { return FText::FromString(TEXT("Interpolate")); }
+	virtual FText GetNodeShortDisplayName() const override { return FText::FromString(TEXT("Lerp")); }
 	virtual FText GetNodeCategory() const override { return FCadenceMathNodeConstants::NodeCategory; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FCadenceMathNodeConstants::NodeTitleColor; }
 };

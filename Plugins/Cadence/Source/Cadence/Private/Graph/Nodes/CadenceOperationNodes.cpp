@@ -14,6 +14,8 @@ const int32 UCadenceOperationNode_Base::ResultWildcardId = 2;
 
 void UCadenceOperationNode_Base::CreateInputPins()
 {
+	CacheOperationBaseData();
+	
 	Super::CreateInputPins();
 	RefreshInputPins();
 }
@@ -59,6 +61,12 @@ ECadenceNodeExecuteResult UCadenceOperationNode_Base::Execute(UCadenceContext* I
 		return ECadenceNodeExecuteResult::Failed;
 	
 	return ECadenceNodeExecuteResult::Complete;
+}
+
+bool UCadenceOperationNode_Base::CanAddPin() 
+{
+	CacheOperationBaseData();
+	return bSupportsAdditionalSecondaries;
 }
 
 UCadenceGraphNodePin* UCadenceOperationNode_Base::AddUserInputPin()
@@ -187,8 +195,8 @@ bool UCadenceOperationNode_Base::RefreshInputPins()
 		}
 		else
 		{
-			PrimaryInputPin = AddInputVariableWildcardPin(FCadencePinConstants::Pin_Primary, PrimaryAllowedTypes, PrimaryWildcardId);
-			PrimaryInputPin->SetShouldHidePinName(true);
+			PrimaryInputPin = AddInputVariableWildcardPin(PrimaryPinName, PrimaryAllowedTypes, PrimaryWildcardId);
+			PrimaryInputPin->SetShouldHidePinName(bHideInputPinNames);
 			PrimaryInputPin->SetVariableClass(GetPrimaryVariableClass());
 			UE_LOG(LogCadence, Log, TEXT("Creating PrimaryPin with: %s"), SAFE_CLASS_NAME(PrimaryVariableClass));	
 			bAnyChanges = true;
@@ -207,8 +215,8 @@ bool UCadenceOperationNode_Base::RefreshInputPins()
 		}
 		else
 		{
-			PrimaryInputPin = AddInputVariableWildcardPin(FCadencePinConstants::Pin_Primary, PrimaryAllowedTypes, PrimaryWildcardId);
-			PrimaryInputPin->SetShouldHidePinName(true);
+			PrimaryInputPin = AddInputVariableWildcardPin(PrimaryPinName, PrimaryAllowedTypes, PrimaryWildcardId);
+			PrimaryInputPin->SetShouldHidePinName(bHideInputPinNames);
 			UE_LOG(LogCadence, Log, TEXT("Creating PrimaryPin (wildcard)"));
 			bAnyChanges = true;
 		}
@@ -274,8 +282,8 @@ bool UCadenceOperationNode_Base::RefreshOutputPins()
 		}
 		else
 		{
-			ResultOutputPin = AddOutputVariableWildcardPin(FCadencePinConstants::Pin_Result, ResultAllowedTypes, ResultSharesPrimaryWildcard() ? PrimaryWildcardId : ResultWildcardId);
-			ResultOutputPin->SetShouldHidePinName(true);
+			ResultOutputPin = AddOutputVariableWildcardPin(ResultPinName, ResultAllowedTypes, ResultSharesPrimaryWildcard() ? PrimaryWildcardId : ResultWildcardId);
+			ResultOutputPin->SetShouldHidePinName(bHideOuputPinNames);
 			ResultOutputPin->SetVariableClass(ResultType);
 			UE_LOG(LogCadence, Log, TEXT("Creating ResultPin with: %s"), SAFE_CLASS_NAME(ResultType));	
 			bAnyChanges = true;
@@ -294,8 +302,8 @@ bool UCadenceOperationNode_Base::RefreshOutputPins()
 		}
 		else
 		{
-			ResultOutputPin = AddOutputVariableWildcardPin(FCadencePinConstants::Pin_Result, ResultAllowedTypes, ResultSharesPrimaryWildcard() ? PrimaryWildcardId : ResultWildcardId);
-			ResultOutputPin->SetShouldHidePinName(true);			
+			ResultOutputPin = AddOutputVariableWildcardPin(ResultPinName, ResultAllowedTypes, ResultSharesPrimaryWildcard() ? PrimaryWildcardId : ResultWildcardId);
+			ResultOutputPin->SetShouldHidePinName(bHideOuputPinNames);			
 			UE_LOG(LogCadence, Log, TEXT("Creating ResultPin (wildcard)"));
 			bAnyChanges = true;
 		}
@@ -306,7 +314,10 @@ bool UCadenceOperationNode_Base::RefreshOutputPins()
 
 TObjectPtr<UCadenceGraphNodePin> UCadenceOperationNode_Base::AddSecondaryInputPin()
 {
-	FString PinName = FCadencePinConstants::Pin_Secondary.ToString() + " " + GetNameForAdditionalPin(PinIndex).ToString();
+	FString PinName = SecondaryPinName.ToString();
+	if(PinIndex != 0)
+		PinName += " " + GetNameForAdditionalPin(PinIndex).ToString();
+	
 	PinIndex++;
 
 	UCadenceGraphNodePin* Pin = AddInputVariableWildcardPin(FName(PinName), SecondarySharesPrimaryWildcard() ? PrimaryWildcardId : SecondaryWildcardId);
@@ -314,7 +325,7 @@ TObjectPtr<UCadenceGraphNodePin> UCadenceOperationNode_Base::AddSecondaryInputPi
 	if(IsValid(SecondaryVariableClass))
 		Pin->SetVariableClass(SecondaryVariableClass);
 	
-	Pin->SetShouldHidePinName(true);
+	Pin->SetShouldHidePinName(bHideInputPinNames);
 	SecondaryInputPins.Add(Pin);
 
 	UE_LOG(LogCadence, Log, TEXT("Creating SecondaryPin \"%s\" with: %s"), *PinName, SAFE_CLASS_NAME(SecondaryVariableClass));
@@ -347,4 +358,26 @@ bool UCadenceOperationNode_Base::HasAnyConnections() const
 	}
 	
 	return false;
+}
+
+void UCadenceOperationNode_Base::CacheOperationBaseData()
+{
+	if(!bHasCachedData)
+	{
+		if(TSubclassOf<UCadenceOperation> OpBaseClass = GetOperationBase())
+		{
+			UCadenceOperation* OpBaseCDO = OpBaseClass->GetDefaultObject<UCadenceOperation>();
+			if(IsValid(OpBaseCDO))
+			{
+				PrimaryPinName = OpBaseCDO->GetPrimaryPinName();
+				SecondaryPinName = OpBaseCDO->GetSecondaryPinName();
+				ResultPinName = OpBaseCDO->GetResultPinName();
+				bSupportsAdditionalSecondaries = OpBaseCDO->SupportsAdditionalSecondary();
+				bHideInputPinNames = OpBaseCDO->ShouldHideInputPinNames();
+				bHideOuputPinNames = OpBaseCDO->ShouldHideOutputPinNames();
+			}
+
+			bHasCachedData = true;
+		}
+	}
 }

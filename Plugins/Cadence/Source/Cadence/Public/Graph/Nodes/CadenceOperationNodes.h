@@ -20,6 +20,11 @@ public:
 	virtual TSubclassOf<UCadenceVariable> GetPrimaryType() const { return nullptr; }
 	virtual TSubclassOf<UCadenceVariable> GetSecondaryType() const { return GetPrimaryType(); }
 	virtual TSubclassOf<UCadenceVariable> GetResultType() const { return GetPrimaryType(); }
+	virtual FName GetPrimaryPinName() const { return FCadencePinConstants::Pin_Primary; }
+	virtual FName GetSecondaryPinName() const { return FCadencePinConstants::Pin_Secondary; }
+	virtual FName GetResultPinName() const { return FCadencePinConstants::Pin_Result; }
+	virtual bool ShouldHideInputPinNames() const { return true; }
+	virtual bool ShouldHideOutputPinNames() const { return false; }
 	virtual bool SupportsAdditionalSecondary() const { return false; }
 	virtual bool AllPinsShareWildcard() const { return false; }
 #endif
@@ -34,7 +39,8 @@ public:
 	virtual void CreateOutputPins() override;
 	virtual ECadenceNodeExecuteResult Execute(UCadenceContext* InContext) override;
 
-	// ICadenceGraphAddPinInterface
+	// ICadenceGraphAddPinInterface	
+	virtual bool CanAddPin() override;
 	virtual UCadenceGraphNodePin* AddUserInputPin() override;
 	virtual bool RemoveUserInputPin(UCadenceGraphNodePin* Pin) override;
 	virtual bool CanRemovePin(const UCadenceGraphNodePin* Pin) const override;
@@ -82,6 +88,9 @@ private:
 	UClass* GetSecondaryVariableClass() const;
 	bool HasAnyConnections() const;
 
+protected:
+	UCadenceOperation* GetOperation() const { return Operation; }
+
 private:
 	UPROPERTY()
 	TObjectPtr<UCadenceOperation> Operation;
@@ -110,6 +119,15 @@ private:
 	
 	UPROPERTY()
 	TSet<TSubclassOf<UCadenceVariable>> ResultAllowedTypes;
+
+	void CacheOperationBaseData();
+	bool bHasCachedData = false;
+	FName PrimaryPinName;
+	FName SecondaryPinName;
+	FName ResultPinName;
+	bool bHideInputPinNames = false;
+	bool bHideOuputPinNames = false;
+	bool bSupportsAdditionalSecondaries = true;
 #endif
 
 	static const int32 PrimaryWildcardId;

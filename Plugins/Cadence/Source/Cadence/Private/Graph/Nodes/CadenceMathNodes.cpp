@@ -112,6 +112,31 @@ namespace FCadenceMathOperationHelper
 		ResultVariable->SetValue(OutValue);
 		return true;
 	}
+
+	template<typename TVar, typename TVal>
+	bool ApplyInterpolateOperation(UCadenceVariable* InVariableA, UCadenceVariable* InVariableB, const float& InT, UCadenceVariable* InResultVariable)
+	{	
+		TVar* VariableA = Cast<TVar>(InVariableA);
+		if(!ensure(VariableA))
+			return false;
+
+		
+		TVar* VariableB = Cast<TVar>(InVariableB);
+		if(!ensure(VariableB))
+			return false;
+
+		TVal VarAValue = VariableA->GetValue();
+		TVal VarBValue = VariableB->GetValue();
+
+		TVal OutValue = VarAValue + ((VarBValue - VarAValue) * InT);
+
+		TVar* ResultVariable = Cast<TVar>(InResultVariable);
+		if(!ensure(ResultVariable))
+			return false;
+
+		ResultVariable->SetValue(OutValue);
+		return true;
+	}
 }
 
 bool UCadenceOpAddInt::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
@@ -390,4 +415,77 @@ TSubclassOf<UCadenceVariable> UCadenceOpDivideVector2DFloat::GetPrimaryType() co
 TSubclassOf<UCadenceVariable> UCadenceOpDivideVector2DFloat::GetSecondaryType() const
 {
 	return UCadenceVariableFloat::StaticClass();
+}
+
+bool UCadenceOpLerpFloat::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
+{
+	return FCadenceMathOperationHelper::ApplyInterpolateOperation<UCadenceVariableFloat, float>(InVariableA, InVariableBs[0], T, InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpLerpFloat::GetPrimaryType() const
+{
+	return UCadenceVariableFloat::StaticClass();
+}
+
+bool UCadenceOpLerpDouble::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
+{
+	return FCadenceMathOperationHelper::ApplyInterpolateOperation<UCadenceVariableDouble, double>(InVariableA, InVariableBs[0], T, InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpLerpDouble::GetPrimaryType() const
+{
+	return UCadenceVariableDouble::StaticClass();
+}
+
+bool UCadenceOpLerpVector::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
+{
+	return FCadenceMathOperationHelper::ApplyInterpolateOperation<UCadenceVariableVector, FVector>(InVariableA, InVariableBs[0], T, InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpLerpVector::GetPrimaryType() const
+{
+	return UCadenceVariableVector::StaticClass();
+}
+
+bool UCadenceOpLerpVector2D::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
+{
+	return FCadenceMathOperationHelper::ApplyInterpolateOperation<UCadenceVariableVector2D, FVector2D>(InVariableA, InVariableBs[0], T, InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpLerpVector2D::GetPrimaryType() const
+{
+	return UCadenceVariableVector2D::StaticClass();
+}
+
+bool UCadenceOpLerpRotator::ApplyOperation(UCadenceVariable* InVariableA, TArray<UCadenceVariable*> InVariableBs,
+	UCadenceVariable* InResultVariable)
+{
+	return FCadenceMathOperationHelper::ApplyInterpolateOperation<UCadenceVariableRotator, FRotator>(InVariableA, InVariableBs[0], T, InResultVariable);
+}
+
+TSubclassOf<UCadenceVariable> UCadenceOpLerpRotator::GetPrimaryType() const
+{
+	return UCadenceVariableRotator::StaticClass();
+}
+
+void UCadenceInterpolateNode::CreateInputPins()
+{
+	Super::CreateInputPins();
+	AddInputVariablePinDefault<UCadenceVariableFloat>(FCadencePinConstants::Pin_T, 0.0f, 2);
+}
+
+ECadenceNodeExecuteResult UCadenceInterpolateNode::Execute(UCadenceContext* InContext)
+{
+	float T = 0.0f;
+	if(!GetInputPinValue<UCadenceVariableFloat>(FCadencePinConstants::Pin_T, T))
+		return ECadenceNodeExecuteResult::Failed;
+
+	UCadenceOpLerp* LerpOp = Cast<UCadenceOpLerp>(GetOperation());
+	LerpOp->SetT(T);
+	
+	return Super::Execute(InContext);
 }

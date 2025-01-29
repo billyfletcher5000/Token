@@ -69,7 +69,7 @@ public:
 	*
 	* @return bool	True if a new pin can be added, false if it cannot. 
 	*/
-	virtual bool CanAddPin() const { return true; }
+	virtual bool CanAddPin() { return true; }
 
 	/**
 	* Attempt to remove the given pin from this node. Should fail if the 

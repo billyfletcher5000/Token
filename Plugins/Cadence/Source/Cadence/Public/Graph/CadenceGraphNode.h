@@ -120,9 +120,9 @@ protected:
 	virtual void RemoveAllPins();
 
 	template<typename TVar, typename TVal>
-	TObjectPtr<UCadenceGraphNodePin> AddInputVariablePinDefault(const FName& InPinName, const TVal& InDefaultValue)
+	TObjectPtr<UCadenceGraphNodePin> AddInputVariablePinDefault(const FName& InPinName, const TVal& InDefaultValue, const int32& InIndex = -1)
 	{
-		TObjectPtr<UCadenceGraphNodePin> Pin = AddInputVariablePin(InPinName, TVar::StaticClass());
+		TObjectPtr<UCadenceGraphNodePin> Pin = AddInputVariablePin(InPinName, TVar::StaticClass(), InIndex);
 		TVar* Variable = Pin->GetVariable<TVar>();
 		if(Variable->SupportsDefault())
 			Variable->SetValue(InDefaultValue);
@@ -130,9 +130,9 @@ protected:
 	}
 
 	template<typename TVar, typename TVal>
-	TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePinDefault(const FName& InPinName, const TVal& InDefaultValue)
+	TObjectPtr<UCadenceGraphNodePin> AddOutputVariablePinDefault(const FName& InPinName, const TVal& InDefaultValue, const int32& InIndex = -1)
 	{
-		TObjectPtr<UCadenceGraphNodePin> Pin = AddOutputVariablePin(InPinName, TVar::StaticClass());
+		TObjectPtr<UCadenceGraphNodePin> Pin = AddOutputVariablePin(InPinName, TVar::StaticClass(), InIndex);
 		TVar* Variable = Pin->GetVariable<TVar>();
 		if(Variable->SupportsDefault())
 			Variable->SetValue(InDefaultValue);

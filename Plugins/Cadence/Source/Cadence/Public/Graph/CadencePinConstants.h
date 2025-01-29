@@ -56,6 +56,9 @@ namespace FCadencePinConstants
 	static const FName Pin_Secondary = TEXT("Secondary");
 	static const FName Pin_Result = TEXT("Result");
 	static const FName Pin_Unnamed = TEXT("");
+	static const FName Pin_T = TEXT("T");
+	static const FName Pin_A = TEXT("A");
+	static const FName Pin_B = TEXT("B");
 }
 
 namespace FCadencePinCategoryConstants

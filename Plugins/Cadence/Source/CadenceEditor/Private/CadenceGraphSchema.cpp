@@ -284,18 +284,6 @@ bool UCadenceGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) co
 	return Super::TryCreateConnection(A, B);
 }
 
-void UCadenceGraphSchema::BreakNodeLinks(UEdGraphNode& TargetNode) const
-{
-	/*const FScopedTransaction Transaction(*FCadenceEditorCommon::ContextIdentifier, FText::FromString(TEXT("Break Node Links")), nullptr);
-	if(UCadenceGraphEditorNode* CadenceGraphEditorNode = Cast<UCadenceGraphEditorNode>(&TargetNode); CadenceGraphEditorNode != nullptr)
-	{
-		CadenceGraphEditorNode->GetRuntimeGraphNode()->Modify();
-		CadenceGraphEditorNode->GetRuntimeGraphNode()->ClearConnections();
-	}*/
-	
-	Super::BreakNodeLinks(TargetNode);
-}
-
 void UCadenceGraphSchema::BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNodeNotifcation) const
 {
 	const FScopedTransaction Transaction(*FCadenceEditorCommon::ContextIdentifier, FText::FromString(TEXT("Break Pin Links")), nullptr);
