@@ -296,21 +296,44 @@ void UCadenceGraphSchema::BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNodeN
 		else
 			RuntimePin = CadenceGraphEditorNode->GetRuntimeGraphNode()->GetOutputPin(TargetPin.PinName);
 
+		TArray<UEdGraphPin*> LinkedEdPins = TargetPin.LinkedTo;
 		ensure(RuntimePin);
 		RuntimePin->Modify();
+
+		TArray<TObjectPtr<UCadenceGraphNodePin>> PinsToUpdate = RuntimePin->GetConnectedPins();
 		RuntimePin->ClearConnections();
+
+		PinsToUpdate.Insert(RuntimePin, 0);
+
+		bool bShouldReconstructEditorNodes = false;
 		
-		if(UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(RuntimePin->GetParentNode()))
+		for (UCadenceGraphNodePin* ConnectedPin : PinsToUpdate)
 		{
-			RerouteNode->Modify();
-			RerouteNode->CheckRerouteTypeValid();
+			if(UCadenceRerouteNodeBase* RerouteNode = Cast<UCadenceRerouteNodeBase>(ConnectedPin->GetParentNode()))
+			{
+				RerouteNode->Modify();
+				RerouteNode->CheckRerouteTypeValid();
+				bShouldReconstructEditorNodes = true;
+			}
+			else if(UCadenceOperationNode_Base* OperationNode = Cast<UCadenceOperationNode_Base>(ConnectedPin->GetParentNode()))
+			{
+				OperationNode->Modify();
+				UE_LOG(LogCadenceEditor, Log, TEXT("UCadenceGraphSchema::BreakPinLinks UpdateOperationNode"));
+				UpdateOperationNode(OperationNode);
+				bShouldReconstructEditorNodes = true;
+			}
 		}
-		else if(UCadenceOperationNode_Base* OperationNode = Cast<UCadenceOperationNode_Base>(RuntimePin->GetParentNode()))
+
+		if(bShouldReconstructEditorNodes)
 		{
-			OperationNode->Modify();
-			UE_LOG(LogCadenceEditor, Log, TEXT("UCadenceGraphSchema::BreakPinLinks UpdateOperationNode"));
-			UpdateOperationNode(OperationNode);
-			CadenceGraphEditorNode->ReconstructNode();
+			TargetPin.GetOwningNode()->ReconstructNode();
+			for(UEdGraphPin* LinkedPin : LinkedEdPins)
+			{
+				if(UEdGraphNode* LinkedEdNode = LinkedPin->GetOwningNode(); LinkedEdNode != nullptr)
+				{
+					LinkedEdNode->ReconstructNode();
+				}
+			}
 		}
 	}
 	
