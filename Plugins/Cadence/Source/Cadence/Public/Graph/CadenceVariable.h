@@ -7,8 +7,10 @@
 #include "CadenceContext.h"
 #include "UObject/Object.h"
 #include "CadencePinConstants.h"
+#include "Places/CadencePlaces.h"
 #include "Reaction/CadenceReactionGroup.h"
 #include "SequencerTrack/CadenceSequencerSection.h"
+#include "Transitions/CadenceTransitionTransform.h"
 #include "CadenceVariable.generated.h"
 
 struct FCadenceSectionName;
@@ -782,4 +784,74 @@ public:
 private:
 	UPROPERTY(EditAnywhere)
 	FCadenceSectionName Value;
+};
+
+UCLASS(BlueprintType)
+class CADENCE_API UCadenceVariablePlacesSnapshot : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_PlacesSnapshot; }
+	virtual FLinearColor GetPinColor() const override { return FCadenceVariableColorConstants::VC_PlacesSnapshot; }
+	virtual UObject* GetPinSubCategoryObject() const override { return UCadencePlacesSnapshot::StaticClass(); }
+
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
+	{
+		UCadenceVariablePlacesSnapshot* CastedVariable = Cast<UCadenceVariablePlacesSnapshot>(OtherVariable);
+		if(ensure(CastedVariable))
+			SetValue(CastedVariable->GetValue());
+	}
+	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
+	}
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UCadencePlacesSnapshot* GetValue() const { return Value; }
+	void SetValue(const TObjectPtr<UCadencePlacesSnapshot>& InValue) { SetValueHelper(Value, InValue); }
+
+	virtual bool SupportsDefault() const override { return true; }
+	virtual void SetFromString(const FString& InStringValue) override;
+	virtual FString ConvertToValueString() const override;
+
+private:
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UCadencePlacesSnapshot> Value;
+};
+
+UCLASS(BlueprintType)
+class CADENCE_API UCadenceVariableTransitionTransform : public UCadenceVariable
+{
+	GENERATED_BODY()
+
+public:
+	virtual FName GetPinCategory() const override { return FCadencePinCategoryConstants::PC_TransitionTransform; }
+	virtual FLinearColor GetPinColor() const override { return FCadenceVariableColorConstants::VC_TransitionTransform; }
+	virtual UObject* GetPinSubCategoryObject() const override { return UCadenceTransitionTransform::StaticClass(); }
+
+	virtual void CopyValueFrom(UCadenceVariable* OtherVariable, UCadenceContext* InContext = nullptr) override
+	{
+		UCadenceVariableTransitionTransform* CastedVariable = Cast<UCadenceVariableTransitionTransform>(OtherVariable);
+		if(ensure(CastedVariable))
+			SetValue(CastedVariable->GetValue());
+	}
+	
+	virtual bool Equals(UCadenceVariable* OtherVariable) override
+	{
+		return EqualsHelper(this, OtherVariable);
+	}
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UCadenceTransitionTransform* GetValue() const { return Value; }
+	void SetValue(const TObjectPtr<UCadenceTransitionTransform>& InValue) { SetValueHelper(Value, InValue); }
+
+	virtual bool SupportsDefault() const override { return true; }
+	virtual void SetFromString(const FString& InStringValue) override;
+	virtual FString ConvertToValueString() const override;
+
+private:
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UCadenceTransitionTransform> Value;
 };

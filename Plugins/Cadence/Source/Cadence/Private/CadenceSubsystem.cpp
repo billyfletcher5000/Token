@@ -109,6 +109,8 @@ void UCadenceSubsystem::Notify_SectionEnd(UMovieSceneSequence* Sequence, UCadenc
 void UCadenceSubsystem::Notify_SequenceStart(UCadenceAsset* CadenceAsset)
 {
 	UE_LOG(LogCadence, Log, TEXT("Sequence Start: %s"), *CadenceAsset->GetName());
+
+	GetOrCreateActiveAssetData(CadenceAsset);
 }
 
 void UCadenceSubsystem::Notify_SequenceEnd(UCadenceAsset* CadenceAsset)
@@ -131,6 +133,14 @@ void UCadenceSubsystem::Notify_SequenceUpdated(UCadenceAsset* CadenceAsset, FFra
 	{
 		Data->NotifySequenceUpdated(CurrentTime);
 	}
+}
+
+AActor* UCadenceSubsystem::GetTrackedActor(const FGuid& InTrackedActorID) const
+{
+	if(TrackedActors.Contains(InTrackedActorID))
+		return TrackedActors[InTrackedActorID].Get();
+
+	return nullptr;
 }
 
 UCadenceAssetInstance* UCadenceSubsystem::GetOrCreateActiveAssetData(UCadenceAsset* InAsset)

@@ -87,7 +87,9 @@ TSharedPtr<SGraphPin> FCadenceGraphEditorPanelPinFactory::CreatePin(UEdGraphPin*
 		if(InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Object
 			|| InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_Actor
 			|| InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_CadenceAsset
-			|| InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_ReactionGroup)
+			|| InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_ReactionGroup
+			|| InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_PlacesSnapshot
+			|| InPin->PinType.PinCategory == FCadencePinCategoryConstants::PC_TransitionTransform)
 			return SNew(SGraphPinObject, InPin);
 
 		return SNew(SCadenceGraphPin, InPin);		

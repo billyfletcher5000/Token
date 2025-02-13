@@ -342,3 +342,23 @@ FString UCadenceVariableSectionName::ConvertToValueString() const
 {
 	return Value.Name;
 }
+
+void UCadenceVariablePlacesSnapshot::SetFromString(const FString& InStringValue)
+{
+	SetValue(FUObjectStringHelper::SetFromString<UCadencePlacesSnapshot>(InStringValue));
+}
+
+FString UCadenceVariablePlacesSnapshot::ConvertToValueString() const
+{
+	return FUObjectStringHelper::ConvertToValueString(Value);
+}
+
+void UCadenceVariableTransitionTransform::SetFromString(const FString& InStringValue)
+{
+	SetValue(FUObjectStringHelper::SetFromString<UCadenceTransitionTransform>(InStringValue));
+}
+
+FString UCadenceVariableTransitionTransform::ConvertToValueString() const
+{
+	return FUObjectStringHelper::ConvertToValueString(Value);
+}

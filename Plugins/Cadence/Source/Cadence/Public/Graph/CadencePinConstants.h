@@ -82,6 +82,8 @@ namespace FCadencePinCategoryConstants
 	static const FName PC_CadenceAsset = TEXT("CadenceAsset");
 	static const FName PC_ReactionGroup = TEXT("ReactionGroup");	
 	static const FName PC_SectionName = TEXT("SectionName");
+	static const FName PC_PlacesSnapshot = TEXT("PlacesSnapshot");	
+	static const FName PC_TransitionTransform = TEXT("TransitionTransform");	
 }
 
 namespace FCadencePinSubCategoryConstants
@@ -109,4 +111,6 @@ namespace FCadenceVariableColorConstants
 	static constexpr FLinearColor VC_CadenceAsset = FLinearColor(0.6f, 0.2f, 0.3f);	
 	static constexpr FLinearColor VC_ReactionGroup = FLinearColor(0.635f, 0.0f, 1.0f);
 	static constexpr FLinearColor VC_SectionName = FLinearColor(0.869f, 0.371f, 0.775f);
+	static constexpr FLinearColor VC_PlacesSnapshot = FLinearColor(0.35f, 0.3f, 1.0f);
+	static constexpr FLinearColor VC_TransitionTransform = FLinearColor(0.35f, 0.7f, 0.2f);
 }

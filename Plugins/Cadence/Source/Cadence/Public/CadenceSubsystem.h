@@ -53,8 +53,8 @@ public:
 	void Notify_SequenceUpdated(UCadenceAsset* CadenceAsset, FFrameTime CurrentTime, FFrameTime PreviousTime);
 
 	UCadenceAssetInstance* GetPrimaryActiveAsset() const { return ActiveAssets.Num() > 0 ? ActiveAssets.Last() : nullptr; }
-
 	
+	AActor* GetTrackedActor(const FGuid& InTrackedActorID) const;
 
 protected:
 	friend UCadenceGraphRunner;

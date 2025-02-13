@@ -11,12 +11,12 @@ struct FCadencePlace;
 class ICadenceTickableAction;
 
 UCLASS()
-class CADENCE_API UCadenceTransitionTranslate : public UPrimaryDataAsset
+class CADENCE_API UCadenceTransitionTransform : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 
 public:
-	virtual TArray<ICadenceTickableAction*> CreateTickables(AActor* InActor, const float& InDuration, const FCadencePlace& InStartPlace, const FCadencePlace& InEndPlace);
+	virtual TArray<TScriptInterface<ICadenceTickableAction>> CreateTickables(AActor* InActor, const float& InDuration, const FCadencePlace& InEndPlace);
 
 protected:
 	UPROPERTY(EditInstanceOnly)
@@ -27,12 +27,12 @@ protected:
 };
 
 UCLASS()
-class CADENCE_API UCadenceTransitionTranslateStepped : public UCadenceTransitionTranslate
+class CADENCE_API UCadenceTransitionTransformStepped : public UCadenceTransitionTransform
 {
 	GENERATED_BODY()
 
 public:
-	virtual TArray<ICadenceTickableAction*> CreateTickables(AActor* InActor, const float& InDuration, const FCadencePlace& InStartPlace, const FCadencePlace& InEndPlace) override;
+	virtual TArray<TScriptInterface<ICadenceTickableAction>> CreateTickables(AActor* InActor, const float& InDuration, const FCadencePlace& InEndPlace) override;
 
 protected:
 	UPROPERTY(EditInstanceOnly)

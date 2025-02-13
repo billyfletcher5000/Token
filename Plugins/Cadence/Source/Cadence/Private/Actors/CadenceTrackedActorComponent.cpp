@@ -34,7 +34,7 @@ void UCadenceTrackedActorComponent::RegenerateCadenceGUID()
 
 void UCadenceTrackedActorComponent::BeginPlay()
 {
-	Super::OnRegister();
+	Super::BeginPlay();
 
 	UWorld* World = GetWorld();
 	if(!ensure(World))	
