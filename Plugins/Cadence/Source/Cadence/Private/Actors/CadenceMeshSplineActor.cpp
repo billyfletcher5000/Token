@@ -3,6 +3,7 @@
 
 #include "Actors/CadenceMeshSplineActor.h"
 
+#include "Actors/CadenceTrackedActorComponent.h"
 #include "Components/SplineComponent.h"
 #include "Components/SplineMeshComponent.h"
 
@@ -11,9 +12,11 @@
 ACadenceMeshSplineActor::ACadenceMeshSplineActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
+	
 	SplineComponent = this->CreateDefaultSubobject<USplineComponent>(TEXT("Spline"));
 	SetRootComponent(SplineComponent);
+	
+	CreateDefaultSubobject<UCadenceTrackedActorComponent>(TEXT("CadenceTrackedActor"));
 }
 
 void ACadenceMeshSplineActor::SetSplinePoints(const TArray<FVector>& InPoints, ESplineCoordinateSpace::Type InCoordinateSpace)

@@ -48,8 +48,10 @@ public:
 	virtual void BeginDestroy() override;
 	
 	void GenerateSectionDurationData(UCadenceSequencerSection* InStartSection);
-	float GetSectionDuration(const FString& SectionName);
+	float GetSectionDuration(const FString& SectionName) const;
 
+	float GetQuantizationDuration(const EQuartzCommandQuantization& InDuration) const;
+	
 	UCadenceAsset* GetAsset() const { return Asset; }
 	
 	void SetPrimaryRunner(UCadenceGraphRunner* InRunner);
@@ -73,8 +75,8 @@ public:
 	
 private:
 	float GetAlignedTime(float TimeInSeconds, ECadenceSectionEdgeQuantizationType StartEdgeQuantizationType, EQuartzCommandQuantization QuartzCommandQuantization) const;
-	float GetStartFrameSeconds(UMovieSceneSection* Section);
-	float GetEndFrameSeconds(UMovieSceneSection* Section);
+	float GetStartFrameSeconds(UMovieSceneSection* Section) const;
+	float GetEndFrameSeconds(UMovieSceneSection* Section) const;
 	
 private:	
 	UPROPERTY()

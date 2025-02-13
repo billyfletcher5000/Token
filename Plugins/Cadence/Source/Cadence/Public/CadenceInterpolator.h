@@ -49,6 +49,68 @@ protected:
 	T Value;
 };
 
+template<typename T, typename FloatType = float>
+class TCadenceSteppedInterpolator : ICadenceTickableAction
+{
+public:
+	T GetValue() const { return Value; }
+	
+	virtual bool Tick(const float& InDeltaSeconds) override
+	{
+		ProgressSeconds += InDeltaSeconds;
+		if(ProgressSeconds < TotalDuration)
+		{
+			FloatType CombinedStepSize = StepTransitionDuration + StepDelay;
+			int32 Step = FMath::FloorToInt32(ProgressSeconds / CombinedStepSize);
+			FloatType CombinedStepProgress = FMath::Fmod(ProgressSeconds, CombinedStepSize);
+			if(CombinedStepProgress < StepTransitionDuration)
+			{
+				FloatType StepTransitionProgress = CombinedStepSize / StepTransitionDuration;
+				int32 TotalSteps = FMath::FloorToInt32(TotalDuration / CombinedStepSize);
+				FloatType MovingStepDuration = (TotalDuration / CombinedStepSize) - (TotalSteps * StepDelay);
+				T Diff = End - Start;
+				T StepDistance = Diff / MovingStepDuration;
+				T PreviousStep = Start + (StepDistance * Step);
+				T NextStep = Start + (StepDistance * (Step + 1));
+				
+				Value = UCadenceMath::Ease(PreviousStep, NextStep, StepTransitionProgress, Ease);
+			}
+			// else // We are in a delay and don't need to move					
+			
+			return false;
+		}
+
+		Value = End;
+		return true;
+	}
+
+protected:
+	template<typename TInterp>
+	static TInterp* CreateInternal(const T& Start, const T& End, const FloatType& TotalDuration, const FloatType& StepTransitionDuration, const FloatType& StepDelay, const TEnumAsByte<ECadenceEasingFunc::Type>& Ease)
+	{
+		TInterp* Val = NewObject<TInterp>();
+		Val->Start = Start;
+		Val->End = End;
+		Val->TotalDuration = TotalDuration;
+		Val->StepTransitionDuration = StepTransitionDuration;
+		Val->StepDelay = StepDelay;
+		Val->Ease = Ease;
+		return Val;
+	}
+	
+protected:
+	T Start;
+	T End;
+	FloatType TotalDuration = 0.0f;
+	FloatType StepTransitionDuration = 0.0f;
+	FloatType StepDelay = 0.0f;
+	TEnumAsByte<ECadenceEasingFunc::Type> Ease = ECadenceEasingFunc::Linear;
+	FloatType ProgressSeconds = 0.0f;
+
+	T Value;
+};
+
+
 template<>
 class TCadenceInterpolator<FRotator, float> : public ICadenceTickableAction
 {
@@ -80,14 +142,76 @@ protected:
 	}
 	
 protected:
-	FRotator Start;
-	FRotator End;
+	FRotator Start = FRotator::ZeroRotator;
+	FRotator End = FRotator::ZeroRotator;
 	float Duration = 0.0f;
 	TEnumAsByte<ECadenceEasingFunc::Type> Ease = ECadenceEasingFunc::Linear;
 	float Progress = 0.0f;
 	bool bShortestPath = true;
 
-	FRotator Value;
+	FRotator Value = FRotator::ZeroRotator;
+};
+
+template<>
+class TCadenceSteppedInterpolator<FRotator, float> : ICadenceTickableAction
+{
+public:
+	FRotator GetValue() const { return Value; }
+	
+	virtual bool Tick(const float& InDeltaSeconds) override
+	{
+		ProgressSeconds += InDeltaSeconds;
+		if(ProgressSeconds < TotalDuration)
+		{
+			float CombinedStepSize = StepTransitionDuration + StepDelay;
+			int32 Step = FMath::FloorToInt32(ProgressSeconds / CombinedStepSize);
+			float CombinedStepProgress = FMath::Fmod(ProgressSeconds, CombinedStepSize);
+			if(CombinedStepProgress < StepTransitionDuration)
+			{
+				float StepTransitionProgress = CombinedStepSize / StepTransitionDuration;
+				int32 TotalSteps = FMath::FloorToInt32(TotalDuration / CombinedStepSize);
+				float MovingStepDuration = (TotalDuration / CombinedStepSize) - (TotalSteps * StepDelay);
+				FRotator Diff = End - Start;
+				FRotator StepDistance = Diff * (1.0f / MovingStepDuration);
+				FRotator PreviousStep = Start + (StepDistance * Step);
+				FRotator NextStep = Start + (StepDistance * (Step + 1));
+				
+				Value = UCadenceMath::Ease(PreviousStep, NextStep, StepTransitionProgress, bShortestPath, Ease);
+			}
+			// else // We are in a delay and don't need to move					
+			
+			return false;
+		}
+
+		Value = End;
+		return true;
+	}
+
+protected:
+	template<typename TInterp>
+	static TInterp* CreateInternal(const FRotator& Start, const FRotator& End, const float& TotalDuration, const float& StepTransitionDuration, const float& StepDelay, const TEnumAsByte<ECadenceEasingFunc::Type>& Ease, const bool& bShortestPath)
+	{
+		TInterp* Val = NewObject<TInterp>();
+		Val->Start = Start;
+		Val->End = End;
+		Val->TotalDuration = TotalDuration;
+		Val->StepTransitionDuration = StepTransitionDuration;
+		Val->StepDelay = StepDelay;
+		Val->Ease = Ease;
+		return Val;
+	}
+	
+protected:
+	FRotator Start = FRotator::ZeroRotator;
+	FRotator End = FRotator::ZeroRotator;
+	float TotalDuration = 0.0f;
+	float StepTransitionDuration = 0.0f;
+	float StepDelay = 0.0f;
+	TEnumAsByte<ECadenceEasingFunc::Type> Ease = ECadenceEasingFunc::Linear;
+	float ProgressSeconds = 0.0f;
+	bool bShortestPath = true;
+
+	FRotator Value = FRotator::ZeroRotator;
 };
 
 UCLASS()
@@ -147,5 +271,65 @@ public:
 	static UCadenceInterpolatorRotator* Create(const FRotator& Start, const FRotator& End, const float& Duration, const TEnumAsByte<ECadenceEasingFunc::Type>& Ease, const bool& bShortestPath)
 	{
 		return CreateInternal<UCadenceInterpolatorRotator>(Start, End, Duration, Ease, bShortestPath);
+	}
+};
+
+UCLASS()
+class UCadenceSteppedInterpolatorDouble : public UObject, public TCadenceSteppedInterpolator<double, double>
+{
+	GENERATED_BODY()
+
+public:
+	static UCadenceSteppedInterpolatorDouble* Create(const double& Start, const double& End, const double& TotalDuration, const double& StepTransitionDuration, const double& StepDelay, const TEnumAsByte<ECadenceEasingFunc::Type>& Ease)
+	{
+		return CreateInternal<UCadenceSteppedInterpolatorDouble>(Start, End, TotalDuration, StepTransitionDuration, StepDelay, Ease);
+	}
+};
+
+UCLASS()
+class UCadenceSteppedInterpolatorFloat : public UObject, public TCadenceSteppedInterpolator<float>
+{
+	GENERATED_BODY()
+
+public:
+	static UCadenceSteppedInterpolatorFloat* Create(const float& Start, const float& End, const float& TotalDuration, const float& StepTransitionDuration, const float& StepDelay, const TEnumAsByte<ECadenceEasingFunc::Type>& Ease)
+	{
+		return CreateInternal<UCadenceSteppedInterpolatorFloat>(Start, End, TotalDuration, StepTransitionDuration, StepDelay, Ease);
+	}
+};
+
+UCLASS()
+class UCadenceSteppedInterpolatorVector : public UObject, public TCadenceSteppedInterpolator<FVector>
+{
+	GENERATED_BODY()
+
+public:
+	static UCadenceSteppedInterpolatorVector* Create(const FVector& Start, const FVector& End, const float& TotalDuration, const float& StepTransitionDuration, const float& StepDelay, const TEnumAsByte<ECadenceEasingFunc::Type>& Ease)
+	{
+		return CreateInternal<UCadenceSteppedInterpolatorVector>(Start, End, TotalDuration, StepTransitionDuration, StepDelay, Ease);
+	}
+};
+
+UCLASS()
+class UCadenceSteppedInterpolatorVector2 : public UObject, public TCadenceSteppedInterpolator<FVector2D>
+{
+	GENERATED_BODY()
+
+public:
+	static UCadenceSteppedInterpolatorVector2* Create(const FVector2D& Start, const FVector2D& End, const float& TotalDuration, const float& StepTransitionDuration, const float& StepDelay, const TEnumAsByte<ECadenceEasingFunc::Type>& Ease)
+	{
+		return CreateInternal<UCadenceSteppedInterpolatorVector2>(Start, End, TotalDuration, StepTransitionDuration, StepDelay, Ease);
+	}
+};
+
+UCLASS()
+class UCadenceSteppedInterpolatorRotator : public UObject, public TCadenceSteppedInterpolator<FRotator>
+{
+	GENERATED_BODY()
+
+public:
+	static UCadenceSteppedInterpolatorRotator* Create(const FRotator& Start, const FRotator& End, const float& TotalDuration, const float& StepTransitionDuration, const float& StepDelay, const TEnumAsByte<ECadenceEasingFunc::Type>& Ease, const bool& bShortestPath)
+	{
+		return CreateInternal<UCadenceSteppedInterpolatorRotator>(Start, End, TotalDuration, StepTransitionDuration, StepDelay, Ease, bShortestPath);
 	}
 };

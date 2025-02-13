@@ -109,8 +109,6 @@ void UCadenceSubsystem::Notify_SectionEnd(UMovieSceneSequence* Sequence, UCadenc
 void UCadenceSubsystem::Notify_SequenceStart(UCadenceAsset* CadenceAsset)
 {
 	UE_LOG(LogCadence, Log, TEXT("Sequence Start: %s"), *CadenceAsset->GetName());
-
-	GetOrCreateActiveAssetData(CadenceAsset);
 }
 
 void UCadenceSubsystem::Notify_SequenceEnd(UCadenceAsset* CadenceAsset)
@@ -190,6 +188,21 @@ UCadenceAssetInstance* UCadenceSubsystem::GetActiveAssetData(UCadenceGraphRunner
 void UCadenceSubsystem::NotifyGraphComplete(UCadenceGraphRunner* InRunner)
 {
 	EndedRunners.Add(InRunner);
+}
+
+void UCadenceSubsystem::RegisterTrackedActor(AActor* InActor, const FGuid& InGUID)
+{
+	TrackedActors.Add(InGUID, InActor);
+}
+
+void UCadenceSubsystem::UnregisterTrackedActor(AActor* InActor, const FGuid& InGUID)
+{
+	auto Existing = TrackedActors.Find(InGUID);
+	if(Existing)
+	{
+		ensureMsgf(InActor == Existing->Get(), TEXT("Attempt to unregister differing tracked actor with GUID: %s"), *InGUID.ToString());		
+		TrackedActors.Remove(InGUID);
+	}
 }
 
 #define PB(b) b ? *FString("true") : *FString("false")

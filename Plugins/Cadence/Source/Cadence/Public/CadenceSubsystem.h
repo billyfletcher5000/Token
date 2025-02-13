@@ -17,6 +17,7 @@ class UCadenceGraph;
 class UCadenceAsset;
 class UCadenceGraphRunner;
 class UCadenceRunGraphTickable;
+class UCadenceTrackedActorComponent;
 
 UCLASS()
 class CADENCE_API UCadenceSubsystem : public UTickableWorldSubsystem
@@ -51,9 +52,14 @@ public:
 
 	void Notify_SequenceUpdated(UCadenceAsset* CadenceAsset, FFrameTime CurrentTime, FFrameTime PreviousTime);
 
+	UCadenceAssetInstance* GetPrimaryActiveAsset() const { return ActiveAssets.Num() > 0 ? ActiveAssets.Last() : nullptr; }
+
+	
+
 protected:
 	friend UCadenceGraphRunner;
 	friend UCadenceRunGraphTickable;
+	friend UCadenceTrackedActorComponent;
 	
 	UCadenceAssetInstance* GetOrCreateActiveAssetData(UCadenceAsset* InAsset);
 	UCadenceAssetInstance* GetActiveAssetData(UCadenceAsset* InAsset);
@@ -61,6 +67,9 @@ protected:
 	UCadenceAssetInstance* GetActiveAssetData(UCadenceGraphRunner* InRunner);
 	UCadenceGraphRunner* CreateRunner(UCadenceAssetInstance* InAssetInstance, UCadenceGraph* InGraph = nullptr);
 	void NotifyGraphComplete(UCadenceGraphRunner* InRunner);
+	
+	void RegisterTrackedActor(AActor* InActor, const FGuid& InGUID);
+	void UnregisterTrackedActor(AActor* InActor, const FGuid& InGUID);	
 
 	static void LogOuterRelationships(UCadenceGraph* Copy, UCadenceGraph* Source);
 
@@ -73,4 +82,7 @@ private:
 
 	UPROPERTY(Transient)
 	TMap<UCadenceReactionGroup*, UCadenceReactionGroup*> ReactionGroupAssetToInstance;
+
+	TWeakObjectPtr<UCadenceAssetInstance> MostRecentActiveAsset = nullptr;
+	TMap<FGuid, TWeakObjectPtr<AActor>> TrackedActors;
 };

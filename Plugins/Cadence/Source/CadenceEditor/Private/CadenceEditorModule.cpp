@@ -17,6 +17,9 @@
 #include "ISettingsModule.h"
 #include "Reaction/CadenceReactionGroup.h"
 #include "Interfaces/IPluginManager.h"
+#include "Places/CadencePlaces.h"
+#include "Places/CadencePlacesSnapshotCustomisation.h"
+#include "Places/CadenceStageDetailCustomization.h"
 #include "Reaction/CadenceReactionGroupCustomization.h"
 #include "SequencerTrack/CadenceSequencerSection.h"
 #include "Styling/SlateStyleRegistry.h"
@@ -83,7 +86,11 @@ void FCadenceEditorModule::StartupModule()
 	PropertyModule.RegisterCustomClassLayout(UCadenceGraph::StaticClass()->GetFName(),
 		FOnGetDetailCustomizationInstance::CreateStatic( &FCadenceGraphCustomization::MakeInstance ) );
 	PropertyModule.RegisterCustomClassLayout(UCadenceReactionGroup::StaticClass()->GetFName(),
-		FOnGetDetailCustomizationInstance::CreateStatic( &FCadenceReactionGroupCustomization::MakeInstance));
+		FOnGetDetailCustomizationInstance::CreateStatic( &FCadenceReactionGroupCustomization::MakeInstance) );
+	PropertyModule.RegisterCustomClassLayout(ACadenceStageActor::StaticClass()->GetFName(),
+		FOnGetDetailCustomizationInstance::CreateStatic( &FCadenceStageDetailCustomization::MakeInstance) );
+	PropertyModule.RegisterCustomClassLayout(UCadencePlacesSnapshot::StaticClass()->GetFName(),
+		FOnGetDetailCustomizationInstance::CreateStatic( &FCadencePlacesSnapshotDetailCustomization::MakeInstance) );
 	
 	PropertyModule.NotifyCustomizationModuleChanged();
 
@@ -114,6 +121,8 @@ void FCadenceEditorModule::ShutdownModule()
 	
 	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceGraphUserVariableSet::StaticStruct()->GetFName());
 	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceNamedVariable::StaticStruct()->GetFName());
+	PropertyModule.UnregisterCustomPropertyTypeLayout(ACadenceStageActor::StaticClass()->GetFName());
+	PropertyModule.UnregisterCustomPropertyTypeLayout(UCadencePlacesSnapshot::StaticClass()->GetFName());
 	
 	VariableToInlineWidgetFunc.Empty();
 	

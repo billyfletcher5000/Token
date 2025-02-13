@@ -4,6 +4,7 @@
 #include "Actors/CadenceSplinePointProxy.h"
 
 #include "Actors/CadenceMeshSplineActor.h"
+#include "Actors/CadenceTrackedActorComponent.h"
 #include "Internationalization/Internationalization.h"
 
 
@@ -14,6 +15,8 @@ ACadenceSplinePointProxy::ACadenceSplinePointProxy()
 	PrimaryActorTick.bCanEverTick = false;
 
 	ProxySceneComponent = CreateDefaultSubobject<UCadenceSplinePointProxySceneComponent>("ProxySceneComponent");
+	
+	CreateDefaultSubobject<UCadenceTrackedActorComponent>(TEXT("CadenceTrackedActor"));
 }
 
 void ACadenceSplinePointProxy::Init(ACadenceMeshSplineActor* InMeshSplineActor, int32 InPointIndex)

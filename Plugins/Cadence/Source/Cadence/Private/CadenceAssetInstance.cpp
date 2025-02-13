@@ -66,9 +66,9 @@ void UCadenceAssetInstance::GenerateSectionDurationData(UCadenceSequencerSection
 	}
 }
 
-float UCadenceAssetInstance::GetSectionDuration(const FString& SectionName)
+float UCadenceAssetInstance::GetSectionDuration(const FString& SectionName) const
 {
-	for(FCadenceSectionTimingData& Data : TimingDataList)
+	for(const FCadenceSectionTimingData& Data : TimingDataList)
 	{
 		if(Data.SectionName == SectionName)
 			return Data.GetDuration();
@@ -76,6 +76,11 @@ float UCadenceAssetInstance::GetSectionDuration(const FString& SectionName)
 
 	UE_LOG(LogCadence, Warning, TEXT("Cannot retrieve section duration for unrecognised section name: %s"), *SectionName);
 	return 0.0f;
+}
+
+float UCadenceAssetInstance::GetQuantizationDuration(const EQuartzCommandQuantization& InDuration) const
+{
+	return ClockHandle->GetDurationOfQuantizationTypeInSeconds(this, InDuration);
 }
 
 void UCadenceAssetInstance::SetPrimaryRunner(UCadenceGraphRunner* InRunner)
@@ -170,7 +175,7 @@ float UCadenceAssetInstance::GetAlignedTime(float TimeInSeconds, ECadenceSection
 	return TimeInSeconds;
 }
 
-float UCadenceAssetInstance::GetStartFrameSeconds(UMovieSceneSection* Section)
+float UCadenceAssetInstance::GetStartFrameSeconds(UMovieSceneSection* Section) const
 {
 	if (!Section)
 	{
@@ -184,17 +189,17 @@ float UCadenceAssetInstance::GetStartFrameSeconds(UMovieSceneSection* Section)
 		return -1.f;
 	}
 
-	UMovieScene* MovieScene = Section->GetTypedOuter<UMovieScene>();
+	const UMovieScene* MovieScene = Section->GetTypedOuter<UMovieScene>();
 	if (MovieScene)
 	{
-		FFrameRate DisplayRate = MovieScene->GetDisplayRate();
+		const FFrameRate DisplayRate = MovieScene->GetDisplayRate();
 		return DisplayRate.AsSeconds(ConvertFrameTime(UE::MovieScene::DiscreteInclusiveLower(Section->GetRange()), MovieScene->GetTickResolution(), DisplayRate));
 	}
 
 	return -1.f;
 }
 
-float UCadenceAssetInstance::GetEndFrameSeconds(UMovieSceneSection* Section)
+float UCadenceAssetInstance::GetEndFrameSeconds(UMovieSceneSection* Section) const
 {
 	if (!Section)
 	{
@@ -208,10 +213,10 @@ float UCadenceAssetInstance::GetEndFrameSeconds(UMovieSceneSection* Section)
 		return -1.f;
 	}
 
-	UMovieScene* MovieScene = Section->GetTypedOuter<UMovieScene>();
+	const UMovieScene* MovieScene = Section->GetTypedOuter<UMovieScene>();
 	if (MovieScene)
 	{
-		FFrameRate DisplayRate = MovieScene->GetDisplayRate();
+		const FFrameRate DisplayRate = MovieScene->GetDisplayRate();
 		return DisplayRate.AsSeconds(ConvertFrameTime(UE::MovieScene::DiscreteExclusiveUpper(Section->GetRange()), MovieScene->GetTickResolution(), DisplayRate));
 	}
 

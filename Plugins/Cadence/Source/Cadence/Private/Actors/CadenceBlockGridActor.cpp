@@ -5,6 +5,7 @@
 
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
+#include "Actors/CadenceTrackedActorComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 
@@ -16,6 +17,8 @@ ACadenceBlockGridActor::ACadenceBlockGridActor()
 
 	USceneComponent* RootSceneComponent = CreateDefaultSubobject<USceneComponent>("SceneComponent");
 	SetRootComponent(RootSceneComponent);
+
+	CreateDefaultSubobject<UCadenceTrackedActorComponent>(TEXT("CadenceTrackedActor"));
 	
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>("NiagaraBlockGridComponent");
 	NiagaraComponent->AttachToComponent(RootSceneComponent, FAttachmentTransformRules::KeepRelativeTransform);
