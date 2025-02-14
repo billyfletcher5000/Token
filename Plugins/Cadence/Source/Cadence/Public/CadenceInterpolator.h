@@ -65,11 +65,10 @@ public:
 			FloatType CombinedStepProgress = FMath::Fmod(ProgressSeconds, CombinedStepSize);
 			if(CombinedStepProgress < StepTransitionDuration)
 			{
-				FloatType StepTransitionProgress = CombinedStepSize / StepTransitionDuration;
-				int32 TotalSteps = FMath::FloorToInt32(TotalDuration / CombinedStepSize);
-				FloatType MovingStepDuration = (TotalDuration / CombinedStepSize) - (TotalSteps * StepDelay);
+				FloatType StepTransitionProgress = CombinedStepProgress / StepTransitionDuration;
+				FloatType TotalSteps = FMath::CeilToFloat(TotalDuration / CombinedStepSize);
 				T Diff = End - Start;
-				T StepDistance = Diff / MovingStepDuration;
+				T StepDistance = Diff / TotalSteps;
 				T PreviousStep = Start + (StepDistance * Step);
 				T NextStep = Start + (StepDistance * (Step + 1));
 				
@@ -168,11 +167,10 @@ public:
 			float CombinedStepProgress = FMath::Fmod(ProgressSeconds, CombinedStepSize);
 			if(CombinedStepProgress < StepTransitionDuration)
 			{
-				float StepTransitionProgress = CombinedStepSize / StepTransitionDuration;
-				int32 TotalSteps = FMath::FloorToInt32(TotalDuration / CombinedStepSize);
-				float MovingStepDuration = (TotalDuration / CombinedStepSize) - (TotalSteps * StepDelay);
+				float StepTransitionProgress = CombinedStepProgress / StepTransitionDuration;
+				float TotalSteps = FMath::CeilToFloat(TotalDuration / CombinedStepSize);
 				FRotator Diff = End - Start;
-				FRotator StepDistance = Diff * (1.0f / MovingStepDuration);
+				FRotator StepDistance = Diff * (1.0f / TotalSteps);
 				FRotator PreviousStep = Start + (StepDistance * Step);
 				FRotator NextStep = Start + (StepDistance * (Step + 1));
 				
