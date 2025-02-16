@@ -34,16 +34,8 @@ void UCadenceStageTransitionNode::CreateLatentActions(TArray<TScriptInterface<IC
 	if(!IsValid(World))
 		return;
 
-	UCadenceSubsystem* CadenceSubsystem = World->GetSubsystem<UCadenceSubsystem>();
-	if(!IsValid(CadenceSubsystem))
-		return;
-
-	for(FCadencePlacePair& PlacePair : Snapshot->Places)
+	for(FCadenceActorPlaceSet& PlaceSet : Snapshot->PlaceSets)
 	{
-		AActor* Actor = CadenceSubsystem->GetTrackedActor(PlacePair.TrackedActorID);
-		if(!IsValid(Actor))
-			continue;
-
-		InActionList.Append(Transition->CreateTickables(Actor, Duration, PlacePair.Place));
+		InActionList.Append(Transition->CreateTickables(World, PlaceSet, Duration));
 	}	
 }

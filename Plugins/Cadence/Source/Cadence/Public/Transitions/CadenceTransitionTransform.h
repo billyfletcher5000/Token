@@ -7,7 +7,7 @@
 #include "UObject/Object.h"
 #include "CadenceTransitionTransform.generated.h"
 
-struct FCadencePlace;
+struct FCadenceActorPlaceSet;
 class ICadenceTickableAction;
 
 UCLASS()
@@ -16,7 +16,7 @@ class CADENCE_API UCadenceTransitionTransform : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
-	virtual TArray<TScriptInterface<ICadenceTickableAction>> CreateTickables(AActor* InActor, const float& InDuration, const FCadencePlace& InEndPlace);
+	virtual TArray<TScriptInterface<ICadenceTickableAction>> CreateTickables(UWorld* InWorld, const FCadenceActorPlaceSet& InEndPlaceSet, const float& InDuration);
 
 protected:
 	UPROPERTY(EditInstanceOnly)
@@ -32,7 +32,7 @@ class CADENCE_API UCadenceTransitionTransformStepped : public UCadenceTransition
 	GENERATED_BODY()
 
 public:
-	virtual TArray<TScriptInterface<ICadenceTickableAction>> CreateTickables(AActor* InActor, const float& InDuration, const FCadencePlace& InEndPlace) override;
+	virtual TArray<TScriptInterface<ICadenceTickableAction>> CreateTickables(UWorld* InWorld, const FCadenceActorPlaceSet& InEndPlaceSet, const float& InDuration) override;
 
 protected:
 	UPROPERTY(EditInstanceOnly)

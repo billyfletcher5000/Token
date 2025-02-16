@@ -6,6 +6,10 @@
 #include "Components/ActorComponent.h"
 #include "CadenceTrackedActorComponent.generated.h"
 
+namespace FCadenceTrackingConstants
+{
+	static const FName TrackedSceneComponentTag = TEXT("Cadence_Tracked");
+}
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CADENCE_API UCadenceTrackedActorComponent : public UActorComponent
@@ -27,9 +31,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	int32 GetTrackingChannel() const { return TrackingChannel; }
-
+	
 private:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, NonPIEDuplicateTransient)
 	FGuid TrackedActorID;
 
 	UPROPERTY(EditAnywhere)

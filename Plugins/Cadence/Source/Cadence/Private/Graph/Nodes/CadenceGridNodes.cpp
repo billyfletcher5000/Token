@@ -226,7 +226,7 @@ void UCadenceGridMoveToPointNode::CreateLatentActions(TArray<TScriptInterface<IC
 	UCadenceGraphNodePin* DurationPin = GetInputPin(FCadencePinConstants::Pin_Duration);
 	float TargetDuration = DurationPin->GetVariable<UCadenceVariableFloat>()->GetValue();	
 
-	InActionList.Add(UCadenceActorTranslateTickable::Create(Actor, TargetDuration, TargetWorldPosition, Easing));
+	InActionList.Add(UCadenceSceneComponentTranslateTickable::Create(Actor->GetRootComponent(), TargetDuration, TargetWorldPosition, Easing));
 }
 
 #if WITH_EDITOR

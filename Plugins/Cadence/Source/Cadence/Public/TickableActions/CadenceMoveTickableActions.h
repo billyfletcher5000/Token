@@ -9,114 +9,114 @@
 #include "CadenceMoveTickableActions.generated.h"
 
 UCLASS()
-class CADENCE_API UCadenceActorTranslateTickable : public UObject, public ICadenceTickableAction
+class CADENCE_API UCadenceSceneComponentTranslateTickable : public UObject, public ICadenceTickableAction
 {
 	GENERATED_BODY()
 	
 public:
-	static UCadenceActorTranslateTickable* Create(AActor* InActor, const float& InDuration, const FVector& InEndPoint, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
-	static UCadenceActorTranslateTickable* Create(AActor* InActor, const float& InDuration, const FVector& InStartPoint, const FVector& InEndPoint, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
+	static UCadenceSceneComponentTranslateTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FVector& InEndPoint, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
+	static UCadenceSceneComponentTranslateTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FVector& InStartPoint, const FVector& InEndPoint, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
 
 	virtual bool Tick(const float& InDeltaSeconds) override;
 	
 private:
 	UPROPERTY()
-	TWeakObjectPtr<AActor> Actor;
+	TWeakObjectPtr<USceneComponent> SceneComponent;
 
 	UPROPERTY()
 	TObjectPtr<UCadenceInterpolatorVector> Interpolator;
 };
 
 UCLASS()
-class CADENCE_API UCadenceActorTranslateSteppedTickable : public UObject, public ICadenceTickableAction
+class CADENCE_API UCadenceSceneComponentTranslateSteppedTickable : public UObject, public ICadenceTickableAction
 {
 	GENERATED_BODY()
 	
 public:
-	static UCadenceActorTranslateSteppedTickable* Create(AActor* InActor, const float& InDuration, const FVector& InEndPoint, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
-	static UCadenceActorTranslateSteppedTickable* Create(AActor* InActor, const float& InDuration, const FVector& InStartPoint, const FVector& InEndPoint, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
+	static UCadenceSceneComponentTranslateSteppedTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FVector& InEndPoint, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
+	static UCadenceSceneComponentTranslateSteppedTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FVector& InStartPoint, const FVector& InEndPoint, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
 
 	virtual bool Tick(const float& InDeltaSeconds) override;
 	
 private:
 	UPROPERTY()
-	TWeakObjectPtr<AActor> Actor;
+	TWeakObjectPtr<USceneComponent> SceneComponent;
 
 	UPROPERTY()
 	TObjectPtr<UCadenceSteppedInterpolatorVector> Interpolator;
 };
 
 UCLASS()
-class CADENCE_API UCadenceActorRotateTickable : public UObject, public ICadenceTickableAction
+class CADENCE_API UCadenceSceneComponentRotateTickable : public UObject, public ICadenceTickableAction
 {
 	GENERATED_BODY()
 	
 public:
-	static UCadenceActorRotateTickable* Create(AActor* InActor, const float& InDuration, const FRotator& InEndRotation, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
-	static UCadenceActorRotateTickable* Create(AActor* InActor, const float& InDuration, const FRotator& InStartRotation, const FRotator& InEndRotation, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
+	static UCadenceSceneComponentRotateTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FRotator& InEndRotation, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
+	static UCadenceSceneComponentRotateTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FRotator& InStartRotation, const FRotator& InEndRotation, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
 
 	virtual bool Tick(const float& InDeltaSeconds) override;
 	
 private:
 	UPROPERTY()
-	TWeakObjectPtr<AActor> Actor;
+	TWeakObjectPtr<USceneComponent> SceneComponent;
 
 	UPROPERTY()
 	TObjectPtr<UCadenceInterpolatorRotator> Interpolator;
 };
 
 UCLASS()
-class CADENCE_API UCadenceActorRotateSteppedTickable : public UObject, public ICadenceTickableAction
+class CADENCE_API UCadenceSceneComponentRotateSteppedTickable : public UObject, public ICadenceTickableAction
 {
 	GENERATED_BODY()
 	
 public:
-	static UCadenceActorRotateSteppedTickable* Create(AActor* InActor, const float& InDuration, const FRotator& InEndRotation, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
-	static UCadenceActorRotateSteppedTickable* Create(AActor* InActor, const float& InDuration, const FRotator& InStartRotation, const FRotator& InEndRotation, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
+	static UCadenceSceneComponentRotateSteppedTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FRotator& InEndRotation, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
+	static UCadenceSceneComponentRotateSteppedTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FRotator& InStartRotation, const FRotator& InEndRotation, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
 
 	virtual bool Tick(const float& InDeltaSeconds) override;
 	
 private:
 	UPROPERTY()
-	TWeakObjectPtr<AActor> Actor;
+	TWeakObjectPtr<USceneComponent> SceneComponent;
 
 	UPROPERTY()
 	TObjectPtr<UCadenceSteppedInterpolatorRotator> Interpolator;
 };
 
 UCLASS()
-class CADENCE_API UCadenceActorScaleTickable : public UObject, public ICadenceTickableAction
+class CADENCE_API UCadenceSceneComponentScaleTickable : public UObject, public ICadenceTickableAction
 {
 	GENERATED_BODY()
 	
 public:
-	static UCadenceActorScaleTickable* Create(AActor* InActor, const float& InDuration, const FVector& InEndScale, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
-	static UCadenceActorScaleTickable* Create(AActor* InActor, const float& InDuration, const FVector& InStartScale, const FVector& InEndScale, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
+	static UCadenceSceneComponentScaleTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FVector& InEndScale, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
+	static UCadenceSceneComponentScaleTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FVector& InStartScale, const FVector& InEndScale, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
 
 	virtual bool Tick(const float& InDeltaSeconds) override;
 	
 private:
 	UPROPERTY()
-	TWeakObjectPtr<AActor> Actor;
+	TWeakObjectPtr<USceneComponent> SceneComponent;
 
 	UPROPERTY()
 	TObjectPtr<UCadenceInterpolatorVector> Interpolator;
 };
 
 UCLASS()
-class CADENCE_API UCadenceActorScaleSteppedTickable : public UObject, public ICadenceTickableAction
+class CADENCE_API UCadenceSceneComponentScaleSteppedTickable : public UObject, public ICadenceTickableAction
 {
 	GENERATED_BODY()
 	
 public:
-	static UCadenceActorScaleSteppedTickable* Create(AActor* InActor, const float& InDuration, const FVector& InEndScale, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
-	static UCadenceActorScaleSteppedTickable* Create(AActor* InActor, const float& InDuration, const FVector& InStartScale, const FVector& InEndScale, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
+	static UCadenceSceneComponentScaleSteppedTickable* Create(USceneComponent* InActor, const float& InDuration, const FVector& InEndScale, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
+	static UCadenceSceneComponentScaleSteppedTickable* Create(USceneComponent* InActor, const float& InDuration, const FVector& InStartScale, const FVector& InEndScale, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
 
 	virtual bool Tick(const float& InDeltaSeconds) override;
 	
 private:
 	UPROPERTY()
-	TWeakObjectPtr<AActor> Actor;
+	TWeakObjectPtr<USceneComponent> SceneComponent;
 
 	UPROPERTY()
 	TObjectPtr<UCadenceSteppedInterpolatorVector> Interpolator;

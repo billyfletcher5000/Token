@@ -10,6 +10,9 @@ UCadencePlacesSnapshot* ACadenceStageActor::TakePlacesSnapshot()
 {
 	bool bIncludeAllChannels = TrackingChannels.Num() == 0;
 
+	if(!bIncludeLocation && !bIncludeRotation && !bIncludeScale)
+		return nullptr;
+
 	UWorld* World = GetWorld();
 	if(!IsValid(World))
 		return nullptr;
@@ -36,24 +39,46 @@ UCadencePlacesSnapshot* ACadenceStageActor::TakePlacesSnapshot()
 						continue;
 				}
 				
-				FCadencePlacePair PlacePair;
+				FCadenceActorPlaceSet PlaceSet;
 
-				PlacePair.TrackedActorID = TrackedActorComponent->GetTrackedActorID();
+				PlaceSet.TrackedActorID = TrackedActorComponent->GetTrackedActorID();
 				
-				PlacePair.Place.bIncludeLocation = bIncludeLocation;
-				PlacePair.Place.bIncludeRotation = bIncludeRotation;
-				PlacePair.Place.bIncludeScale = bIncludeScale;
+				PlaceSet.Place.bIncludeLocation = bIncludeLocation;
+				PlaceSet.Place.bIncludeRotation = bIncludeRotation;
+				PlaceSet.Place.bIncludeScale = bIncludeScale;
 
 				if(bIncludeLocation)
-					PlacePair.Place.Location = ActorIter->GetActorLocation();
+					PlaceSet.Place.Location = ActorIter->GetRootComponent()->GetRelativeLocation();
 
 				if(bIncludeRotation)
-					PlacePair.Place.Rotation = ActorIter->GetActorRotation();
+					PlaceSet.Place.Rotation = ActorIter->GetRootComponent()->GetRelativeRotation();
 
 				if(bIncludeScale)
-					PlacePair.Place.Scale = ActorIter->GetActorScale3D();
+					PlaceSet.Place.Scale = ActorIter->GetRootComponent()->GetRelativeScale3D();
+
+				auto Components = ActorIter->GetComponentsByTag(USceneComponent::StaticClass(), FCadenceTrackingConstants::TrackedSceneComponentTag);
+				for(auto& Component : Components)
+				{
+					if(USceneComponent* SceneComponent = Cast<USceneComponent>(Component))
+					{
+						FCadenceComponentPlacePair ComponentPair;
+
+						ComponentPair.ComponentPathName = Component->GetPathName(*ActorIter);
+
+						if(bIncludeLocation)
+							ComponentPair.Place.Location = SceneComponent->GetRelativeLocation();
+
+						if(bIncludeRotation)
+							ComponentPair.Place.Rotation = SceneComponent->GetRelativeRotation();
+
+						if(bIncludeScale)
+							ComponentPair.Place.Scale = SceneComponent->GetRelativeScale3D();
+
+						PlaceSet.ComponentPlacePairs.Add(ComponentPair);
+					}
+				}
 				
-				Snapshot->Places.Add(PlacePair);
+				Snapshot->PlaceSets.Add(PlaceSet);
 			}
 		}
 	}

@@ -32,7 +32,19 @@ public:
 };
 
 USTRUCT()
-struct FCadencePlacePair
+struct FCadenceComponentPlacePair
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere)
+	FCadencePlace Place;
+
+	UPROPERTY(VisibleAnywhere)
+	FString ComponentPathName;
+};
+
+USTRUCT()
+struct FCadenceActorPlaceSet
 {
 	GENERATED_BODY()
 
@@ -41,6 +53,9 @@ struct FCadencePlacePair
 
 	UPROPERTY(VisibleAnywhere)
 	FGuid TrackedActorID;
+
+	UPROPERTY(VisibleAnywhere)
+	TArray<FCadenceComponentPlacePair> ComponentPlacePairs;
 };
 
 UCLASS()
@@ -53,7 +68,7 @@ public:
 	FVector StageSourceLocation;
 	
 	UPROPERTY(VisibleInstanceOnly)
-	TArray<FCadencePlacePair> Places;
+	TArray<FCadenceActorPlaceSet> PlaceSets;
 };
 
 UCLASS()

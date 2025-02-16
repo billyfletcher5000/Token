@@ -44,7 +44,7 @@ FReply FCadencePlacesSnapshotDetailCustomization::OnApplySnapshot(TWeakObjectPtr
 		if(UCadenceTrackedActorComponent* TrackedActorComponent = ActorIter->GetComponentByClass<UCadenceTrackedActorComponent>())
 		{
 			FGuid ActorID = TrackedActorComponent->GetTrackedActorID();
-			FCadencePlacePair* Pair = InSnapshot->Places.FindByPredicate([&ActorID] (const FCadencePlacePair& InPair)
+			FCadenceActorPlaceSet* Pair = InSnapshot->PlaceSets.FindByPredicate([&ActorID] (const FCadenceActorPlaceSet& InPair)
 			{
 				return InPair.TrackedActorID == ActorID;
 			});
@@ -55,13 +55,35 @@ FReply FCadencePlacesSnapshotDetailCustomization::OnApplySnapshot(TWeakObjectPtr
 			auto& Place = Pair->Place;
 
 			if(Place.bIncludeLocation)
-				ActorIter->SetActorLocation(Place.Location);
+				ActorIter->GetRootComponent()->SetRelativeLocation(Place.Location);
 
 			if(Place.bIncludeRotation)
-				ActorIter->SetActorRotation(Place.Rotation);
+				ActorIter->GetRootComponent()->SetRelativeRotation(Place.Rotation);
 
 			if(Place.bIncludeScale)
-				ActorIter->SetActorScale3D(Place.Scale);
+				ActorIter->GetRootComponent()->SetRelativeScale3D(Place.Scale);
+
+			for(FCadenceComponentPlacePair& ComponentPair : Pair->ComponentPlacePairs)
+			{
+				auto Components = ActorIter->GetComponentsByTag(USceneComponent::StaticClass(), FCadenceTrackingConstants::TrackedSceneComponentTag);
+				for (auto& Component : Components)
+				{
+					if(Component->GetPathName(*ActorIter) == ComponentPair.ComponentPathName)
+					{
+						if(USceneComponent* SceneComponent = Cast<USceneComponent>(Component))
+						{
+							if(ComponentPair.Place.bIncludeLocation)
+								SceneComponent->SetRelativeLocation(ComponentPair.Place.Location);
+
+							if(ComponentPair.Place.bIncludeRotation)
+								SceneComponent->SetRelativeRotation(ComponentPair.Place.Rotation);
+
+							if(ComponentPair.Place.bIncludeScale)
+								SceneComponent->SetRelativeScale3D(ComponentPair.Place.Scale);
+						}
+					}
+				}
+			}
 		}
 	}
 	

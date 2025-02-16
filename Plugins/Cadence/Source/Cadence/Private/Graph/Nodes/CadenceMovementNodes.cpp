@@ -31,5 +31,5 @@ void UCadenceRotateToNode::CreateLatentActions(TArray<TScriptInterface<ICadenceT
 
 	float TargetDuration = DurationPin->GetVariable<UCadenceVariableFloat>()->GetValue();	
 
-	InActionList.Add(UCadenceActorRotateTickable::Create(Actor, TargetDuration, TargetRotation, Easing, bUseShortestPath));
+	InActionList.Add(UCadenceSceneComponentRotateTickable::Create(Actor->GetRootComponent(), TargetDuration, TargetRotation, Easing, bUseShortestPath));
 }
