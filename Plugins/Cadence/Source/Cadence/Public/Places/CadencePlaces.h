@@ -16,19 +16,19 @@ public:
 	bool bIncludeLocation = true;
 	
 	UPROPERTY(EditAnywhere, meta=(EditCondition="bIncludeLocation"))
-	FVector Location;
+	FVector Location = FVector::ZeroVector;
 
 	UPROPERTY(EditAnywhere)
 	bool bIncludeRotation = true;
 	
 	UPROPERTY(EditAnywhere, meta=(EditCondition="bIncludeRotation"))
-	FRotator Rotation;
+	FRotator Rotation = FRotator::ZeroRotator;
 
 	UPROPERTY(EditAnywhere)
 	bool bIncludeScale = true;
 	
 	UPROPERTY(EditAnywhere, meta=(EditCondition="bIncludeScale"))
-	FVector Scale;
+	FVector Scale = FVector::OneVector;
 };
 
 USTRUCT()
