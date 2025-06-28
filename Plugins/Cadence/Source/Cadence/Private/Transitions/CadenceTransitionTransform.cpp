@@ -97,21 +97,21 @@ TArray<TScriptInterface<ICadenceTickableAction>> UCadenceTransitionTransformStep
 	if(InEndPlaceSet.Place.bIncludeLocation)
 	{
 		FVector StartLocation = RootSceneComponent->GetRelativeLocation();
-		UCadenceSceneComponentTranslateSteppedTickable* Tickable = UCadenceSceneComponentTranslateSteppedTickable::Create(RootSceneComponent, InDuration, StartLocation, InEndPlaceSet.Place.Location, StepProgressQuantization, StepDelayQuantization, Ease);
+		UCadenceSceneComponentTranslateSteppedTickable* Tickable = UCadenceSceneComponentTranslateSteppedTickable::Create(RootSceneComponent, InDuration, StartLocation, InEndPlaceSet.Place.Location, Params, Ease);
 		Tickables.Add(Tickable);
 	}
 
 	if(InEndPlaceSet.Place.bIncludeRotation)
 	{
 		FRotator StartRotation = RootSceneComponent->GetRelativeRotation();
-		UCadenceSceneComponentRotateSteppedTickable* Tickable = UCadenceSceneComponentRotateSteppedTickable::Create(RootSceneComponent, InDuration, StartRotation, InEndPlaceSet.Place.Rotation, StepProgressQuantization, StepDelayQuantization, Ease, bRotationIsShortestPath);
+		UCadenceSceneComponentRotateSteppedTickable* Tickable = UCadenceSceneComponentRotateSteppedTickable::Create(RootSceneComponent, InDuration, StartRotation, InEndPlaceSet.Place.Rotation, Params, Ease, bRotationIsShortestPath);
 		Tickables.Add(Tickable);
 	}
 	
 	if(InEndPlaceSet.Place.bIncludeScale)
 	{
 		FVector StartScale = RootSceneComponent->GetRelativeScale3D();
-		UCadenceSceneComponentScaleSteppedTickable* Tickable = UCadenceSceneComponentScaleSteppedTickable::Create(RootSceneComponent, InDuration, StartScale, InEndPlaceSet.Place.Scale, StepProgressQuantization, StepDelayQuantization, Ease);
+		UCadenceSceneComponentScaleSteppedTickable* Tickable = UCadenceSceneComponentScaleSteppedTickable::Create(RootSceneComponent, InDuration, StartScale, InEndPlaceSet.Place.Scale, Params, Ease);
 		Tickables.Add(Tickable);
 	}
 

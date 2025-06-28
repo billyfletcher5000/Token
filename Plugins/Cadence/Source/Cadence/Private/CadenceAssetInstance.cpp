@@ -45,6 +45,7 @@ void UCadenceAssetInstance::GenerateSectionDurationData(UCadenceSequencerSection
 	NewClockHandle->SetBeatsPerMinute(this, Boundary, EmptyDelegate, NewClockHandle, Graph->GetBPM());
 	NewClockHandle->StartClock(this, NewClockHandle);
 	
+	
 	ClockHandle = NewClockHandle;
 	
 	TimingDataList.Empty();
@@ -173,6 +174,20 @@ float UCadenceAssetInstance::GetAlignedTime(float TimeInSeconds, ECadenceSection
 	}
 
 	return TimeInSeconds;
+}
+
+float UCadenceAssetInstance::GetTimeUntilNextBoundary(ECadenceSectionEdgeQuantizationType StartEdgeQuantizationType,
+	EQuartzCommandQuantization QuartzCommandQuantization, const float& InNegativeTimeThreshold) const
+{
+	UWorld* World = GetWorld();
+	if(!ensure(IsValid(World)))
+		return 0.0f;
+
+	FQuartzTransportTimeStamp CurrentTimestamp = ClockHandle->GetCurrentTimestamp(World);
+	
+	float Time = CurrentTimestamp.Seconds - InNegativeTimeThreshold;
+	float Value = GetAlignedTime(Time, StartEdgeQuantizationType, QuartzCommandQuantization);
+	return (Value + InNegativeTimeThreshold) - CurrentTimestamp.Seconds;
 }
 
 float UCadenceAssetInstance::GetStartFrameSeconds(UMovieSceneSection* Section) const

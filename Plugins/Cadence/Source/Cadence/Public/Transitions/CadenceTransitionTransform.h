@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CadenceMath.h"
+#include "TickableActions/CadenceMoveTickableActions.h"
 #include "UObject/Object.h"
 #include "CadenceTransitionTransform.generated.h"
 
@@ -36,8 +37,5 @@ public:
 
 protected:
 	UPROPERTY(EditInstanceOnly)
-	EQuartzCommandQuantization StepProgressQuantization = EQuartzCommandQuantization::Beat;
-	
-	UPROPERTY(EditInstanceOnly)
-	EQuartzCommandQuantization StepDelayQuantization = EQuartzCommandQuantization::QuarterNote;
+	FCadenceSteppedTickableParams Params;
 };

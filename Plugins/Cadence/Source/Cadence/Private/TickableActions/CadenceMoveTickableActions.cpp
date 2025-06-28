@@ -28,16 +28,13 @@ bool UCadenceSceneComponentTranslateTickable::Tick(const float& InDeltaSeconds)
 }
 
 UCadenceSceneComponentTranslateSteppedTickable* UCadenceSceneComponentTranslateSteppedTickable::Create(USceneComponent* InSceneComponent, const float& InDuration,
-	const FVector& InEndPoint, const EQuartzCommandQuantization& InStepProgressQuantization,
-	const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase)
+	const FVector& InEndPoint, const FCadenceSteppedTickableParams& InSteppedParams, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase)
 {
-	return Create(InSceneComponent, InDuration, InSceneComponent->GetRelativeLocation(), InEndPoint, InStepProgressQuantization, InStepDelayQuantization, InEase);
+	return Create(InSceneComponent, InDuration, InSceneComponent->GetRelativeLocation(), InEndPoint, InSteppedParams, InEase);
 }
 
 UCadenceSceneComponentTranslateSteppedTickable* UCadenceSceneComponentTranslateSteppedTickable::Create(USceneComponent* InSceneComponent, const float& InDuration,
-	const FVector& InStartPoint, const FVector& InEndPoint,
-	const EQuartzCommandQuantization& InStepProgressQuantization,
-	const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase)
+	const FVector& InStartPoint, const FVector& InEndPoint, const FCadenceSteppedTickableParams& InSteppedParams, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase)
 {
 	if(const UWorld* World = InSceneComponent->GetWorld())
 	{
@@ -45,12 +42,19 @@ UCadenceSceneComponentTranslateSteppedTickable* UCadenceSceneComponentTranslateS
 		{
 			if(UCadenceAssetInstance* ActiveCadenceAsset = CadenceSubsystem->GetPrimaryActiveAsset())
 			{
-				float StepProgressDuration = ActiveCadenceAsset->GetQuantizationDuration(InStepProgressQuantization);
-				float StepDelayDuration = ActiveCadenceAsset->GetQuantizationDuration(InStepDelayQuantization);
+				float StepProgressDuration = ActiveCadenceAsset->GetQuantizationDuration(InSteppedParams.StepProgressQuantization);
+				float StepDelayDuration = ActiveCadenceAsset->GetQuantizationDuration(InSteppedParams.StepDelayQuantization);
+				float InitialOffset = 0.0f;
+				
+				if(InSteppedParams.bAlignFirstDelay)
+				{
+					float NegativeThreshold = ActiveCadenceAsset->GetQuantizationDuration(InSteppedParams.FirstDelayNegativeTimeThresholdQuantization);
+					InitialOffset = ActiveCadenceAsset->GetTimeUntilNextBoundary(InSteppedParams.FirstDelayEdgeStyle, InSteppedParams.StepProgressQuantization, NegativeThreshold);
+				}
 				
 				UCadenceSceneComponentTranslateSteppedTickable* Action = NewObject<UCadenceSceneComponentTranslateSteppedTickable>();
 				Action->SceneComponent = InSceneComponent;
-				Action->Interpolator = UCadenceSteppedInterpolatorVector::Create(InStartPoint, InEndPoint, InDuration, StepProgressDuration, StepDelayDuration, InEase);
+				Action->Interpolator = UCadenceSteppedInterpolatorVector::Create(InStartPoint, InEndPoint, InDuration, StepProgressDuration, StepDelayDuration, InEase, InitialOffset);
 				return Action;
 			}
 		}
@@ -89,17 +93,15 @@ bool UCadenceSceneComponentRotateTickable::Tick(const float& InDeltaSeconds)
 }
 
 UCadenceSceneComponentRotateSteppedTickable* UCadenceSceneComponentRotateSteppedTickable::Create(USceneComponent* InSceneComponent, const float& InDuration,
-	const FRotator& InEndRotation, const EQuartzCommandQuantization& InStepProgressQuantization,
-	const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase,
+	const FRotator& InEndRotation, const FCadenceSteppedTickableParams& InSteppedParams, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase,
 	bool bInShortestPath)
 {
-	return Create(InSceneComponent, InDuration, InSceneComponent->GetRelativeRotation(), InEndRotation, InStepProgressQuantization, InStepDelayQuantization, InEase, bInShortestPath);
+	return Create(InSceneComponent, InDuration, InSceneComponent->GetRelativeRotation(), InEndRotation, InSteppedParams, InEase, bInShortestPath);
 }
 
 UCadenceSceneComponentRotateSteppedTickable* UCadenceSceneComponentRotateSteppedTickable::Create(USceneComponent* InSceneComponent, const float& InDuration,
-	const FRotator& InStartRotation, const FRotator& InEndRotation,
-	const EQuartzCommandQuantization& InStepProgressQuantization,
-	const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase,
+	const FRotator& InStartRotation, const FRotator& InEndRotation, const FCadenceSteppedTickableParams& InSteppedParams,
+	const TEnumAsByte<ECadenceEasingFunc::Type>& InEase,
 	bool bInShortestPath)
 {
 	if(const UWorld* World = InSceneComponent->GetWorld())
@@ -108,12 +110,19 @@ UCadenceSceneComponentRotateSteppedTickable* UCadenceSceneComponentRotateStepped
 		{
 			if(UCadenceAssetInstance* ActiveCadenceAsset = CadenceSubsystem->GetPrimaryActiveAsset())
 			{
-				float StepProgressDuration = ActiveCadenceAsset->GetQuantizationDuration(InStepProgressQuantization);
-				float StepDelayDuration = ActiveCadenceAsset->GetQuantizationDuration(InStepDelayQuantization);
+				float StepProgressDuration = ActiveCadenceAsset->GetQuantizationDuration(InSteppedParams.StepProgressQuantization);
+				float StepDelayDuration = ActiveCadenceAsset->GetQuantizationDuration(InSteppedParams.StepDelayQuantization);
+				float InitialOffset = 0.0f;
+				
+				if(InSteppedParams.bAlignFirstDelay)
+				{
+					float NegativeThreshold = ActiveCadenceAsset->GetQuantizationDuration(InSteppedParams.FirstDelayNegativeTimeThresholdQuantization);
+					InitialOffset = ActiveCadenceAsset->GetTimeUntilNextBoundary(InSteppedParams.FirstDelayEdgeStyle, InSteppedParams.StepProgressQuantization, NegativeThreshold);
+				}
 				
 				UCadenceSceneComponentRotateSteppedTickable* Action = NewObject<UCadenceSceneComponentRotateSteppedTickable>();
 				Action->SceneComponent = InSceneComponent;
-				Action->Interpolator = UCadenceSteppedInterpolatorRotator::Create(InStartRotation, InEndRotation, InDuration, StepProgressDuration, StepDelayDuration, InEase, bInShortestPath);
+				Action->Interpolator = UCadenceSteppedInterpolatorRotator::Create(InStartRotation, InEndRotation, InDuration, StepProgressDuration, StepDelayDuration, InEase, bInShortestPath, InitialOffset);
 				return Action;
 			}
 		}
@@ -152,16 +161,13 @@ bool UCadenceSceneComponentScaleTickable::Tick(const float& InDeltaSeconds)
 }
 
 UCadenceSceneComponentScaleSteppedTickable* UCadenceSceneComponentScaleSteppedTickable::Create(USceneComponent* InActor, const float& InDuration,
-	const FVector& InEndScale, const EQuartzCommandQuantization& InStepProgressQuantization,
-	const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase)
+	const FVector& InEndScale, const FCadenceSteppedTickableParams& InSteppedParams, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase)
 {
-	return Create(InActor, InDuration, InActor->GetRelativeScale3D(), InEndScale, InStepProgressQuantization, InStepDelayQuantization, InEase);
+	return Create(InActor, InDuration, InActor->GetRelativeScale3D(), InEndScale, InSteppedParams, InEase);
 }
 
 UCadenceSceneComponentScaleSteppedTickable* UCadenceSceneComponentScaleSteppedTickable::Create(USceneComponent* InActor, const float& InDuration,
-	const FVector& InStartScale, const FVector& InEndScale,
-	const EQuartzCommandQuantization& InStepProgressQuantization,
-	const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase)
+	const FVector& InStartScale, const FVector& InEndScale, const FCadenceSteppedTickableParams& InSteppedParams, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase)
 {
 	if(const UWorld* World = InActor->GetWorld())
 	{
@@ -169,12 +175,19 @@ UCadenceSceneComponentScaleSteppedTickable* UCadenceSceneComponentScaleSteppedTi
 		{
 			if(UCadenceAssetInstance* ActiveCadenceAsset = CadenceSubsystem->GetPrimaryActiveAsset())
 			{
-				float StepProgressDuration = ActiveCadenceAsset->GetQuantizationDuration(InStepProgressQuantization);
-				float StepDelayDuration = ActiveCadenceAsset->GetQuantizationDuration(InStepDelayQuantization);
+				float StepProgressDuration = ActiveCadenceAsset->GetQuantizationDuration(InSteppedParams.StepProgressQuantization);
+				float StepDelayDuration = ActiveCadenceAsset->GetQuantizationDuration(InSteppedParams.StepDelayQuantization);
+				float InitialOffset = 0.0f;
+				
+				if(InSteppedParams.bAlignFirstDelay)
+				{
+					float NegativeThreshold = ActiveCadenceAsset->GetQuantizationDuration(InSteppedParams.FirstDelayNegativeTimeThresholdQuantization);
+					InitialOffset = ActiveCadenceAsset->GetTimeUntilNextBoundary(InSteppedParams.FirstDelayEdgeStyle, InSteppedParams.StepProgressQuantization, NegativeThreshold);
+				}
 				
 				UCadenceSceneComponentScaleSteppedTickable* Action = NewObject<UCadenceSceneComponentScaleSteppedTickable>();
 				Action->SceneComponent = InActor;
-				Action->Interpolator = UCadenceSteppedInterpolatorVector::Create(InStartScale, InEndScale, InDuration, StepProgressDuration, StepDelayDuration, InEase);
+				Action->Interpolator = UCadenceSteppedInterpolatorVector::Create(InStartScale, InEndScale, InDuration, StepProgressDuration, StepDelayDuration, InEase, InitialOffset);
 				return Action;
 			}
 		}

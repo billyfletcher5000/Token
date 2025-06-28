@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "ICadenceTickableAction.h"
 #include "CadenceInterpolator.h"
+#include "SequencerTrack/CadenceSequencerSection.h"
 
 #include "CadenceMoveTickableActions.generated.h"
 
@@ -27,15 +28,35 @@ private:
 	TObjectPtr<UCadenceInterpolatorVector> Interpolator;
 };
 
+USTRUCT()
+struct FCadenceSteppedTickableParams
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditInstanceOnly)
+	EQuartzCommandQuantization StepProgressQuantization = EQuartzCommandQuantization::Beat;
+	
+	UPROPERTY(EditInstanceOnly)
+	EQuartzCommandQuantization StepDelayQuantization = EQuartzCommandQuantization::QuarterNote;
+
+	UPROPERTY(EditInstanceOnly)
+	bool bAlignFirstDelay = true;
+
+	UPROPERTY(EditInstanceOnly)
+	ECadenceSectionEdgeQuantizationType FirstDelayEdgeStyle = ECadenceSectionEdgeQuantizationType::After;
+
+	UPROPERTY(EditInstanceOnly)
+	EQuartzCommandQuantization FirstDelayNegativeTimeThresholdQuantization = EQuartzCommandQuantization::SixteenthNote;
+};
+
 UCLASS()
 class CADENCE_API UCadenceSceneComponentTranslateSteppedTickable : public UObject, public ICadenceTickableAction
 {
 	GENERATED_BODY()
 	
 public:
-	static UCadenceSceneComponentTranslateSteppedTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FVector& InEndPoint, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
-	static UCadenceSceneComponentTranslateSteppedTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FVector& InStartPoint, const FVector& InEndPoint, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
-
+	static UCadenceSceneComponentTranslateSteppedTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FVector& InEndPoint, const FCadenceSteppedTickableParams& InSteppedParams, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
+	static UCadenceSceneComponentTranslateSteppedTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FVector& InStartPoint, const FVector& InEndPoint, const FCadenceSteppedTickableParams& InSteppedParams, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
 	virtual bool Tick(const float& InDeltaSeconds) override;
 	
 private:
@@ -71,8 +92,8 @@ class CADENCE_API UCadenceSceneComponentRotateSteppedTickable : public UObject, 
 	GENERATED_BODY()
 	
 public:
-	static UCadenceSceneComponentRotateSteppedTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FRotator& InEndRotation, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
-	static UCadenceSceneComponentRotateSteppedTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FRotator& InStartRotation, const FRotator& InEndRotation, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
+	static UCadenceSceneComponentRotateSteppedTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FRotator& InEndRotation, const FCadenceSteppedTickableParams& InSteppedParams, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
+	static UCadenceSceneComponentRotateSteppedTickable* Create(USceneComponent* InSceneComponent, const float& InDuration, const FRotator& InStartRotation, const FRotator& InEndRotation, const FCadenceSteppedTickableParams& InSteppedParams, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear, bool bInShortestPath = true);
 
 	virtual bool Tick(const float& InDeltaSeconds) override;
 	
@@ -109,8 +130,8 @@ class CADENCE_API UCadenceSceneComponentScaleSteppedTickable : public UObject, p
 	GENERATED_BODY()
 	
 public:
-	static UCadenceSceneComponentScaleSteppedTickable* Create(USceneComponent* InActor, const float& InDuration, const FVector& InEndScale, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
-	static UCadenceSceneComponentScaleSteppedTickable* Create(USceneComponent* InActor, const float& InDuration, const FVector& InStartScale, const FVector& InEndScale, const EQuartzCommandQuantization& InStepProgressQuantization, const EQuartzCommandQuantization& InStepDelayQuantization, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
+	static UCadenceSceneComponentScaleSteppedTickable* Create(USceneComponent* InActor, const float& InDuration, const FVector& InEndScale,  const FCadenceSteppedTickableParams& InSteppedParams, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
+	static UCadenceSceneComponentScaleSteppedTickable* Create(USceneComponent* InActor, const float& InDuration, const FVector& InStartScale, const FVector& InEndScale,  const FCadenceSteppedTickableParams& InSteppedParams, const TEnumAsByte<ECadenceEasingFunc::Type>& InEase = ECadenceEasingFunc::Linear);
 
 	virtual bool Tick(const float& InDeltaSeconds) override;
 	

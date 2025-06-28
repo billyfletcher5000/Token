@@ -47,6 +47,8 @@ public:
 	void Init(UCadenceAsset* InAsset);
 	virtual void BeginDestroy() override;
 	
+	float GetAlignedTime(float TimeInSeconds, ECadenceSectionEdgeQuantizationType StartEdgeQuantizationType, EQuartzCommandQuantization QuartzCommandQuantization) const;
+	float GetTimeUntilNextBoundary(ECadenceSectionEdgeQuantizationType StartEdgeQuantizationType, EQuartzCommandQuantization QuartzCommandQuantization, const float& InNegativeTimeThreshold = 0.0f) const;
 	void GenerateSectionDurationData(UCadenceSequencerSection* InStartSection);
 	float GetSectionDuration(const FString& SectionName) const;
 
@@ -74,7 +76,6 @@ public:
 	FCadenceSectionDelegate OnSectionEnded;
 	
 private:
-	float GetAlignedTime(float TimeInSeconds, ECadenceSectionEdgeQuantizationType StartEdgeQuantizationType, EQuartzCommandQuantization QuartzCommandQuantization) const;
 	float GetStartFrameSeconds(UMovieSceneSection* Section) const;
 	float GetEndFrameSeconds(UMovieSceneSection* Section) const;
 	
