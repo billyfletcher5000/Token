@@ -52,8 +52,7 @@ FReply FCadenceItemDragDropAction::DroppedOnCategory(FText Category)
 	return FReply::Handled();
 }
 
-FReply FCadenceItemDragDropAction::DroppedOnPanel(const TSharedRef<SWidget>& Panel, FVector2D ScreenPosition,
-	FVector2D GraphPosition, UEdGraph& Graph)
+FReply FCadenceItemDragDropAction::DroppedOnPanel(const TSharedRef< SWidget >& Panel, const FVector2f& ScreenPosition, const FVector2f& GraphPosition, UEdGraph& Graph)
 {
 	FReply Reply = FReply::Unhandled();
 

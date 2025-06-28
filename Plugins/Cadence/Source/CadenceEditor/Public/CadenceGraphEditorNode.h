@@ -64,7 +64,7 @@ public:
 
 	void Construct( const FArguments& InArgs, UCadenceGraphEditorNode* InNode );
 	
-	virtual void MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty) override;
+	virtual void MoveTo(const FVector2f& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty) override;
 
 protected:
 	virtual TSharedPtr<SGraphPin> CreatePinWidget(UEdGraphPin* Pin) const override;

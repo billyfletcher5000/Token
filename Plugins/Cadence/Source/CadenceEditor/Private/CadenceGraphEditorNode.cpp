@@ -404,7 +404,7 @@ void SCadenceGraphNode::Construct(const FArguments& InArgs, UCadenceGraphEditorN
 	this->UpdateGraphNode();
 }
 
-void SCadenceGraphNode::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty)
+void SCadenceGraphNode::MoveTo(const FVector2f& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty)
 {
 	SGraphNode::MoveTo(NewPosition, NodeFilter, bMarkDirty);
 

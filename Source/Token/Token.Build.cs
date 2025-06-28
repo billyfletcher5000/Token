@@ -13,8 +13,7 @@ public class Token : ModuleRules
 			"Core", 
 			"CoreUObject", 
 			"Engine", 
-			"InputCore", 
-			"Token", 
+			"InputCore",
 			"AudioMixer",
 			"Cadence"
 		});

@@ -19,7 +19,7 @@ public:
 	// FGraphEditorDragDropAction interface
 	virtual FReply DroppedOnAction(TSharedRef<FEdGraphSchemaAction> Action) override;
 	virtual FReply DroppedOnCategory(FText Category) override;
-	virtual FReply DroppedOnPanel( const TSharedRef< class SWidget >& Panel, FVector2D ScreenPosition, FVector2D GraphPosition, UEdGraph& Graph) override;
+	virtual FReply DroppedOnPanel(const TSharedRef< SWidget >& Panel, const FVector2f& ScreenPosition, const FVector2f& GraphPosition, UEdGraph& Graph) override;
 	virtual void HoverTargetChanged() override;
 	// End of FGraphEditorDragDropAction
 
