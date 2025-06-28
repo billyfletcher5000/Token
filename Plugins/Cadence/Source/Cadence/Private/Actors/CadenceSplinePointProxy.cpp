@@ -77,3 +77,4 @@ bool UCadenceSplinePointProxySceneComponent::MoveComponentImpl(const FVector& De
 	return true;
 }
 
+#undef LOCTEXT_NAMESPACE

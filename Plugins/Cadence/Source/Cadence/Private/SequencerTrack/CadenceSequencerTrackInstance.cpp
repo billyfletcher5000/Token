@@ -156,9 +156,10 @@ UMovieSceneSequence* UCadenceSequencerTrackInstance::GetMovieSceneSequence(const
 	else
 	{
 		RootSequenceInstance = &SequenceInstance;
-	}
+	}	
 	
-	IMovieScenePlayer* Player = RootSequenceInstance->GetPlayer();
+	FPlayerIndexPlaybackCapability* PlayerIndexPlaybackCapability = RootSequenceInstance->GetSharedPlaybackState()->FindCapability<FPlayerIndexPlaybackCapability>();
+	IMovieScenePlayer* Player = PlayerIndexPlaybackCapability->GetPlayer(RootSequenceInstance->GetSharedPlaybackState());
 	const FMovieSceneRootEvaluationTemplateInstance& EvalTemplate = Player->GetEvaluationTemplate();
 	const FMovieSceneSequenceID SequenceID = RootSequenceInstance->GetSequenceID();
 	return EvalTemplate.GetSequence(SequenceID);

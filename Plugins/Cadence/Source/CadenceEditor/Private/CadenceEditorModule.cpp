@@ -134,4 +134,4 @@ void FCadenceEditorModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 	
-IMPLEMENT_MODULE(FCadenceEditorModule, Cadence)
+IMPLEMENT_MODULE(FCadenceEditorModule, CadenceEditor)

@@ -135,7 +135,7 @@ void UCadenceGridCreateLineNode::GetPreviewDrawCommands(TArray<UCadenceGridPrevi
 	
 	InDrawCommandList.Add(PointCommand);
 
-	FVector2D PivotPosition;
+	FVector2D PivotPosition = FVector2D::ZeroVector;
 	switch (PivotType)
 	{
 		case ECadenceSplinePivot::Manual:

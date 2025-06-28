@@ -4,7 +4,7 @@
 #include "CadenceMath.h"
 
 /** Interpolate a linear alpha value using an ease mode and function. */
-template<typename FloatType, TEMPLATE_REQUIRES(TIsFloatingPoint<FloatType>::Value)>
+template<typename FloatType UE_REQUIRES(TIsFloatingPoint<FloatType>::Value)>
 FloatType EaseAlpha(FloatType InAlpha, uint8 EasingFunc, FloatType BlendExp, int32 Steps)
 {
 	switch (EasingFunc)

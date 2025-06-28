@@ -503,7 +503,7 @@ void FCadenceGraphApplication::PasteClipboardNodes()
 	if (SlateGraphEditor.IsValid())
 	{
 		TSharedPtr<SGraphEditor> PinnedSlateGraphEditor = SlateGraphEditor.Pin();
-		PasteClipboardNodesAtLocation(PinnedSlateGraphEditor->GetPasteLocation());
+		PasteClipboardNodesAtLocation(PinnedSlateGraphEditor->GetPasteLocation2f());
 	}
 }
 

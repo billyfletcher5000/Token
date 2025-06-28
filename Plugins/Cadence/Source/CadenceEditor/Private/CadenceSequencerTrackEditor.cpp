@@ -214,7 +214,7 @@ void FCadenceSequencerTrackEditor::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
 			continue;
 		}
 
-		UCadenceSequencerTrack* TrackCDO = Cast<UCadenceSequencerTrack>(ThisClass->ClassDefaultObject);
+		UCadenceSequencerTrack* TrackCDO = ThisClass->GetDefaultObject<UCadenceSequencerTrack>();
 		if(!TrackCDO)
 		{
 			continue;
