@@ -56,11 +56,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "ArrayHelper",
-			"Enabled": true,
-			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/813e339b92ad4cf587a4cef56bec7020"
-		},
-		{
 			"Name": "WidgetEditorToolPalette",
 			"Enabled": true
 		},
