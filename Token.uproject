@@ -103,6 +103,14 @@
 		{
 			"Name": "GeometryScripting",
 			"Enabled": true
+		},
+		{
+			"Name": "MetasoundExperimental",
+			"Enabled": true
+		},
+		{
+			"Name": "Harmonix",
+			"Enabled": true
 		}
 	]
 }

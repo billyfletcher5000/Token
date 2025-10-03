@@ -39,6 +39,7 @@ void UCadenceAssetInstance::GenerateSectionDurationData(UCadenceSequencerSection
 	Settings.TimeSignature = Graph->GetTimeSignature();
 	UQuartzClockHandle* NewClockHandle = QuartzSubsystem->CreateNewClock(this, FName(Asset->GetName()), Settings);
 
+	//NewClockHandle->UnsubscribeFromTimeDivision()
 	FQuartzQuantizationBoundary Boundary;
 	FOnQuartzCommandEventBP EmptyDelegate;	
 	

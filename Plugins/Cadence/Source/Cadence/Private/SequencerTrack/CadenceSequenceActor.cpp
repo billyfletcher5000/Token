@@ -7,6 +7,7 @@
 #include "CadenceSubsystem.h"
 #include "Runtime/LevelSequence/Public/LevelSequencePlayer.h"
 #include "MovieSceneSequencePlayer.h"
+#include "SequencerTrack/CadenceSequencerTrack.h"
 
 
 void ACadenceSequenceActor::PostInitializeComponents()
@@ -21,6 +22,26 @@ void ACadenceSequenceActor::PostInitializeComponents()
 		Player->OnStop.AddUniqueDynamic(this, &ACadenceSequenceActor::OnPlayerStopped);
 		Player->OnFinished.AddUniqueDynamic(this, &ACadenceSequenceActor::OnPlayerStopped);
 		Player->OnSequenceUpdated().AddUObject(this, &ACadenceSequenceActor::OnPlayerUpdated);
+	}
+
+
+	auto tracks = LevelSequenceAsset->GetMovieScene()->GetTracks();
+	for(auto track : tracks)
+	{
+		if (UCadenceSequencerTrack* CadenceTrack = Cast<UCadenceSequencerTrack>(track))
+		{
+			auto Sections = CadenceTrack->GetAllSections();
+			for(auto Section : Sections)
+			{
+				if (UCadenceSequencerSection* CadenceSection = Cast<UCadenceSequencerSection>(Section))
+				{
+					if (Sections.IndexOfByKey(Section) == 0)
+					{
+						
+					}
+				}
+			}
+		}
 	}
 	
 	Super::PostInitializeComponents();
