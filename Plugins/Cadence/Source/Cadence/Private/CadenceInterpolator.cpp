@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright (C) Billy Fletcher 2025
 
 
 #include "CadenceInterpolator.h"
