@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Billy Fletcher (c) 2025
 
 
 #include "Reaction/CadenceReactionGroupFactory.h"
