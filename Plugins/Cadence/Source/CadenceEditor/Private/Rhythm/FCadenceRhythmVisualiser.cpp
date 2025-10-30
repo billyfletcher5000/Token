@@ -1,155 +1,18 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "CadenceEditorModule.h"
 
-#include "CadenceSettings.h"
-#include "Graph/CadenceGraph.h"
-#include "CadenceGraphAssetAction.h"
-#include "CadenceGraphEditorNode.h"
-#include "CadenceGraphEditorPin.h"
+#include "FCadenceRhythmVisualiser.h"
+
 #include "CadenceGraphPropertyCustomization.h"
-#include "Reaction/CadenceReactionGroupAssetAction.h"
-#include "CadenceSequencerSectionNameCustomization.h"
-#include "CadenceSequencerTrackEditor.h"
-#include "CadenceVariableInlineWidgetFunctions.h"
-#include "IAssetTools.h"
 #include "ISequencerModule.h"
-#include "ISettingsModule.h"
-#include "Reaction/CadenceReactionGroup.h"
-#include "Interfaces/IPluginManager.h"
-#include "Places/CadencePlaces.h"
-#include "Places/CadencePlacesSnapshotCustomisation.h"
-#include "Places/CadenceStageDetailCustomization.h"
-#include "Reaction/CadenceReactionGroupCustomization.h"
-#include "Rhythm/CadenceRhythmTrackMidiAssetAction.h"
-#include "Sections/MovieSceneAudioSection.h"
-#include "SequencerTrack/CadenceSequencerSection.h"
-#include "Styling/SlateStyleRegistry.h"
-#include "Tracks/MovieSceneAudioTrack.h"
-#include "Utility/CadenceTransientDetector.h"
-#include "ISequencer.h"
+#include "MovieScene.h"
 #include "AssetRegistry/AssetRegistryModule.h"
-#include "Chaos/Character/CharacterGroundConstraintContainer.h"
+#include "Sections/MovieSceneAudioSection.h"
+#include "Tracks/MovieSceneAudioTrack.h"
 
-#define LOCTEXT_NAMESPACE "FCadenceEditorModule"
+#define LOCTEXT_NAMESPACE "FCadenceRhythmVisualiser"
 
-const FName FCadenceEditorModule::CategoryKey = FName(TEXT("Cadence"));
-const FText FCadenceEditorModule::CategoryDisplayName = FText::FromString(TEXT("Cadence"));
-const FName FCadenceEditorModule::StyleSetName = FName(TEXT("CadenceStyle"));
-
-void FCadenceEditorModule::StartupModule()
-{
-	ISettingsModule* SettingsModule = FModuleManager::Get().GetModulePtr<ISettingsModule>("Settings");
-	if (SettingsModule)
-	{
-		SettingsModule->RegisterSettings("Project", "Plugins", "Cadence", NSLOCTEXT("Cadence", "Cadence", "Cadence"),
-			NSLOCTEXT("Cadence", "Configure Cadence settings", "Configure Cadence settings"), GetMutableDefault<UCadenceSettings>());
-	}
-
-	
-	IAssetTools& AssetToolsModule = IAssetTools::Get();
-	EAssetTypeCategories::Type AssetType = AssetToolsModule.RegisterAdvancedAssetCategory(CategoryKey, CategoryDisplayName);
-
-	// Add Graph
-	TSharedPtr<FCadenceGraphAssetAction> GraphAssetAction = MakeShareable(new FCadenceGraphAssetAction(AssetType));
-	AssetToolsModule.RegisterAssetTypeActions(GraphAssetAction.ToSharedRef());
-
-	TSharedPtr<FCadenceReactionGroupAssetAction> ReactionGroupAssetAction = MakeShareable(new FCadenceReactionGroupAssetAction(AssetType));
-	AssetToolsModule.RegisterAssetTypeActions(ReactionGroupAssetAction.ToSharedRef());
-
-	TSharedPtr<FCadenceRhythmTrackMidiAssetAction> RhythmAssetAction = MakeShareable(new FCadenceRhythmTrackMidiAssetAction(AssetType));
-	AssetToolsModule.RegisterAssetTypeActions(RhythmAssetAction.ToSharedRef());
-	
-	TSharedPtr<FCadenceReactionGroupBPPanelPinFactory> ReactionGroupBPPanelPinFactory = MakeShareable(new FCadenceReactionGroupBPPanelPinFactory());
-	FEdGraphUtilities::RegisterVisualPinFactory(ReactionGroupBPPanelPinFactory);
-
-	// Create Style Set
-	StyleSet = MakeShareable(new FSlateStyleSet(StyleSetName));
-	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin("Cadence");
-	FString ContentDir = Plugin->GetContentDir();
-	StyleSet->SetContentRoot(ContentDir);
-
-	// Add Graph Icons
-	FSlateImageBrush* ThumbnailBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/CadenceGraph_Thumbnail_64x"), TEXT(".png")), FVector2D(64.0, 64.0));
-	FSlateImageBrush* IconBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/CadenceGraph_Icon_64x"), TEXT(".png")), FVector2D(64.0, 64.0));
-	FSlateImageBrush* TrackIconBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/Cadence_Icon_16x"), TEXT(".png")), FVector2D(16.0, 16.0));
-	FSlateImageBrush* GridPreviewBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/CadenceGraph_GridPreview_Grid_128x"), TEXT(".png")), FVector2D(128.0, 128.0));
-	FSlateImageBrush* GridPointBrush = new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icons/CadenceGraph_GridPreview_Point_11x"), TEXT(".png")), FVector2D(11.0, 11.0));
-	
-	StyleSet->Set(TEXT("ClassThumbnail.CadenceGraph"), ThumbnailBrush);
-	StyleSet->Set(TEXT("ClassThumbnail.CadenceAsset"), ThumbnailBrush);
-	StyleSet->Set(TEXT("ClassIcon.CadenceGraph"), IconBrush);
-	StyleSet->Set(TEXT("ClassIcon.CadenceAsset"), IconBrush);
-	StyleSet->Set(TEXT("ClassIcon.CadenceTrack"), TrackIconBrush);
-	StyleSet->Set(TEXT("NodePreview.CadenceGrid"), GridPreviewBrush);
-	StyleSet->Set(TEXT("NodePreview.GridPoint"), GridPointBrush);
-
-	// Register Style Set
-	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet);
-
-	PanelPinFactory = MakeShareable(new FCadenceGraphEditorPanelPinFactory());
-	FEdGraphUtilities::RegisterVisualPinFactory(PanelPinFactory);
-	
-	NodeFactory = MakeShareable(new FCadenceGraphEditorNodeFactory());
-	FEdGraphUtilities::RegisterVisualNodeFactory(NodeFactory);
-
-	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-
-	PropertyModule.RegisterCustomClassLayout(UCadenceGraph::StaticClass()->GetFName(),
-		FOnGetDetailCustomizationInstance::CreateStatic( &FCadenceGraphCustomization::MakeInstance ) );
-	PropertyModule.RegisterCustomClassLayout(UCadenceReactionGroup::StaticClass()->GetFName(),
-		FOnGetDetailCustomizationInstance::CreateStatic( &FCadenceReactionGroupCustomization::MakeInstance) );
-	PropertyModule.RegisterCustomClassLayout(ACadenceStageActor::StaticClass()->GetFName(),
-		FOnGetDetailCustomizationInstance::CreateStatic( &FCadenceStageDetailCustomization::MakeInstance) );
-	PropertyModule.RegisterCustomClassLayout(UCadencePlacesSnapshot::StaticClass()->GetFName(),
-		FOnGetDetailCustomizationInstance::CreateStatic( &FCadencePlacesSnapshotDetailCustomization::MakeInstance) );
-	
-	PropertyModule.NotifyCustomizationModuleChanged();
-
-	FCadenceVariableInlineWidgetFunctions::RegisterAll(VariableToInlineWidgetFunc);
-	
-	ISequencerModule& SequencerModule = FModuleManager::Get().LoadModuleChecked<ISequencerModule>("Sequencer");
-	CustomTrackEditorHandle = SequencerModule.RegisterTrackEditor(FOnCreateTrackEditor::CreateStatic(&FCadenceSequencerTrackEditor::CreateTrackEditor));
-
-	//RegisterSequencerExtensions();
-	RegisterMenuExtensions();
-}
-
-void FCadenceEditorModule::ShutdownModule()
-{
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
-
-	UnregisterSequencerExtensions();
-
-	// Unregister Style Set
-	FSlateStyleRegistry::UnRegisterSlateStyle(*StyleSet);
-
-	FEdGraphUtilities::UnregisterVisualPinFactory(PanelPinFactory);
-	PanelPinFactory = nullptr;
-	
-	FEdGraphUtilities::UnregisterVisualNodeFactory(NodeFactory);
-	NodeFactory = nullptr;
-	
-	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	
-	PropertyModule.UnregisterCustomClassLayout(UCadenceGraph::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomClassLayout(UCadenceReactionGroup::StaticClass()->GetFName());
-	
-	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceGraphUserVariableSet::StaticStruct()->GetFName());
-	PropertyModule.UnregisterCustomPropertyTypeLayout(FCadenceNamedVariable::StaticStruct()->GetFName());
-	PropertyModule.UnregisterCustomPropertyTypeLayout(ACadenceStageActor::StaticClass()->GetFName());
-	PropertyModule.UnregisterCustomPropertyTypeLayout(UCadencePlacesSnapshot::StaticClass()->GetFName());
-	
-	VariableToInlineWidgetFunc.Empty();
-	
-	if (ISequencerModule* SequencerModule = FModuleManager::Get().GetModulePtr<ISequencerModule>("Sequencer"))
-	{
-		SequencerModule->UnRegisterTrackEditor(CustomTrackEditorHandle);
-	}
-}
-
-void FCadenceEditorModule::RegisterSequencerExtensions()
+void FCadenceRhythmVisualiser::RegisterSequencerExtensions()
 {	
     UE_LOG(LogCadenceEditor, Warning, TEXT("Registering Sequencer menu extensions via ToolMenus"));
     
@@ -250,7 +113,7 @@ void FCadenceEditorModule::RegisterSequencerExtensions()
 }
 
 
-void FCadenceEditorModule::UnregisterSequencerExtensions()
+void FCadenceRhythmVisualiser::UnregisterSequencerExtensions()
 {
 	if (UObjectInitialized() && !IsEngineExitRequested())
 	{
@@ -258,18 +121,18 @@ void FCadenceEditorModule::UnregisterSequencerExtensions()
 	}
 }
 
-void FCadenceEditorModule::OnSequencerCreated(TSharedRef<ISequencer> InSequencer)
+void FCadenceRhythmVisualiser::OnSequencerCreated(TSharedRef<ISequencer> InSequencer)
 {
     ActiveSequencers.Add(InSequencer);
     UE_LOG(LogCadenceEditor, Log, TEXT("Stored sequencer reference"));
 }
 
-void FCadenceEditorModule::RegisterMenuExtensions()
+void FCadenceRhythmVisualiser::RegisterMenuExtensions()
 {
     // Register sequencer creation callback
     ISequencerModule& SequencerModule = FModuleManager::LoadModuleChecked<ISequencerModule>("Sequencer");
     SequencerModule.RegisterOnSequencerCreated(
-        FOnSequencerCreated::FDelegate::CreateRaw(this, &FCadenceEditorModule::OnSequencerCreated)
+        FOnSequencerCreated::FDelegate::CreateRaw(this, &FCadenceRhythmVisualiser::OnSequencerCreated)
     );
     
     // Register ToolMenu
@@ -387,7 +250,7 @@ void FCadenceEditorModule::RegisterMenuExtensions()
 								: LOCTEXT("SelectTransientSettingsSubMenuLabel", "Select Transient Settings");
 					}),					
 					LOCTEXT("SelectTransientSettingsSubMenuToolTip", "Select Transient Settings asset used for calculating transients"),
-					FNewToolMenuDelegate::CreateRaw(this, &FCadenceEditorModule::MakeSelectTransientSettingsSubMenu),
+					FNewToolMenuDelegate::CreateRaw(this, &FCadenceRhythmVisualiser::MakeSelectTransientSettingsSubMenu),
 					FUIAction(
 						FExecuteAction(),
 						FCanExecuteAction::CreateLambda([] { return true; })
@@ -401,7 +264,7 @@ void FCadenceEditorModule::RegisterMenuExtensions()
     );
 }
 
-void FCadenceEditorModule::MakeSelectTransientSettingsSubMenu(UToolMenu* ToolMenu)
+void FCadenceRhythmVisualiser::MakeSelectTransientSettingsSubMenu(UToolMenu* ToolMenu)
 {
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	TArray<FAssetData> AssetData;
@@ -434,7 +297,7 @@ void FCadenceEditorModule::MakeSelectTransientSettingsSubMenu(UToolMenu* ToolMen
 	}
 }
 
-TSharedPtr<ISequencer> FCadenceEditorModule::GetActiveSequencer()
+TSharedPtr<ISequencer> FCadenceRhythmVisualiser::GetActiveSequencer()
 {
     // Clean up invalid weak pointers
     ActiveSequencers.RemoveAll([](const TWeakPtr<ISequencer>& Ptr) { return !Ptr.IsValid(); });
@@ -451,7 +314,7 @@ TSharedPtr<ISequencer> FCadenceEditorModule::GetActiveSequencer()
     return nullptr;
 }
 
-void FCadenceEditorModule::ProcessAudioTrack(UMovieSceneAudioTrack* AudioTrack, TSharedPtr<ISequencer> Sequencer)
+void FCadenceRhythmVisualiser::ProcessAudioTrack(UMovieSceneAudioTrack* AudioTrack, TSharedPtr<ISequencer> Sequencer)
 {
     UE_LOG(LogCadenceEditor, Log, TEXT("Processing track: %s"), *AudioTrack->GetDisplayName().ToString());
     
@@ -464,7 +327,7 @@ void FCadenceEditorModule::ProcessAudioTrack(UMovieSceneAudioTrack* AudioTrack, 
     }
 }
 
-void FCadenceEditorModule::ProcessAudioSection(UMovieSceneAudioSection* AudioSection, TSharedPtr<ISequencer> Sequencer)
+void FCadenceRhythmVisualiser::ProcessAudioSection(UMovieSceneAudioSection* AudioSection, TSharedPtr<ISequencer> Sequencer)
 {
     if (USoundWave* SoundWave = Cast<USoundWave>(AudioSection->GetSound()))
     {
@@ -482,51 +345,8 @@ void FCadenceEditorModule::ProcessAudioSection(UMovieSceneAudioSection* AudioSec
     }
 }
 
-void FCadenceEditorModule::CreateMarkersFromTransients(const TArray<FCadenceTransientInfo>& Transients, UMovieSceneAudioSection* AudioSection, TSharedPtr<ISequencer> Sequencer)
+void FCadenceRhythmVisualiser::CreateMarkersFromTransients(const TArray<FCadenceTransientInfo>& Transients, UMovieSceneAudioSection* AudioSection, TSharedPtr<ISequencer> Sequencer)
 {
-	/*
-    UMovieSceneSequence* Sequence = Sequencer->GetFocusedMovieSceneSequence();
-    if (!Sequence)
-    {
-        return;
-    }
-    
-    UMovieScene* MovieScene = Sequence->GetMovieScene();
-    if (!MovieScene)
-    {
-        return;
-    }
-    
-    // Get section start time
-    FFrameNumber SectionStartFrame = AudioSection->GetInclusiveStartFrame();
-    FFrameRate TickResolution = MovieScene->GetTickResolution();
-
-	MovieScene->DeleteMarkedFrames();
-    
-    // Create a marker for each transient
-    for (const FCadenceTransientInfo& Transient : Transients)
-    {
-        // Convert time to frame number
-        FFrameNumber MarkerFrame = SectionStartFrame + 
-            FFrameNumber((int32)(Transient.TimeInSeconds * TickResolution.AsDecimal()));
-        
-        // Add marker to the movie scene
-        FMovieSceneMarkedFrame Marker = FMovieSceneMarkedFrame(MarkerFrame);
-        
-        // Set marker label
-        Marker.Label = FString::Printf(TEXT("Transient %.2f"), Transient.TransientStrength);
-    	
-    	MovieScene->AddMarkedFrame(Marker);
-        
-        UE_LOG(LogCadenceEditor, Log, TEXT("Created marker at frame %d for transient at %.3fs"), 
-            MarkerFrame.Value, Transient.TimeInSeconds);
-    }
-    
-    // Notify sequencer of changes
-    Sequencer->NotifyMovieSceneDataChanged(EMovieSceneDataChangeType::MovieSceneStructureItemsChanged);
-    
-    UE_LOG(LogCadenceEditor, Log, TEXT("Created %d markers"), Transients.Num());*/
-
 	UMovieSceneSequence* Sequence = Sequencer->GetFocusedMovieSceneSequence();
     if (!Sequence)
     {
@@ -628,5 +448,3 @@ void FCadenceEditorModule::CreateMarkersFromTransients(const TArray<FCadenceTran
 }
 
 #undef LOCTEXT_NAMESPACE
-	
-IMPLEMENT_MODULE(FCadenceEditorModule, CadenceEditor)

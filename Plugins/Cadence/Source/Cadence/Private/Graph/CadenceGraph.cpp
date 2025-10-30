@@ -79,7 +79,6 @@ TArray<TObjectPtr<UCadenceGraphNode>> UCadenceGraph::GetRootExecNodesThatLeadToN
 {
 	TArray<TObjectPtr<UCadenceGraphNode>> RootNodes;
 
-	//if(!ensureMsgf(!InNode->IsPure(), TEXT("Pure node calculation currently unsupported!")))
 	if(InNode->IsPure() && !InNode->IsReroute())
 	{
 		return RootNodes;

@@ -29,6 +29,8 @@ public class Cadence : ModuleRules
 				"MovieScene",
 				"LevelSequence", 
 				"AudioSynesthesia",
+				"Harmonix",
+				"HarmonixMidi",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

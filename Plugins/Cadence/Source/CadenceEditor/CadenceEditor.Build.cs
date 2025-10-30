@@ -54,7 +54,13 @@ public class CadenceEditor : ModuleRules
 				"MovieScene",
 				"MovieSceneTracks",
 				"ToolWidgets",
-				"BlueprintGraph"
+				"BlueprintGraph",
+				"Harmonix",
+				"HarmonixMidi",
+				"HarmonixEditor",
+				"HarmonixMidiEditor",
+				"ToolMenus",
+				"ToolMenusEditor"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
